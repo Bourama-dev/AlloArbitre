@@ -14,6 +14,7 @@ const links = [
   { href: "/matchs", label: "Matchs" },
   { href: "/matchs/incomplets", label: "Incomplets" },
   { href: "/arbitres", label: "Arbitres" },
+  { href: "/reglement", label: "Règlement" },
 ];
 
 const adminLinks = [

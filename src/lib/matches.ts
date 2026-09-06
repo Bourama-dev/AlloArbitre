@@ -78,6 +78,18 @@ export async function listCompetitionLevels() {
   return data as { id: string; label: string }[];
 }
 
+export async function listMatchCities() {
+  const { data, error } = await supabaseAdmin
+    .from("Match")
+    .select("city")
+    .not("city", "is", null);
+  if (error) throw error;
+  const cities = Array.from(new Set((data ?? []).map((r) => r.city as string)));
+  return cities.sort();
+}
+
+export type MatchSort = "date_asc" | "date_desc" | "level" | "city";
+
 export async function getMatchById(id: string): Promise<MatchWithRelations | null> {
   const { data, error } = await supabaseAdmin
     .from("Match")
@@ -94,25 +106,55 @@ export async function findMatches({
   to,
   competitionLevelId,
   status,
+  search,
+  city,
+  sort = "date_asc",
 }: {
   from?: Date;
   to?: Date;
   competitionLevelId?: string;
   status?: MatchStatus | "toutes";
+  search?: string;
+  city?: string;
+  sort?: MatchSort;
 }): Promise<MatchWithRelations[]> {
-  let query = supabaseAdmin
-    .from("Match")
-    .select(MATCH_SELECT)
-    .order("date", { ascending: true });
+  let query = supabaseAdmin.from("Match").select(MATCH_SELECT);
 
   if (from) query = query.gte("date", from.toISOString());
   if (to) query = query.lt("date", to.toISOString());
   if (competitionLevelId) query = query.eq("competitionLevelId", competitionLevelId);
+  if (city) query = query.eq("city", city);
+  if (search) {
+    const term = search.trim().replace(/[%,]/g, "");
+    if (term) query = query.or(`"homeTeam".ilike.%${term}%,"awayTeam".ilike.%${term}%`);
+  }
 
   const { data, error } = await query;
   if (error) throw error;
 
-  const matches = ((data ?? []) as unknown as Parameters<typeof mapMatch>[0][]).map(mapMatch);
-  if (!status || status === "toutes") return matches;
-  return matches.filter((m) => matchStatus(m) === status);
+  let matches = ((data ?? []) as unknown as Parameters<typeof mapMatch>[0][]).map(mapMatch);
+  if (status && status !== "toutes") {
+    matches = matches.filter((m) => matchStatus(m) === status);
+  }
+
+  matches.sort((a, b) => {
+    switch (sort) {
+      case "date_desc":
+        return b.date.getTime() - a.date.getTime();
+      case "level":
+        return (
+          a.competitionLevel.label.localeCompare(b.competitionLevel.label) ||
+          a.date.getTime() - b.date.getTime()
+        );
+      case "city":
+        return (
+          (a.city ?? "").localeCompare(b.city ?? "") || a.date.getTime() - b.date.getTime()
+        );
+      case "date_asc":
+      default:
+        return a.date.getTime() - b.date.getTime();
+    }
+  });
+
+  return matches;
 }

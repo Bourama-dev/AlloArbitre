@@ -52,25 +52,35 @@ export async function listRefereeLevels() {
   return data as { id: string; label: string; rank: number }[];
 }
 
+export type RefereeStatusFilter = "actifs" | "inactifs" | "toutes";
+export type RefereeSort = "nom" | "niveau" | "club" | "charge_asc" | "charge_desc";
+
 /** Arbitres avec leur charge actuelle = nb de désignations sur des matchs à venir (non annulés). */
 export async function listRefereesWithLoad({
   levelId,
   zone,
-  onlyActive = true,
+  search,
+  status = "actifs",
+  sort = "nom",
 }: {
   levelId?: string;
   zone?: string;
-  onlyActive?: boolean;
+  search?: string;
+  status?: RefereeStatusFilter;
+  sort?: RefereeSort;
 } = {}) {
   let query = supabaseAdmin
     .from("Referee")
-    .select(`${REFEREE_FIELDS}, level:RefereeLevel(id, label, rank)`)
-    .order("lastName", { ascending: true })
-    .order("firstName", { ascending: true });
+    .select(`${REFEREE_FIELDS}, level:RefereeLevel(id, label, rank)`);
 
   if (levelId) query = query.eq("levelId", levelId);
   if (zone) query = query.eq("zone", zone);
-  if (onlyActive) query = query.eq("active", true);
+  if (status === "actifs") query = query.eq("active", true);
+  if (status === "inactifs") query = query.eq("active", false);
+  if (search) {
+    const term = search.trim().replace(/[%,]/g, "");
+    if (term) query = query.or(`"firstName".ilike.%${term}%,"lastName".ilike.%${term}%`);
+  }
 
   const { data: referees, error } = await query;
   if (error) throw error;
@@ -88,9 +98,28 @@ export async function listRefereesWithLoad({
     loadByReferee.set(row.refereeId, (loadByReferee.get(row.refereeId) ?? 0) + 1);
   }
 
-  return ((referees ?? []) as unknown as RawReferee[])
-    .map((r) => ({ ...r, currentLoad: loadByReferee.get(r.id) ?? 0 }))
-    .sort((a, b) => a.currentLoad - b.currentLoad);
+  const withLoad = ((referees ?? []) as unknown as RawReferee[]).map((r) => ({
+    ...r,
+    currentLoad: loadByReferee.get(r.id) ?? 0,
+  }));
+
+  withLoad.sort((a, b) => {
+    switch (sort) {
+      case "niveau":
+        return b.level.rank - a.level.rank || a.lastName.localeCompare(b.lastName);
+      case "club":
+        return (a.zone ?? "").localeCompare(b.zone ?? "") || a.lastName.localeCompare(b.lastName);
+      case "charge_asc":
+        return a.currentLoad - b.currentLoad;
+      case "charge_desc":
+        return b.currentLoad - a.currentLoad;
+      case "nom":
+      default:
+        return a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName);
+    }
+  });
+
+  return withLoad;
 }
 
 export async function getRefereeSheet(id: string) {

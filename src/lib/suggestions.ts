@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { overlaps } from "@/lib/dates";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
+import { checkQuotaRules } from "@/lib/designation-rules";
 
 export type RefereeSuggestion = {
   id: string;
@@ -258,6 +259,10 @@ export async function designateReferee(
     .eq("match.cancelled", false);
   if (conflictError) throw conflictError;
 
+  const existingDates = (
+    (existingDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number } }[]
+  ).map((d) => new Date(d.match.date));
+
   const hasConflict = (
     (existingDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number } }[]
   ).some((d) =>
@@ -265,6 +270,13 @@ export async function designateReferee(
   );
   if (hasConflict) {
     return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau." };
+  }
+
+  const quotaViolations = checkQuotaRules(matchDate, existingDates).filter(
+    (v) => v.severity === "bloquant"
+  );
+  if (quotaViolations.length > 0) {
+    return { ok: false, error: quotaViolations.map((v) => v.message).join(" ") };
   }
 
   const { error: insertError } = await supabaseAdmin

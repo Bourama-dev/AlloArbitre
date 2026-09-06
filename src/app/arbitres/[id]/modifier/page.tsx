@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRefereeSheet, listRefereeLevels } from "@/lib/referees";
 import { geocodeAddress } from "@/lib/geocoding";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { AlertToast } from "@/components/alert-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -113,11 +114,7 @@ export default async function EditRefereePage({
         <h1 className="text-xl font-semibold tracking-tight mt-2">Modifier l&apos;arbitre</h1>
       </div>
 
-      {error && (
-        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
-          {decodeURIComponent(error)}
-        </p>
-      )}
+      {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
 
       <form
         action={updateReferee}

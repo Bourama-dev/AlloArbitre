@@ -8,6 +8,7 @@ import { suggestReferees, designateReferee } from "@/lib/suggestions";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
+import { AlertToast } from "@/components/alert-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -97,11 +98,7 @@ export default async function MatchDetailPage({
         </div>
       </div>
 
-      {error && (
-        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
-          {decodeURIComponent(error)}
-        </p>
-      )}
+      {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
 
       <section>
         <h2 className="text-sm font-semibold mb-2">
