@@ -189,7 +189,7 @@ export default async function LevelMappingAdminPage({
                       <input type="hidden" name="competitionLevelId" value={c.id} />
                       <select
                         name="minRefereeLevelId"
-                        defaultValue={c.mapping?.minRefereeLevel.id ?? ""}
+                        defaultValue={c.mapping?.minRefereeLevel?.id ?? ""}
                         className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
                       >
                         <option value="" disabled>
