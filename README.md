@@ -27,21 +27,25 @@ TypeScript + Prisma + PostgreSQL (Supabase) + NextAuth (multi-utilisateurs).
 ## Base de données
 
 Le projet utilise Postgres hébergé sur Supabase (projet "FFBB arbitre",
-ref `rtecvnqsyvpehgesrmgn`). Deux chaînes de connexion sont nécessaires :
+ref `rtecvnqsyvpehgesrmgn`), connecté au projet Vercel via l'**intégration
+officielle Vercel-Supabase**. Cette intégration synchronise automatiquement
+les variables de connexion dans les settings du projet Vercel — pas besoin
+de les copier-coller à la main. `prisma/schema.prisma` lit directement ces
+noms de variables :
 
-- `DATABASE_URL` : pooler Supavisor en mode transaction (port 6543) —
-  utilisée par l'application au runtime, adaptée au serverless
-- `DIRECT_URL` : pooler Supavisor en mode session (port 5432) — utilisée
-  par Prisma pour les migrations (`prisma migrate dev`/`deploy`)
+- `POSTGRES_PRISMA_URL` : pooler (pgbouncer) — utilisée par l'application
+  au runtime, adaptée au serverless
+- `POSTGRES_URL_NON_POOLING` : connexion directe — utilisée par Prisma
+  pour les migrations (`prisma migrate dev`/`deploy`)
 
-Format (voir Project Settings > Database sur le dashboard Supabase) :
+En local (sans l'intégration), reproduire ces deux variables dans `.env`
+avec les chaînes de connexion du dashboard Supabase (Project Settings >
+Database), mot de passe encodé en URL (ex: `!` devient `%21`) :
 
 ```
-DATABASE_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
+POSTGRES_PRISMA_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true"
+POSTGRES_URL_NON_POOLING="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
 ```
-
-Le mot de passe doit être encodé en URL (ex: `!` devient `%21`).
 
 ## Démarrage
 
@@ -56,9 +60,11 @@ Le seed crée un compte ADMIN avec l'email `bouramad900@gmail.com` et le mot
 de passe `changeme123` (ou les valeurs de `SEED_ADMIN_EMAIL` /
 `SEED_ADMIN_PASSWORD` si définies) — à changer après la première connexion.
 
-## Variables d'environnement (`.env` en local, Vercel Project Settings > Environment Variables en prod)
+## Variables d'environnement
 
-- `DATABASE_URL`, `DIRECT_URL` : voir section Base de données ci-dessus
+- `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` : fournies
+  automatiquement par l'intégration Vercel-Supabase (voir section Base de
+  données ci-dessus) ; à défaut, renseigner `.env` en local
 - `AUTH_SECRET` : secret NextAuth (générer avec `openssl rand -base64 32`)
 - `AUTH_TRUST_HOST` : `true` (utile en local/self-hosted ; sans effet sur Vercel)
 
@@ -67,6 +73,9 @@ de passe `changeme123` (ou les valeurs de `SEED_ADMIN_EMAIL` /
 - **Base de données** : Supabase (Postgres managé, déjà provisionné)
 - **Application** : Vercel — connecter le repo GitHub, brancher sur
   `claude/referee-assignment-system-zy1i9t` (ou `main` une fois mergé),
-  renseigner les variables d'environnement ci-dessus dans les settings du
-  projet Vercel, puis déployer. Le script `postinstall` (`prisma generate`)
-  s'exécute automatiquement à chaque build.
+  puis dans les settings du projet Vercel, onglet Integrations, connecter
+  l'intégration Supabase existante au projet "FFBB arbitre" (elle injecte
+  automatiquement `POSTGRES_PRISMA_URL`/`POSTGRES_URL_NON_POOLING`).
+  Ajouter ensuite `AUTH_SECRET` manuellement, puis déployer. Le script
+  `postinstall` (`prisma generate`) s'exécute automatiquement à chaque
+  build.
