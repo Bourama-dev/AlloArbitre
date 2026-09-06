@@ -15,6 +15,8 @@ export type RefereeSuggestion = {
   estimatedPayment: number | null;
 };
 
+export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
+
 type RawMatchForSuggestion = {
   id: string;
   date: string;
@@ -52,20 +54,21 @@ export async function getMatchForSuggestion(matchId: string) {
 }
 
 /**
- * Suggestions pour un match : filtre par niveau requis (si la correspondance
- * niveau compétition -> niveau arbitre est définie), exclut les arbitres déjà
- * pris sur un créneau qui chevauche celui du match, indisponibles, ou qui
- * dépasseraient un quota bloquant (voir designation-rules.ts), trie par
- * proximité puis équité (nombre de désignations croissant). Ne crée jamais
- * de désignation - la validation manuelle (voir designateReferee) est
- * toujours requise.
+ * Candidats pour un match, en deux groupes : les arbitres compatibles
+ * (respectant tous les critères - niveau requis si configuré, pas de
+ * conflit d'horaire, pas d'indisponibilité, aucun quota bloquant dépassé),
+ * triés par proximité puis équité ; et les autres arbitres actifs, avec la
+ * ou les raisons de leur incompatibilité, pour rester sélectionnables
+ * manuellement si besoin. Ne crée jamais de désignation - la validation
+ * manuelle (voir designateReferee) est toujours requise.
  */
-export async function suggestReferees(matchId: string): Promise<{
+export async function getMatchCandidates(matchId: string): Promise<{
   minLevelLabel: string | null;
-  suggestions: RefereeSuggestion[];
+  eligible: RefereeSuggestion[];
+  ineligible: IneligibleReferee[];
 }> {
   const match = await getMatchForSuggestion(matchId);
-  if (!match) return { minLevelLabel: null, suggestions: [] };
+  if (!match) return { minLevelLabel: null, eligible: [], ineligible: [] };
 
   const minRank = match.competitionLevel.mapping?.minRefereeLevel?.rank;
   const alreadyAssignedIds = match.designations.map((d) => d.refereeId);
@@ -74,7 +77,7 @@ export async function suggestReferees(matchId: string): Promise<{
     .from("Referee")
     .select(
       `id, firstName, lastName, zone, phone, lat, lng,
-       level:RefereeLevel!inner(id, label, rank),
+       level:RefereeLevel(id, label, rank),
        designations:Designation(id, match:Match(date, durationMinutes, cancelled)),
        unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
     )
@@ -82,12 +85,6 @@ export async function suggestReferees(matchId: string): Promise<{
 
   if (alreadyAssignedIds.length > 0) {
     query = query.not("id", "in", `(${alreadyAssignedIds.join(",")})`);
-  }
-  if (minRank !== undefined) {
-    // rank 1 = niveau le plus élevé (croissant = niveau plus bas) : un arbitre
-    // convient si son rang est au plus égal à celui exigé (aussi expérimenté
-    // ou plus).
-    query = query.lte("level.rank", minRank);
   }
 
   const { data, error } = await query;
@@ -130,45 +127,54 @@ export async function suggestReferees(matchId: string): Promise<{
     return u.startTime < matchEnd && matchStart < u.endTime;
   };
 
-  const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => ({
-    ...c,
-    activeDesignations: c.designations
-      .filter((d) => !d.match.cancelled)
-      .map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes })),
-  }));
-
-  const eligible = candidates.filter(
-    (c) =>
-      !c.activeDesignations.some((d) =>
-        overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
-      ) &&
-      !c.unavailability.some(isUnavailable) &&
-      checkQuotaRules(
-        match.date,
-        c.activeDesignations.map((d) => d.date)
-      ).filter((v) => v.severity === "bloquant").length === 0
-  );
-
   const hasMatchCoords = match.lat != null && match.lng != null;
 
-  const suggestions: RefereeSuggestion[] = eligible
-    .map((c) => {
-      const oneWayKm =
-        hasMatchCoords && c.lat != null && c.lng != null
-          ? distanceKm({ lat: match.lat!, lng: match.lng! }, { lat: c.lat, lng: c.lng })
-          : null;
-      return {
-        id: c.id,
-        firstName: c.firstName,
-        lastName: c.lastName,
-        zone: c.zone,
-        phone: c.phone,
-        levelLabel: c.level.label,
-        currentLoad: c.activeDesignations.filter((d) => d.date >= now).length,
-        distanceKm: oneWayKm,
-        estimatedPayment: oneWayKm != null ? estimatePayment(oneWayKm) : null,
-      };
-    })
+  const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => {
+    const activeDesignations = c.designations
+      .filter((d) => !d.match.cancelled)
+      .map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes }));
+
+    const reasons: string[] = [];
+    if (minRank !== undefined && c.level.rank > minRank) {
+      reasons.push("Niveau insuffisant");
+    }
+    if (
+      activeDesignations.some((d) =>
+        overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
+      )
+    ) {
+      reasons.push("Conflit d'horaire");
+    }
+    if (c.unavailability.some(isUnavailable)) {
+      reasons.push("Indisponible");
+    }
+    const quotaViolations = checkQuotaRules(
+      match.date,
+      activeDesignations.map((d) => d.date)
+    ).filter((v) => v.severity === "bloquant");
+    for (const v of quotaViolations) reasons.push(v.message);
+
+    const oneWayKm =
+      hasMatchCoords && c.lat != null && c.lng != null
+        ? distanceKm({ lat: match.lat!, lng: match.lng! }, { lat: c.lat, lng: c.lng })
+        : null;
+
+    return {
+      id: c.id,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      zone: c.zone,
+      phone: c.phone,
+      levelLabel: c.level.label,
+      currentLoad: activeDesignations.filter((d) => d.date >= now).length,
+      distanceKm: oneWayKm,
+      estimatedPayment: oneWayKm != null ? estimatePayment(oneWayKm) : null,
+      reasons,
+    };
+  });
+
+  const eligible: RefereeSuggestion[] = candidates
+    .filter((c) => c.reasons.length === 0)
     .sort((a, b) => {
       // Priorité aux arbitres proches (distance connue < distance inconnue),
       // puis équité (nombre de désignations croissant) en cas d'égalité ou
@@ -181,10 +187,24 @@ export async function suggestReferees(matchId: string): Promise<{
       return a.currentLoad - b.currentLoad;
     });
 
+  const ineligible: IneligibleReferee[] = candidates
+    .filter((c) => c.reasons.length > 0)
+    .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+
   return {
     minLevelLabel: match.competitionLevel.mapping?.minRefereeLevel?.label ?? null,
-    suggestions,
+    eligible,
+    ineligible,
   };
+}
+
+/** Compat : ne renvoie que les arbitres compatibles (utilisé par l'auto-désignation). */
+export async function suggestReferees(matchId: string): Promise<{
+  minLevelLabel: string | null;
+  suggestions: RefereeSuggestion[];
+}> {
+  const { minLevelLabel, eligible } = await getMatchCandidates(matchId);
+  return { minLevelLabel, suggestions: eligible };
 }
 
 /** Explique pourquoi un arbitre a été retenu en tête des suggestions (affiché dans le récapitulatif d'auto-désignation). */
