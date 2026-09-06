@@ -7,6 +7,8 @@ type ParsedRow = {
   date: string; // YYYY-MM-DD
   heure: string; // HH:MM
   venue: string | null;
+  city: string | null;
+  poule: string | null;
   competitionLevel: string;
   refereesRequired: number;
 };
@@ -19,6 +21,8 @@ const HEADER_ALIASES: Record<string, keyof ParsedRow> = {
   date: "date",
   heure: "heure",
   lieu: "venue",
+  ville: "city",
+  poule: "poule",
   niveau: "competitionLevel",
   "nb arbitres": "refereesRequired",
   "nombre d'arbitres": "refereesRequired",
@@ -96,6 +100,8 @@ export async function parseMatchesWorkbook(buffer: ArrayBuffer): Promise<ParsedR
       date: excelDateToIso(raw.date),
       heure: excelTimeToHm(raw.heure),
       venue: raw.venue ? String(raw.venue).trim() : null,
+      city: raw.city ? String(raw.city).trim() : null,
+      poule: raw.poule ? String(raw.poule).trim() : null,
       competitionLevel: String(raw.competitionLevel ?? "").trim(),
       refereesRequired: Number(raw.refereesRequired) || 2,
     });
@@ -162,6 +168,8 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
           .from("Match")
           .update({
             venue: row.venue,
+            city: row.city,
+            poule: row.poule,
             refereesRequired: row.refereesRequired,
           })
           .eq("id", existing.id);
@@ -173,6 +181,8 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
           homeTeam: row.homeTeam,
           awayTeam: row.awayTeam,
           venue: row.venue,
+          city: row.city,
+          poule: row.poule,
           refereesRequired: row.refereesRequired,
           competitionLevelId,
         });

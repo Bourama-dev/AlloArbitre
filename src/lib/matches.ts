@@ -9,6 +9,9 @@ export type MatchWithRelations = {
   homeTeam: string;
   awayTeam: string;
   venue: string | null;
+  city: string | null;
+  poule: string | null;
+  notes: string | null;
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;
@@ -32,7 +35,7 @@ export function matchStatus(match: {
 }
 
 const MATCH_SELECT = `
-  id, date, durationMinutes, homeTeam, awayTeam, venue, refereesRequired, cancelled, competitionLevelId,
+  id, date, durationMinutes, homeTeam, awayTeam, venue, city, poule, notes, refereesRequired, cancelled, competitionLevelId,
   competitionLevel:CompetitionLevel(id, label),
   designations:Designation(id, refereeId, referee:Referee(id, firstName, lastName))
 `;
@@ -44,6 +47,9 @@ function mapMatch(row: {
   homeTeam: string;
   awayTeam: string;
   venue: string | null;
+  city: string | null;
+  poule: string | null;
+  notes: string | null;
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;

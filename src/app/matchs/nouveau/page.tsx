@@ -16,6 +16,9 @@ async function createMatch(formData: FormData) {
   const date = String(formData.get("date") ?? "");
   const heure = String(formData.get("heure") ?? "00:00");
   const venue = String(formData.get("venue") ?? "").trim() || null;
+  const city = String(formData.get("city") ?? "").trim() || null;
+  const poule = String(formData.get("poule") ?? "").trim() || null;
+  const notes = String(formData.get("notes") ?? "").trim() || null;
   const competitionLevelId = String(formData.get("competitionLevelId") ?? "");
   const refereesRequired = Number(formData.get("refereesRequired")) || 1;
 
@@ -30,6 +33,9 @@ async function createMatch(formData: FormData) {
       homeTeam,
       awayTeam,
       venue,
+      city,
+      poule,
+      notes,
       competitionLevelId,
       refereesRequired,
     })
@@ -113,12 +119,20 @@ export default async function NewMatchPage({
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">Lieu</label>
+            <input name="venue" className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">Ville</label>
+            <input name="city" className="input w-full" />
+          </div>
+        </div>
+
         <div>
-          <label className="field-label">Lieu</label>
-          <input
-            name="venue"
-            className="input w-full"
-          />
+          <label className="field-label">Poule</label>
+          <input name="poule" className="input w-full" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -150,6 +164,11 @@ export default async function NewMatchPage({
               className="input w-full"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Notes</label>
+          <textarea name="notes" rows={2} className="input w-full" />
         </div>
 
         <button
