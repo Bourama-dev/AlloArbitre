@@ -96,6 +96,10 @@ export default async function RefereeSheetPage({
             <span className="font-medium">{referee.zone ?? "-"}</span>
           </div>
           <div className="flex justify-between">
+            <span className="text-[var(--muted)]">N° national</span>
+            <span className="font-medium">{referee.nationalNumber ?? "-"}</span>
+          </div>
+          <div className="flex justify-between">
             <span className="text-[var(--muted)]">N° licence</span>
             <span className="font-medium">{referee.licenseNumber ?? "-"}</span>
           </div>

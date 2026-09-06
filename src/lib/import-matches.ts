@@ -109,7 +109,7 @@ export async function parseMatchesWorkbook(buffer: ArrayBuffer): Promise<ParsedR
       city: raw.city ? String(raw.city).trim() : null,
       poule: raw.poule ? String(raw.poule).trim() : null,
       competitionLevel: String(raw.competitionLevel ?? "").trim(),
-      refereesRequired: Number(raw.refereesRequired) || 2,
+      refereesRequired: Math.max(2, Number(raw.refereesRequired) || 2),
     });
   });
 

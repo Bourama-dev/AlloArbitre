@@ -88,7 +88,51 @@ export async function listMatchCities() {
   return cities.sort();
 }
 
+export async function listMatchVenues() {
+  const { data, error } = await supabaseAdmin
+    .from("Match")
+    .select("venue")
+    .not("venue", "is", null);
+  if (error) throw error;
+  const venues = Array.from(new Set((data ?? []).map((r) => r.venue as string)));
+  return venues.sort();
+}
+
 export type MatchSort = "date_asc" | "date_desc" | "level" | "city";
+
+/**
+ * Nombre minimum d'arbitres distincts nécessaires pour couvrir un ensemble
+ * de matchs (typiquement : même gymnase, même journée), en supposant qu'un
+ * arbitre peut couvrir plusieurs matchs tant qu'ils ne se chevauchent pas
+ * dans le temps (ex : doublage sur des TQR qui s'enchaînent). Chaque match
+ * exige au moins 2 arbitres (règle CD45). Calculé par balayage : le
+ * minimum théorique est égal au pic de matchs simultanés (pondéré par le
+ * nombre d'arbitres requis), atteignable en pratique par une affectation
+ * appropriée.
+ */
+export function computeMinReferees(
+  matches: { date: Date; durationMinutes: number; refereesRequired: number }[]
+): number {
+  const events: { time: number; delta: number }[] = [];
+  for (const m of matches) {
+    const demand = Math.max(2, m.refereesRequired);
+    const start = m.date.getTime();
+    const end = start + m.durationMinutes * 60_000;
+    events.push({ time: start, delta: demand });
+    events.push({ time: end, delta: -demand });
+  }
+  // À horaire égal, on traite d'abord les fins de match (delta négatif) :
+  // un match qui se termine pile quand un autre commence ne chevauche pas.
+  events.sort((a, b) => a.time - b.time || a.delta - b.delta);
+
+  let running = 0;
+  let peak = 0;
+  for (const e of events) {
+    running += e.delta;
+    if (running > peak) peak = running;
+  }
+  return peak;
+}
 
 export async function getMatchById(id: string): Promise<MatchWithRelations | null> {
   const { data, error } = await supabaseAdmin
