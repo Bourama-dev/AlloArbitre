@@ -1,12 +1,38 @@
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { findMatches, listCompetitionLevels } from "@/lib/matches";
+import { autoDesignateMatches } from "@/lib/suggestions";
+import { getCurrentUser } from "@/lib/current-user";
 import { MatchesTable } from "@/components/matches-table";
 
 export const dynamic = "force-dynamic";
 
+async function autoDesignate(formData: FormData) {
+  "use server";
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const matchIds = formData.getAll("matchIds").map(String);
+  if (matchIds.length === 0) {
+    redirect(`/matchs/incomplets?error=${encodeURIComponent("Sélectionnez au moins un match.")}`);
+  }
+
+  const summary = await autoDesignateMatches(matchIds, user.id);
+
+  revalidatePath("/matchs/incomplets");
+  revalidatePath("/matchs");
+
+  const params = new URLSearchParams({
+    assigned: String(summary.assigned),
+    errors: summary.errors.join(" | "),
+  });
+  redirect(`/matchs/incomplets?${params.toString()}`);
+}
+
 export default async function IncompleteMatchesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ level?: string }>;
+  searchParams: Promise<{ level?: string; error?: string; assigned?: string; errors?: string }>;
 }) {
   const params = await searchParams;
   const competitionLevelId = params.level || undefined;
@@ -50,7 +76,29 @@ export default async function IncompleteMatchesPage({
         </form>
       </div>
 
-      <MatchesTable matches={matches} />
+      {params.error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+          {decodeURIComponent(params.error)}
+        </p>
+      )}
+      {params.assigned !== undefined && (
+        <div className="text-sm rounded border border-green-200 bg-green-50 text-green-800 px-3 py-2 space-y-1">
+          <p>{params.assigned} désignation(s) créée(s) automatiquement.</p>
+          {params.errors && <p className="text-red-700">{params.errors}</p>}
+        </div>
+      )}
+
+      <form action={autoDesignate} className="space-y-3">
+        <MatchesTable matches={matches} selectable />
+        {matches.some((m) => m.designations.length < m.refereesRequired) && (
+          <button
+            type="submit"
+            className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          >
+            Auto-désignation des matchs sélectionnés
+          </button>
+        )}
+      </form>
     </div>
   );
 }
