@@ -36,6 +36,7 @@ export default async function EditRefereePage({
     const phone = String(formData.get("phone") ?? "").trim() || null;
     const email = String(formData.get("email") ?? "").trim() || null;
     const zone = String(formData.get("zone") ?? "").trim() || null;
+    const address = String(formData.get("address") ?? "").trim() || null;
     const notes = String(formData.get("notes") ?? "").trim() || null;
     const levelId = String(formData.get("levelId") ?? "");
     const active = formData.get("active") === "on";
@@ -48,7 +49,7 @@ export default async function EditRefereePage({
 
     const { error } = await supabaseAdmin
       .from("Referee")
-      .update({ firstName, lastName, phone, email, zone, notes, levelId, active })
+      .update({ firstName, lastName, phone, email, zone, address, notes, levelId, active })
       .eq("id", id);
 
     if (error) {
@@ -136,6 +137,15 @@ export default async function EditRefereePage({
               className="input w-full"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Adresse postale</label>
+          <input
+            name="address"
+            defaultValue={referee.address ?? ""}
+            className="input w-full"
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">

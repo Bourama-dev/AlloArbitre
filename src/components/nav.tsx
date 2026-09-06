@@ -17,32 +17,31 @@ const links = [
 
 const adminLinks = [
   { href: "/admin/niveaux", label: "Niveaux" },
-  { href: "/admin/import", label: "Import" },
+  { href: "/admin/import", label: "Import matchs" },
   { href: "/admin/utilisateurs", label: "Utilisateurs" },
 ];
 
 export function Nav({ user }: { user: NavUser }) {
-  const allLinks = user.role === "ADMIN" ? [...links, ...adminLinks] : links;
   const initial = (user.name ?? user.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-10 bg-[var(--surface)]/90 backdrop-blur border-b border-[var(--border)]">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6 min-w-0">
+      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
           <Link href="/matchs" className="flex items-center gap-2 shrink-0">
             <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--brand)] text-white font-bold text-sm">
               A
             </span>
-            <span className="font-semibold text-[var(--foreground)] tracking-tight">
+            <span className="hidden md:inline font-semibold text-[var(--foreground)] tracking-tight">
               AlloArbitre
             </span>
           </Link>
-          <NavLinks links={allLinks} />
+          <NavLinks links={links} adminLinks={user.role === "ADMIN" ? adminLinks : undefined} />
         </div>
-        <div className="flex items-center gap-3 text-sm shrink-0">
-          <span className="hidden sm:flex items-center gap-2 text-[var(--muted)]">
+        <div className="flex items-center gap-2 text-sm shrink-0">
+          <span className="hidden lg:flex items-center gap-2 text-[var(--muted)]">
             <span className="avatar-chip">{initial}</span>
-            {user.name ?? user.email}
+            <span className="max-w-[10rem] truncate">{user.name ?? user.email}</span>
           </span>
           <form
             action={async () => {

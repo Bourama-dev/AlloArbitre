@@ -55,6 +55,7 @@ create table "Referee" (
   phone text,
   email text,
   zone text,
+  address text,
   active boolean not null default true,
   notes text,
   "levelId" text not null references "RefereeLevel"(id),
@@ -97,14 +98,25 @@ create index "Match_date_idx" on "Match"(date);
 -- Indisponibilité d'un arbitre sur une période (date à date, inclusif).
 -- Exclut l'arbitre des suggestions pour tout match dont la date tombe dans
 -- l'intervalle.
+-- recurring=false : période ponctuelle (startDate/endDate obligatoires).
+-- recurring=true : jour de semaine récurrent (dayOfWeek, 0=dimanche..6=samedi),
+-- avec startTime/endTime optionnels (NULL = journée entière bloquée).
 create table "Unavailability" (
   id text primary key default gen_random_uuid()::text,
   "refereeId" text not null references "Referee"(id) on delete cascade,
-  "startDate" date not null,
-  "endDate" date not null,
+  recurring boolean not null default false,
+  "startDate" date,
+  "endDate" date,
+  "dayOfWeek" smallint,
+  "startTime" text,
+  "endTime" text,
   note text,
   "createdAt" timestamp(3) not null default current_timestamp,
-  check ("endDate" >= "startDate")
+  check (
+    (recurring = false and "startDate" is not null and "endDate" is not null and "endDate" >= "startDate")
+    or
+    (recurring = true and "dayOfWeek" between 0 and 6)
+  )
 );
 create index "Unavailability_refereeId_idx" on "Unavailability"("refereeId");
 

@@ -66,7 +66,7 @@ export async function suggestReferees(matchId: string): Promise<{
       `id, firstName, lastName, zone, phone,
        level:RefereeLevel!inner(id, label, rank),
        designations:Designation(id, match:Match(date, durationMinutes, cancelled)),
-       unavailability:Unavailability(startDate, endDate)`
+       unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
     )
     .eq("active", true);
 
@@ -88,11 +88,33 @@ export async function suggestReferees(matchId: string): Promise<{
     phone: string | null;
     level: { id: string; label: string; rank: number };
     designations: { id: string; match: { date: string; durationMinutes: number; cancelled: boolean } }[];
-    unavailability: { startDate: string; endDate: string }[];
+    unavailability: {
+      recurring: boolean;
+      startDate: string | null;
+      endDate: string | null;
+      dayOfWeek: number | null;
+      startTime: string | null;
+      endTime: string | null;
+    }[];
   };
 
   const now = new Date();
   const matchDay = match.date.toISOString().slice(0, 10);
+  const matchWeekday = match.date.getUTCDay();
+  const matchStart = match.date.toISOString().slice(11, 16);
+  const matchEnd = new Date(match.date.getTime() + match.durationMinutes * 60000)
+    .toISOString()
+    .slice(11, 16);
+
+  const isUnavailable = (u: RawCandidate["unavailability"][number]) => {
+    if (!u.recurring) {
+      return !!u.startDate && !!u.endDate && u.startDate <= matchDay && matchDay <= u.endDate;
+    }
+    if (u.dayOfWeek !== matchWeekday) return false;
+    if (!u.startTime || !u.endTime) return true; // journée entière bloquée
+    return u.startTime < matchEnd && matchStart < u.endTime;
+  };
+
   const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => ({
     ...c,
     activeDesignations: c.designations
@@ -105,7 +127,7 @@ export async function suggestReferees(matchId: string): Promise<{
       !c.activeDesignations.some((d) =>
         overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
       ) &&
-      !c.unavailability.some((u) => u.startDate <= matchDay && matchDay <= u.endDate)
+      !c.unavailability.some(isUnavailable)
   );
 
   const suggestions: RefereeSuggestion[] = withoutConflicts

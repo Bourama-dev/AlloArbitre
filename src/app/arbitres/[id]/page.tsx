@@ -1,7 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
-import { getRefereeSheet, addUnavailability, removeUnavailability } from "@/lib/referees";
+import {
+  getRefereeSheet,
+  addPunctualUnavailability,
+  addRecurringUnavailability,
+  removeUnavailability,
+  WEEKDAY_LABELS,
+} from "@/lib/referees";
 import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr } from "@/lib/dates";
 
@@ -18,7 +24,7 @@ export default async function RefereeSheetPage({
 
   const { referee, upcoming, past, currentLoad, unavailability } = sheet;
 
-  async function addUnavailabilityAction(formData: FormData) {
+  async function addPunctualAction(formData: FormData) {
     "use server";
     const user = await getCurrentUser();
     if (!user) redirect("/login");
@@ -28,7 +34,22 @@ export default async function RefereeSheetPage({
     const note = String(formData.get("note") ?? "").trim() || null;
     if (!startDate) return;
 
-    await addUnavailability(id, startDate, endDate || startDate, note);
+    await addPunctualUnavailability(id, startDate, endDate || startDate, note);
+    revalidatePath(`/arbitres/${id}`);
+  }
+
+  async function addRecurringAction(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (!user) redirect("/login");
+
+    const dayOfWeek = Number(formData.get("dayOfWeek"));
+    const startTime = String(formData.get("startTime") ?? "").trim() || null;
+    const endTime = String(formData.get("endTime") ?? "").trim() || null;
+    const note = String(formData.get("note") ?? "").trim() || null;
+    if (Number.isNaN(dayOfWeek)) return;
+
+    await addRecurringUnavailability(id, dayOfWeek, startTime, endTime, note);
     revalidatePath(`/arbitres/${id}`);
   }
 
@@ -82,6 +103,10 @@ export default async function RefereeSheetPage({
             <span className="text-[var(--muted)]">Email</span>
             <span className="font-medium">{referee.email ?? "-"}</span>
           </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-[var(--muted)] shrink-0">Adresse</span>
+            <span className="font-medium text-right">{referee.address ?? "-"}</span>
+          </div>
           <div className="flex justify-between">
             <span className="text-[var(--muted)]">Charge actuelle</span>
             <span className="font-medium">
@@ -104,12 +129,33 @@ export default async function RefereeSheetPage({
         {unavailability.length === 0 ? (
           <p className="text-sm text-[var(--muted)] mb-2">Aucune indisponibilité déclarée.</p>
         ) : (
-          <ul className="table-shell divide-y divide-[var(--border)] mb-2">
+          <ul className="table-shell divide-y divide-[var(--border)] mb-3">
             {unavailability.map((u) => (
               <li key={u.id} className="px-3 py-2 text-sm flex items-center justify-between">
-                <span>
-                  Du {u.startDate} au {u.endDate}
-                  {u.note ? ` · ${u.note}` : ""}
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`badge ${
+                      u.recurring
+                        ? "text-[var(--accent)] bg-[var(--accent-tint)]"
+                        : "text-[var(--muted)] bg-[var(--neutral-bg)]"
+                    }`}
+                  >
+                    {u.recurring ? "Récurrente" : "Ponctuelle"}
+                  </span>
+                  {u.recurring ? (
+                    <span>
+                      Tous les {WEEKDAY_LABELS[u.dayOfWeek ?? 0]}
+                      {u.startTime && u.endTime
+                        ? ` de ${u.startTime} à ${u.endTime}`
+                        : " (journée entière)"}
+                      {u.note ? ` · ${u.note}` : ""}
+                    </span>
+                  ) : (
+                    <span>
+                      Du {u.startDate} au {u.endDate}
+                      {u.note ? ` · ${u.note}` : ""}
+                    </span>
+                  )}
                 </span>
                 <form action={removeUnavailabilityAction}>
                   <input type="hidden" name="unavailabilityId" value={u.id} />
@@ -121,41 +167,64 @@ export default async function RefereeSheetPage({
             ))}
           </ul>
         )}
-        <form
-          action={addUnavailabilityAction}
-          className="flex flex-wrap items-end gap-2 card p-3"
-        >
-          <div>
-            <label className="field-label">Du</label>
-            <input
-              type="date"
-              name="startDate"
-              required
-              className="input"
-            />
-          </div>
-          <div>
-            <label className="field-label">Au</label>
-            <input
-              type="date"
-              name="endDate"
-              className="input"
-            />
-          </div>
-          <div className="flex-1 min-w-[10rem]">
-            <label className="field-label">Note</label>
-            <input
-              name="note"
-              className="input w-full"
-            />
-          </div>
-          <button
-            type="submit"
-            className="btn btn-primary text-xs"
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form
+            action={addPunctualAction}
+            className="flex flex-wrap items-end gap-2 card p-3"
           >
-            Ajouter
-          </button>
-        </form>
+            <p className="field-label w-full">Ajouter - période ponctuelle</p>
+            <div>
+              <label className="field-label">Du</label>
+              <input type="date" name="startDate" required className="input" />
+            </div>
+            <div>
+              <label className="field-label">Au</label>
+              <input type="date" name="endDate" className="input" />
+            </div>
+            <div className="flex-1 min-w-[8rem]">
+              <label className="field-label">Note</label>
+              <input name="note" className="input w-full" />
+            </div>
+            <button type="submit" className="btn btn-primary text-xs">
+              Ajouter
+            </button>
+          </form>
+
+          <form
+            action={addRecurringAction}
+            className="flex flex-wrap items-end gap-2 card p-3"
+          >
+            <p className="field-label w-full">
+              Ajouter - récurrente (chaque semaine)
+            </p>
+            <div>
+              <label className="field-label">Jour</label>
+              <select name="dayOfWeek" required defaultValue="6" className="input">
+                {WEEKDAY_LABELS.map((label, i) => (
+                  <option key={i} value={i}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="field-label">De (optionnel)</label>
+              <input type="time" name="startTime" className="input" />
+            </div>
+            <div>
+              <label className="field-label">À (optionnel)</label>
+              <input type="time" name="endTime" className="input" />
+            </div>
+            <div className="flex-1 min-w-[8rem]">
+              <label className="field-label">Note</label>
+              <input name="note" className="input w-full" />
+            </div>
+            <button type="submit" className="btn btn-primary text-xs">
+              Ajouter
+            </button>
+          </form>
+        </div>
       </section>
 
       <section>
