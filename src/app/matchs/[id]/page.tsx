@@ -64,6 +64,12 @@ export default async function MatchDetailPage({
             {match.homeTeam} - {match.awayTeam}
           </h1>
           <StatusBadge status={status} />
+          <Link
+            href={`/matchs/${id}/modifier`}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Modifier
+          </Link>
         </div>
         <p className="text-sm text-neutral-500 mt-1">
           {match.competitionLevel.label} · {formatDateTimeFr(match.date)}

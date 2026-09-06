@@ -37,6 +37,12 @@ export default async function MatchesPage({
         <h1 className="text-lg font-semibold">Matchs</h1>
         <div className="flex items-center gap-2 text-sm">
           <Link
+            href="/matchs/nouveau"
+            className="px-2 py-1 rounded bg-neutral-900 text-white hover:bg-neutral-800"
+          >
+            + Nouveau match
+          </Link>
+          <Link
             href={`/matchs?week=${weekOffset - 1}`}
             className="px-2 py-1 border border-neutral-300 rounded hover:bg-neutral-100"
           >
