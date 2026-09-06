@@ -1,7 +1,7 @@
 # AlloArbitre
 
 Outil de désignation des arbitres pour le CD45. Next.js (App Router) +
-TypeScript + Prisma + SQLite + NextAuth (multi-utilisateurs).
+TypeScript + Prisma + PostgreSQL (Supabase) + NextAuth (multi-utilisateurs).
 
 ## Fonctionnalités (V1)
 
@@ -24,12 +24,31 @@ TypeScript + Prisma + SQLite + NextAuth (multi-utilisateurs).
   "Admin niveaux" (réservé aux comptes ADMIN) si elle ne colle pas à la
   grille réelle du CD45
 
+## Base de données
+
+Le projet utilise Postgres hébergé sur Supabase (projet "FFBB arbitre",
+ref `rtecvnqsyvpehgesrmgn`). Deux chaînes de connexion sont nécessaires :
+
+- `DATABASE_URL` : pooler Supavisor en mode transaction (port 6543) —
+  utilisée par l'application au runtime, adaptée au serverless
+- `DIRECT_URL` : pooler Supavisor en mode session (port 5432) — utilisée
+  par Prisma pour les migrations (`prisma migrate dev`/`deploy`)
+
+Format (voir Project Settings > Database sur le dashboard Supabase) :
+
+```
+DATABASE_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
+```
+
+Le mot de passe doit être encodé en URL (ex: `!` devient `%21`).
+
 ## Démarrage
 
 ```bash
 npm install
-npx prisma migrate dev   # crée prisma/dev.db et applique le schéma
-npx prisma db seed       # niveaux, mapping par défaut, arbitres/matchs d'exemple, compte admin
+npx prisma migrate deploy   # applique le schéma sur la base configurée
+npx prisma db seed          # niveaux, mapping par défaut, arbitres/matchs d'exemple, compte admin
 npm run dev
 ```
 
@@ -37,16 +56,17 @@ Le seed crée un compte ADMIN avec l'email `bouramad900@gmail.com` et le mot
 de passe `changeme123` (ou les valeurs de `SEED_ADMIN_EMAIL` /
 `SEED_ADMIN_PASSWORD` si définies) — à changer après la première connexion.
 
-## Variables d'environnement (`.env`)
+## Variables d'environnement (`.env` en local, Vercel Project Settings > Environment Variables en prod)
 
-- `DATABASE_URL` : chemin du fichier SQLite (par défaut `file:./dev.db`)
+- `DATABASE_URL`, `DIRECT_URL` : voir section Base de données ci-dessus
 - `AUTH_SECRET` : secret NextAuth (générer avec `openssl rand -base64 32`)
-- `AUTH_TRUST_HOST` : `true` en local/self-hosted (pas nécessaire sur Vercel)
+- `AUTH_TRUST_HOST` : `true` (utile en local/self-hosted ; sans effet sur Vercel)
 
-## Limite connue pour un déploiement en production
+## Déploiement
 
-Le fichier SQLite est stocké sur disque local. Sur une plateforme serverless
-(Vercel notamment), le système de fichiers est éphémère : la base ne
-survivrait pas aux déploiements. Pour une mise en production multi-
-utilisateurs durable, prévoir soit un serveur Node persistant (VPS, Docker),
-soit une migration vers une base hébergée (Postgres, Turso/LibSQL...).
+- **Base de données** : Supabase (Postgres managé, déjà provisionné)
+- **Application** : Vercel — connecter le repo GitHub, brancher sur
+  `claude/referee-assignment-system-zy1i9t` (ou `main` une fois mergé),
+  renseigner les variables d'environnement ci-dessus dans les settings du
+  projet Vercel, puis déployer. Le script `postinstall` (`prisma generate`)
+  s'exécute automatiquement à chaque build.
