@@ -10,6 +10,9 @@ export type MatchWithRelations = {
   awayTeam: string;
   venue: string | null;
   city: string | null;
+  venueAddress: string | null;
+  lat: number | null;
+  lng: number | null;
   poule: string | null;
   notes: string | null;
   refereesRequired: number;
@@ -19,7 +22,7 @@ export type MatchWithRelations = {
   designations: {
     id: string;
     refereeId: string;
-    referee: { id: string; firstName: string; lastName: string };
+    referee: { id: string; firstName: string; lastName: string; lat: number | null; lng: number | null };
   }[];
 };
 
@@ -35,9 +38,9 @@ export function matchStatus(match: {
 }
 
 const MATCH_SELECT = `
-  id, date, durationMinutes, homeTeam, awayTeam, venue, city, poule, notes, refereesRequired, cancelled, competitionLevelId,
+  id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId,
   competitionLevel:CompetitionLevel(id, label),
-  designations:Designation(id, refereeId, referee:Referee(id, firstName, lastName))
+  designations:Designation(id, refereeId, referee:Referee(id, firstName, lastName, lat, lng))
 `;
 
 function mapMatch(row: {
@@ -48,6 +51,9 @@ function mapMatch(row: {
   awayTeam: string;
   venue: string | null;
   city: string | null;
+  venueAddress: string | null;
+  lat: number | null;
+  lng: number | null;
   poule: string | null;
   notes: string | null;
   refereesRequired: number;

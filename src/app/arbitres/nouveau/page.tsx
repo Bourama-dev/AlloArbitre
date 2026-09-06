@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { listRefereeLevels } from "@/lib/referees";
+import { geocodeAddress } from "@/lib/geocoding";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,23 @@ async function createReferee(formData: FormData) {
     redirect(`/arbitres/nouveau?error=${encodeURIComponent("Champs obligatoires manquants.")}`);
   }
 
+  const coords = address ? await geocodeAddress(address) : null;
+
   const { data, error } = await supabaseAdmin
     .from("Referee")
-    .insert({ firstName, lastName, phone, email, zone, address, notes, levelId, active: true })
+    .insert({
+      firstName,
+      lastName,
+      phone,
+      email,
+      zone,
+      address,
+      notes,
+      levelId,
+      active: true,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
+    })
     .select("id")
     .single();
 

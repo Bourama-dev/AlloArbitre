@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { listCompetitionLevels } from "@/lib/matches";
+import { geocodeAddress } from "@/lib/geocoding";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ async function createMatch(formData: FormData) {
   const heure = String(formData.get("heure") ?? "00:00");
   const venue = String(formData.get("venue") ?? "").trim() || null;
   const city = String(formData.get("city") ?? "").trim() || null;
+  const venueAddress = String(formData.get("venueAddress") ?? "").trim() || null;
   const poule = String(formData.get("poule") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const competitionLevelId = String(formData.get("competitionLevelId") ?? "");
@@ -26,6 +28,8 @@ async function createMatch(formData: FormData) {
     redirect(`/matchs/nouveau?error=${encodeURIComponent("Champs obligatoires manquants.")}`);
   }
 
+  const coords = venueAddress ? await geocodeAddress(venueAddress) : null;
+
   const { data, error } = await supabaseAdmin
     .from("Match")
     .insert({
@@ -34,10 +38,13 @@ async function createMatch(formData: FormData) {
       awayTeam,
       venue,
       city,
+      venueAddress,
       poule,
       notes,
       competitionLevelId,
       refereesRequired,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
     })
     .select("id")
     .single();
@@ -128,6 +135,15 @@ export default async function NewMatchPage({
             <label className="field-label">Ville</label>
             <input name="city" className="input w-full" />
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Adresse du gymnase</label>
+          <input
+            name="venueAddress"
+            placeholder="Pour le calcul de distance/rémunération"
+            className="input w-full"
+          />
         </div>
 
         <div>

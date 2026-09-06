@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRefereeSheet, listRefereeLevels } from "@/lib/referees";
+import { geocodeAddress } from "@/lib/geocoding";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 
 export const dynamic = "force-dynamic";
@@ -47,9 +48,23 @@ export default async function EditRefereePage({
       );
     }
 
+    const addressChanged = address !== (referee.address ?? null);
+    const coords = addressChanged && address ? await geocodeAddress(address) : null;
+
     const { error } = await supabaseAdmin
       .from("Referee")
-      .update({ firstName, lastName, phone, email, zone, address, notes, levelId, active })
+      .update({
+        firstName,
+        lastName,
+        phone,
+        email,
+        zone,
+        address,
+        notes,
+        levelId,
+        active,
+        ...(addressChanged ? { lat: coords?.lat ?? null, lng: coords?.lng ?? null } : {}),
+      })
       .eq("id", id);
 
     if (error) {
