@@ -16,6 +16,7 @@ async function createReferee(formData: FormData) {
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const email = String(formData.get("email") ?? "").trim() || null;
   const zone = String(formData.get("zone") ?? "").trim() || null;
+  const address = String(formData.get("address") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const levelId = String(formData.get("levelId") ?? "");
 
@@ -25,7 +26,7 @@ async function createReferee(formData: FormData) {
 
   const { data, error } = await supabaseAdmin
     .from("Referee")
-    .insert({ firstName, lastName, phone, email, zone, notes, levelId, active: true })
+    .insert({ firstName, lastName, phone, email, zone, address, notes, levelId, active: true })
     .select("id")
     .single();
 
@@ -101,6 +102,11 @@ export default async function NewRefereePage({
               className="input w-full"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Adresse postale</label>
+          <input name="address" className="input w-full" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">

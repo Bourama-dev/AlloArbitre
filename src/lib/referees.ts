@@ -7,11 +7,33 @@ type RawReferee = {
   phone: string | null;
   email: string | null;
   zone: string | null;
+  address: string | null;
   active: boolean;
   notes: string | null;
   levelId: string;
   level: { id: string; label: string; rank: number };
 };
+
+export type UnavailabilityRow = {
+  id: string;
+  recurring: boolean;
+  startDate: string | null;
+  endDate: string | null;
+  dayOfWeek: number | null;
+  startTime: string | null;
+  endTime: string | null;
+  note: string | null;
+};
+
+export const WEEKDAY_LABELS = [
+  "Dimanche",
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+];
 
 export async function listRefereeLevels() {
   const { data, error } = await supabaseAdmin
@@ -35,7 +57,7 @@ export async function listRefereesWithLoad({
   let query = supabaseAdmin
     .from("Referee")
     .select(
-      "id, firstName, lastName, phone, email, zone, active, notes, levelId, level:RefereeLevel(id, label, rank)"
+      "id, firstName, lastName, phone, email, zone, address, active, notes, levelId, level:RefereeLevel(id, label, rank)"
     )
     .order("lastName", { ascending: true })
     .order("firstName", { ascending: true });
@@ -69,7 +91,7 @@ export async function getRefereeSheet(id: string) {
   const { data: referee, error } = await supabaseAdmin
     .from("Referee")
     .select(
-      `id, firstName, lastName, phone, email, zone, active, notes, levelId,
+      `id, firstName, lastName, phone, email, zone, address, active, notes, levelId,
        level:RefereeLevel(id, label, rank),
        designations:Designation(id, matchId, match:Match(id, date, cancelled, homeTeam, awayTeam, competitionLevel:CompetitionLevel(id, label)))`
     )
@@ -80,7 +102,7 @@ export async function getRefereeSheet(id: string) {
 
   const { data: unavailability, error: unavailError } = await supabaseAdmin
     .from("Unavailability")
-    .select("id, startDate, endDate, note")
+    .select("id, recurring, startDate, endDate, dayOfWeek, startTime, endTime, note")
     .eq("refereeId", id)
     .order("startDate", { ascending: true });
   if (unavailError) throw unavailError;
@@ -115,16 +137,11 @@ export async function getRefereeSheet(id: string) {
     upcoming,
     past,
     currentLoad: upcoming.length,
-    unavailability: (unavailability ?? []) as {
-      id: string;
-      startDate: string;
-      endDate: string;
-      note: string | null;
-    }[],
+    unavailability: (unavailability ?? []) as UnavailabilityRow[],
   };
 }
 
-export async function addUnavailability(
+export async function addPunctualUnavailability(
   refereeId: string,
   startDate: string,
   endDate: string,
@@ -132,7 +149,20 @@ export async function addUnavailability(
 ) {
   const { error } = await supabaseAdmin
     .from("Unavailability")
-    .insert({ refereeId, startDate, endDate, note });
+    .insert({ refereeId, recurring: false, startDate, endDate, note });
+  if (error) throw error;
+}
+
+export async function addRecurringUnavailability(
+  refereeId: string,
+  dayOfWeek: number,
+  startTime: string | null,
+  endTime: string | null,
+  note: string | null
+) {
+  const { error } = await supabaseAdmin
+    .from("Unavailability")
+    .insert({ refereeId, recurring: true, dayOfWeek, startTime, endTime, note });
   if (error) throw error;
 }
 
