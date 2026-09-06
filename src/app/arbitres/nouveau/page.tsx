@@ -20,6 +20,11 @@ async function createReferee(formData: FormData) {
   const address = String(formData.get("address") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const levelId = String(formData.get("levelId") ?? "");
+  const licenseNumber = String(formData.get("licenseNumber") ?? "").trim() || null;
+  const birthDate = String(formData.get("birthDate") ?? "").trim() || null;
+  const qualificationDate = String(formData.get("qualificationDate") ?? "").trim() || null;
+  const medicalFileDate = String(formData.get("medicalFileDate") ?? "").trim() || null;
+  const recyclingDate = String(formData.get("recyclingDate") ?? "").trim() || null;
 
   if (!firstName || !lastName || !levelId) {
     redirect(`/arbitres/nouveau?error=${encodeURIComponent("Champs obligatoires manquants.")}`);
@@ -38,6 +43,11 @@ async function createReferee(formData: FormData) {
       address,
       notes,
       levelId,
+      licenseNumber,
+      birthDate,
+      qualificationDate,
+      medicalFileDate,
+      recyclingDate,
       active: true,
       lat: coords?.lat ?? null,
       lng: coords?.lng ?? null,
@@ -82,7 +92,7 @@ export default async function NewRefereePage({
         action={createReferee}
         className="space-y-3 card p-4"
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Prénom *</label>
             <input
@@ -101,7 +111,7 @@ export default async function NewRefereePage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Téléphone</label>
             <input
@@ -124,9 +134,9 @@ export default async function NewRefereePage({
           <input name="address" className="input w-full" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="field-label">Zone / club</label>
+            <label className="field-label">Club</label>
             <input
               name="zone"
               className="input w-full"
@@ -149,6 +159,32 @@ export default async function NewRefereePage({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">N° licence</label>
+            <input name="licenseNumber" className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">Date de naissance</label>
+            <input type="date" name="birthDate" className="input w-full" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="field-label">Qualification</label>
+            <input type="date" name="qualificationDate" className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">Dossier médical</label>
+            <input type="date" name="medicalFileDate" className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">Recyclage</label>
+            <input type="date" name="recyclingDate" className="input w-full" />
           </div>
         </div>
 

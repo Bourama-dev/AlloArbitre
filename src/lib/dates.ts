@@ -31,6 +31,13 @@ export function formatDateTimeFr(date: Date): string {
   }).format(date);
 }
 
+/** Formatte une date SQL "YYYY-MM-DD" (sans heure) en "JJ/MM/AAAA", sans décalage de fuseau. */
+export function formatDateOnlyFr(dateStr: string | null): string {
+  if (!dateStr) return "-";
+  const [year, month, day] = dateStr.slice(0, 10).split("-");
+  return `${day}/${month}/${year}`;
+}
+
 export function formatDateFr(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",

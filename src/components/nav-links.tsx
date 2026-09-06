@@ -35,7 +35,7 @@ export function NavLinks({
   }, []);
 
   return (
-    <nav className="flex items-center gap-1 text-sm overflow-x-auto">
+    <nav className="hidden md:flex items-center gap-1 text-sm overflow-x-auto">
       {links.map((l) => {
         const active = l.href === "/matchs" ? pathname === "/matchs" : pathname.startsWith(l.href);
         return (

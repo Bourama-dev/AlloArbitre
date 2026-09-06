@@ -41,6 +41,11 @@ export default async function EditRefereePage({
     const notes = String(formData.get("notes") ?? "").trim() || null;
     const levelId = String(formData.get("levelId") ?? "");
     const active = formData.get("active") === "on";
+    const licenseNumber = String(formData.get("licenseNumber") ?? "").trim() || null;
+    const birthDate = String(formData.get("birthDate") ?? "").trim() || null;
+    const qualificationDate = String(formData.get("qualificationDate") ?? "").trim() || null;
+    const medicalFileDate = String(formData.get("medicalFileDate") ?? "").trim() || null;
+    const recyclingDate = String(formData.get("recyclingDate") ?? "").trim() || null;
 
     if (!firstName || !lastName || !levelId) {
       redirect(
@@ -63,6 +68,11 @@ export default async function EditRefereePage({
         notes,
         levelId,
         active,
+        licenseNumber,
+        birthDate,
+        qualificationDate,
+        medicalFileDate,
+        recyclingDate,
         ...(addressChanged ? { lat: coords?.lat ?? null, lng: coords?.lng ?? null } : {}),
       })
       .eq("id", id);
@@ -113,7 +123,7 @@ export default async function EditRefereePage({
         action={updateReferee}
         className="space-y-3 card p-4"
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Prénom *</label>
             <input
@@ -134,7 +144,7 @@ export default async function EditRefereePage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Téléphone</label>
             <input
@@ -163,9 +173,9 @@ export default async function EditRefereePage({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="field-label">Zone / club</label>
+            <label className="field-label">Club</label>
             <input
               name="zone"
               defaultValue={referee.zone ?? ""}
@@ -186,6 +196,56 @@ export default async function EditRefereePage({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">N° licence</label>
+            <input
+              name="licenseNumber"
+              defaultValue={referee.licenseNumber ?? ""}
+              className="input w-full"
+            />
+          </div>
+          <div>
+            <label className="field-label">Date de naissance</label>
+            <input
+              type="date"
+              name="birthDate"
+              defaultValue={referee.birthDate ?? ""}
+              className="input w-full"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="field-label">Qualification</label>
+            <input
+              type="date"
+              name="qualificationDate"
+              defaultValue={referee.qualificationDate ?? ""}
+              className="input w-full"
+            />
+          </div>
+          <div>
+            <label className="field-label">Dossier médical</label>
+            <input
+              type="date"
+              name="medicalFileDate"
+              defaultValue={referee.medicalFileDate ?? ""}
+              className="input w-full"
+            />
+          </div>
+          <div>
+            <label className="field-label">Recyclage</label>
+            <input
+              type="date"
+              name="recyclingDate"
+              defaultValue={referee.recyclingDate ?? ""}
+              className="input w-full"
+            />
           </div>
         </div>
 
