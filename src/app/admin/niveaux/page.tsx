@@ -1,37 +1,45 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/current-user";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+type CompetitionLevelRow = {
+  id: string;
+  label: string;
+  mapping: { minRefereeLevel: { id: string; label: string } } | null;
+};
+
 export default async function LevelMappingAdminPage() {
-  const session = await auth();
-  if (session?.user.role !== "ADMIN") {
+  const user = await getCurrentUser();
+  if (user?.role !== "ADMIN") {
     redirect("/matchs");
   }
 
-  const [competitionLevels, refereeLevels] = await Promise.all([
-    prisma.competitionLevel.findMany({
-      include: { mapping: { include: { minRefereeLevel: true } } },
-      orderBy: { label: "asc" },
-    }),
-    prisma.refereeLevel.findMany({ orderBy: { rank: "asc" } }),
-  ]);
+  const [{ data: competitionLevels, error: clError }, { data: refereeLevels, error: rlError }] =
+    await Promise.all([
+      supabaseAdmin
+        .from("CompetitionLevel")
+        .select("id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label))")
+        .order("label", { ascending: true }),
+      supabaseAdmin.from("RefereeLevel").select("id, label, rank").order("rank", { ascending: true }),
+    ]);
+  if (clError) throw clError;
+  if (rlError) throw rlError;
 
   async function saveMapping(formData: FormData) {
     "use server";
-    const session = await auth();
-    if (session?.user.role !== "ADMIN") return;
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
 
     const competitionLevelId = String(formData.get("competitionLevelId"));
     const minRefereeLevelId = String(formData.get("minRefereeLevelId"));
 
-    await prisma.levelMapping.upsert({
-      where: { competitionLevelId },
-      update: { minRefereeLevelId },
-      create: { competitionLevelId, minRefereeLevelId },
-    });
+    const { error } = await supabaseAdmin
+      .from("LevelMapping")
+      .upsert({ competitionLevelId, minRefereeLevelId }, { onConflict: "competitionLevelId" });
+    if (error) throw error;
     revalidatePath("/admin/niveaux");
   }
 
@@ -57,7 +65,7 @@ export default async function LevelMappingAdminPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
-            {competitionLevels.map((c) => (
+            {(competitionLevels as unknown as CompetitionLevelRow[]).map((c) => (
               <tr key={c.id}>
                 <td className="px-3 py-2 whitespace-nowrap">{c.label}</td>
                 <td className="px-3 py-2">

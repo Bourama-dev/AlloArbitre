@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { overlaps } from "@/lib/dates";
 
 export type RefereeSuggestion = {
@@ -11,14 +11,36 @@ export type RefereeSuggestion = {
   currentLoad: number;
 };
 
+type RawMatchForSuggestion = {
+  id: string;
+  date: string;
+  durationMinutes: number;
+  refereesRequired: number;
+  cancelled: boolean;
+  competitionLevelId: string;
+  competitionLevel: {
+    id: string;
+    label: string;
+    mapping: { minRefereeLevel: { id: string; label: string; rank: number } } | null;
+  };
+  designations: { id: string; refereeId: string }[];
+};
+
 export async function getMatchForSuggestion(matchId: string) {
-  return prisma.match.findUnique({
-    where: { id: matchId },
-    include: {
-      competitionLevel: { include: { mapping: { include: { minRefereeLevel: true } } } },
-      designations: { include: { referee: true } },
-    },
-  });
+  const { data, error } = await supabaseAdmin
+    .from("Match")
+    .select(
+      `id, date, durationMinutes, refereesRequired, cancelled, competitionLevelId,
+       competitionLevel:CompetitionLevel(id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label, rank))),
+       designations:Designation(id, refereeId)`
+    )
+    .eq("id", matchId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const match = data as unknown as RawMatchForSuggestion;
+  return { ...match, date: new Date(match.date) };
 }
 
 /**
@@ -36,29 +58,51 @@ export async function suggestReferees(matchId: string): Promise<{
   if (!match) return { minLevelLabel: null, suggestions: [] };
 
   const minRank = match.competitionLevel.mapping?.minRefereeLevel.rank;
-  const alreadyAssignedIds = new Set(match.designations.map((d) => d.refereeId));
+  const alreadyAssignedIds = match.designations.map((d) => d.refereeId);
 
-  const candidates = await prisma.referee.findMany({
-    where: {
-      active: true,
-      id: { notIn: [...alreadyAssignedIds] },
-      ...(minRank !== undefined ? { level: { rank: { gte: minRank } } } : {}),
-    },
-    include: {
-      level: true,
-      designations: {
-        where: { match: { cancelled: false } },
-        include: { match: true },
-      },
-    },
-  });
+  let query = supabaseAdmin
+    .from("Referee")
+    .select(
+      `id, firstName, lastName, zone, phone,
+       level:RefereeLevel!inner(id, label, rank),
+       designations:Designation(id, match:Match(date, durationMinutes, cancelled))`
+    )
+    .eq("active", true);
+
+  if (alreadyAssignedIds.length > 0) {
+    query = query.not("id", "in", `(${alreadyAssignedIds.join(",")})`);
+  }
+  if (minRank !== undefined) {
+    query = query.gte("level.rank", minRank);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  type RawCandidate = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    zone: string | null;
+    phone: string | null;
+    level: { id: string; label: string; rank: number };
+    designations: { id: string; match: { date: string; durationMinutes: number; cancelled: boolean } }[];
+  };
 
   const now = new Date();
-  const withoutConflicts = candidates.filter((c) => {
-    return !c.designations.some((d) =>
-      overlaps(match.date, match.durationMinutes, d.match.date, d.match.durationMinutes)
-    );
-  });
+  const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => ({
+    ...c,
+    activeDesignations: c.designations
+      .filter((d) => !d.match.cancelled)
+      .map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes })),
+  }));
+
+  const withoutConflicts = candidates.filter(
+    (c) =>
+      !c.activeDesignations.some((d) =>
+        overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
+      )
+  );
 
   const suggestions: RefereeSuggestion[] = withoutConflicts
     .map((c) => ({
@@ -68,7 +112,7 @@ export async function suggestReferees(matchId: string): Promise<{
       zone: c.zone,
       phone: c.phone,
       levelLabel: c.level.label,
-      currentLoad: c.designations.filter((d) => d.match.date >= now).length,
+      currentLoad: c.activeDesignations.filter((d) => d.date >= now).length,
     }))
     .sort((a, b) => a.currentLoad - b.currentLoad);
 
@@ -78,9 +122,7 @@ export async function suggestReferees(matchId: string): Promise<{
   };
 }
 
-export type DesignateResult =
-  | { ok: true }
-  | { ok: false; error: string };
+export type DesignateResult = { ok: true } | { ok: false; error: string };
 
 /** Création de la désignation - toujours suite à une validation manuelle explicite. */
 export async function designateReferee(
@@ -88,35 +130,46 @@ export async function designateReferee(
   refereeId: string,
   createdById: string
 ): Promise<DesignateResult> {
-  const match = await prisma.match.findUnique({
-    where: { id: matchId },
-    include: { designations: true },
-  });
+  const { data: match, error: matchError } = await supabaseAdmin
+    .from("Match")
+    .select("id, date, durationMinutes, cancelled, refereesRequired, designations:Designation(id, refereeId)")
+    .eq("id", matchId)
+    .maybeSingle();
+  if (matchError) throw matchError;
   if (!match) return { ok: false, error: "Match introuvable." };
   if (match.cancelled) return { ok: false, error: "Ce match est annulé." };
-  if (match.designations.length >= match.refereesRequired) {
+
+  const designations = (match.designations ?? []) as { id: string; refereeId: string }[];
+  if (designations.length >= match.refereesRequired) {
     return { ok: false, error: "Ce match a déjà tous ses arbitres désignés." };
   }
-  if (match.designations.some((d) => d.refereeId === refereeId)) {
+  if (designations.some((d) => d.refereeId === refereeId)) {
     return { ok: false, error: "Cet arbitre est déjà désigné sur ce match." };
   }
 
-  const conflict = await prisma.designation.findFirst({
-    where: {
-      refereeId,
-      match: { cancelled: false },
-    },
-    include: { match: true },
-  });
-  if (
-    conflict &&
-    overlaps(match.date, match.durationMinutes, conflict.match.date, conflict.match.durationMinutes)
-  ) {
+  const matchDate = new Date(match.date);
+
+  const { data: existingDesignations, error: conflictError } = await supabaseAdmin
+    .from("Designation")
+    .select("id, match:Match!inner(date, durationMinutes, cancelled)")
+    .eq("refereeId", refereeId)
+    .eq("match.cancelled", false);
+  if (conflictError) throw conflictError;
+
+  const hasConflict = (
+    (existingDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number } }[]
+  ).some((d) =>
+    overlaps(matchDate, match.durationMinutes, new Date(d.match.date), d.match.durationMinutes)
+  );
+  if (hasConflict) {
     return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau." };
   }
 
-  await prisma.designation.create({
-    data: { matchId, refereeId, createdById },
-  });
+  const { error: insertError } = await supabaseAdmin
+    .from("Designation")
+    .insert({ matchId, refereeId, createdById });
+  if (insertError) {
+    return { ok: false, error: "Erreur lors de la création de la désignation." };
+  }
   return { ok: true };
 }

@@ -1,9 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
-import { matchWithRelationsInclude, matchStatus } from "@/lib/matches";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getCurrentUser } from "@/lib/current-user";
+import { getMatchById, matchStatus } from "@/lib/matches";
 import { suggestReferees, designateReferee } from "@/lib/suggestions";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
@@ -20,10 +20,7 @@ export default async function MatchDetailPage({
   const { id } = await params;
   const { error } = await searchParams;
 
-  const match = await prisma.match.findUnique({
-    where: { id },
-    include: matchWithRelationsInclude,
-  });
+  const match = await getMatchById(id);
   if (!match) notFound();
 
   const status = matchStatus(match);
@@ -34,10 +31,10 @@ export default async function MatchDetailPage({
 
   async function designate(formData: FormData) {
     "use server";
-    const session = await auth();
-    if (!session?.user) return;
+    const user = await getCurrentUser();
+    if (!user) return;
     const refereeId = String(formData.get("refereeId"));
-    const result = await designateReferee(id, refereeId, session.user.id);
+    const result = await designateReferee(id, refereeId, user.id);
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
     revalidatePath("/matchs/incomplets");
@@ -49,7 +46,8 @@ export default async function MatchDetailPage({
   async function removeDesignation(formData: FormData) {
     "use server";
     const designationId = String(formData.get("designationId"));
-    await prisma.designation.delete({ where: { id: designationId } });
+    const { error } = await supabaseAdmin.from("Designation").delete().eq("id", designationId);
+    if (error) throw error;
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
     revalidatePath("/matchs/incomplets");
@@ -66,6 +64,12 @@ export default async function MatchDetailPage({
             {match.homeTeam} - {match.awayTeam}
           </h1>
           <StatusBadge status={status} />
+          <Link
+            href={`/matchs/${id}/modifier`}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Modifier
+          </Link>
         </div>
         <p className="text-sm text-neutral-500 mt-1">
           {match.competitionLevel.label} · {formatDateTimeFr(match.date)}
