@@ -57,7 +57,7 @@ export async function suggestReferees(matchId: string): Promise<{
   const match = await getMatchForSuggestion(matchId);
   if (!match) return { minLevelLabel: null, suggestions: [] };
 
-  const minRank = match.competitionLevel.mapping?.minRefereeLevel.rank;
+  const minRank = match.competitionLevel.mapping?.minRefereeLevel?.rank;
   const alreadyAssignedIds = match.designations.map((d) => d.refereeId);
 
   let query = supabaseAdmin
@@ -121,7 +121,7 @@ export async function suggestReferees(matchId: string): Promise<{
     .sort((a, b) => a.currentLoad - b.currentLoad);
 
   return {
-    minLevelLabel: match.competitionLevel.mapping?.minRefereeLevel.label ?? null,
+    minLevelLabel: match.competitionLevel.mapping?.minRefereeLevel?.label ?? null,
     suggestions,
   };
 }
