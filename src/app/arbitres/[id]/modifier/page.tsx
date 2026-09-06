@@ -7,6 +7,7 @@ import { getRefereeSheet, listRefereeLevels } from "@/lib/referees";
 import { geocodeAddress } from "@/lib/geocoding";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { AlertToast } from "@/components/alert-toast";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -271,12 +272,7 @@ export default async function EditRefereePage({
           Actif (disponible pour les suggestions de désignation)
         </label>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-        >
-          Enregistrer
-        </button>
+        <SubmitButton pendingLabel="Enregistrement…">Enregistrer</SubmitButton>
       </form>
 
       <form action={deleteReferee} className="card p-4">

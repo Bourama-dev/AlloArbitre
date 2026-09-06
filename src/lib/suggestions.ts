@@ -19,6 +19,8 @@ type RawMatchForSuggestion = {
   id: string;
   date: string;
   durationMinutes: number;
+  homeTeam: string;
+  awayTeam: string;
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;
@@ -36,7 +38,7 @@ export async function getMatchForSuggestion(matchId: string) {
   const { data, error } = await supabaseAdmin
     .from("Match")
     .select(
-      `id, date, durationMinutes, refereesRequired, cancelled, competitionLevelId, lat, lng,
+      `id, date, durationMinutes, homeTeam, awayTeam, refereesRequired, cancelled, competitionLevelId, lat, lng,
        competitionLevel:CompetitionLevel(id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label, rank))),
        designations:Designation(id, refereeId)`
     )
@@ -52,9 +54,11 @@ export async function getMatchForSuggestion(matchId: string) {
 /**
  * Suggestions pour un match : filtre par niveau requis (si la correspondance
  * niveau compétition -> niveau arbitre est définie), exclut les arbitres déjà
- * pris sur un créneau qui chevauche celui du match, trie par équité (nombre
- * de désignations croissant). Ne crée jamais de désignation - la validation
- * manuelle (voir designateReferee) est toujours requise.
+ * pris sur un créneau qui chevauche celui du match, indisponibles, ou qui
+ * dépasseraient un quota bloquant (voir designation-rules.ts), trie par
+ * proximité puis équité (nombre de désignations croissant). Ne crée jamais
+ * de désignation - la validation manuelle (voir designateReferee) est
+ * toujours requise.
  */
 export async function suggestReferees(matchId: string): Promise<{
   minLevelLabel: string | null;
@@ -130,17 +134,21 @@ export async function suggestReferees(matchId: string): Promise<{
       .map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes })),
   }));
 
-  const withoutConflicts = candidates.filter(
+  const eligible = candidates.filter(
     (c) =>
       !c.activeDesignations.some((d) =>
         overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
       ) &&
-      !c.unavailability.some(isUnavailable)
+      !c.unavailability.some(isUnavailable) &&
+      checkQuotaRules(
+        match.date,
+        c.activeDesignations.map((d) => d.date)
+      ).filter((v) => v.severity === "bloquant").length === 0
   );
 
   const hasMatchCoords = match.lat != null && match.lng != null;
 
-  const suggestions: RefereeSuggestion[] = withoutConflicts
+  const suggestions: RefereeSuggestion[] = eligible
     .map((c) => {
       const oneWayKm =
         hasMatchCoords && c.lat != null && c.lng != null
@@ -176,54 +184,21 @@ export async function suggestReferees(matchId: string): Promise<{
   };
 }
 
-export type AutoDesignateSummary = {
-  assigned: number;
-  errors: string[];
-};
-
-/**
- * Auto-désignation : pour chaque match sélectionné, assigne directement la
- * meilleure suggestion (équité) à chaque créneau vacant, sans écran de
- * confirmation intermédiaire - déclenché par un clic explicite sur le
- * bouton "Auto-désignation" (ce n'est jamais silencieux/en arrière-plan).
- * Traitement séquentiel : chaque désignation est committée avant de
- * recalculer les suggestions suivantes, ce qui évite qu'un même arbitre
- * soit doublement affecté sur deux matchs simultanés du même lot.
- */
-export async function autoDesignateMatches(
-  matchIds: string[],
-  createdById: string
-): Promise<AutoDesignateSummary> {
-  const summary: AutoDesignateSummary = { assigned: 0, errors: [] };
-
-  for (const matchId of matchIds) {
-    for (;;) {
-      const match = await getMatchForSuggestion(matchId);
-      if (!match) {
-        summary.errors.push(`Match introuvable (${matchId}).`);
-        break;
-      }
-      if (match.cancelled || match.designations.length >= match.refereesRequired) break;
-
-      const { suggestions } = await suggestReferees(matchId);
-      if (suggestions.length === 0) {
-        summary.errors.push(
-          `${match.competitionLevel.label} du ${match.date.toLocaleDateString("fr-FR")} : aucun arbitre disponible.`
-        );
-        break;
-      }
-
-      const result = await designateReferee(matchId, suggestions[0].id, createdById);
-      if (!result.ok) {
-        summary.errors.push(result.error);
-        break;
-      }
-      summary.assigned++;
-    }
-  }
-
-  return summary;
+/** Explique pourquoi un arbitre a été retenu en tête des suggestions (affiché dans le récapitulatif d'auto-désignation). */
+export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number): string {
+  const parts = [
+    `Niveau ${s.levelLabel} (suffisant)`,
+    s.distanceKm != null
+      ? `${s.distanceKm.toFixed(1)} km du gymnase (~${s.estimatedPayment!.toFixed(2)} €)`
+      : "distance inconnue (adresse non géocodée)",
+    `${s.currentLoad} désignation(s) à venir`,
+  ];
+  return (
+    `${parts.join(" · ")} — classé 1er sur ${totalCandidates} arbitre(s) disponible(s) ` +
+    `(sans conflit d'horaire, ni indisponibilité, ni dépassement de quota), trié par proximité puis équité.`
+  );
 }
+
 
 export type DesignateResult = { ok: true } | { ok: false; error: string };
 

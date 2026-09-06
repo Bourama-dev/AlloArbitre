@@ -10,6 +10,7 @@ import {
 } from "@/lib/referees";
 import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr, formatDateOnlyFr } from "@/lib/dates";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -213,9 +214,9 @@ export default async function RefereeSheetPage({
               <label className="field-label">Note</label>
               <input name="note" className="input w-full" />
             </div>
-            <button type="submit" className="btn btn-primary text-xs">
+            <SubmitButton className="btn btn-primary text-xs" pendingLabel="Ajout…">
               Ajouter
-            </button>
+            </SubmitButton>
           </form>
 
           <form
@@ -247,9 +248,9 @@ export default async function RefereeSheetPage({
               <label className="field-label">Note</label>
               <input name="note" className="input w-full" />
             </div>
-            <button type="submit" className="btn btn-primary text-xs">
+            <SubmitButton className="btn btn-primary text-xs" pendingLabel="Ajout…">
               Ajouter
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </section>

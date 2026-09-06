@@ -9,6 +9,7 @@ import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { AlertToast } from "@/components/alert-toast";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -199,9 +200,7 @@ export default async function MatchDetailPage({
                   </div>
                   <form action={designate}>
                     <input type="hidden" name="refereeId" value={s.id} />
-                    <button type="submit" className="btn btn-primary">
-                      Désigner
-                    </button>
+                    <SubmitButton pendingLabel="Désignation…">Désigner</SubmitButton>
                   </form>
                 </li>
               ))}
