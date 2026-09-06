@@ -36,6 +36,23 @@ type RawMatchForSuggestion = {
   designations: { id: string; refereeId: string }[];
 };
 
+/**
+ * PostgREST renvoie la relation to-one `mapping` tantôt comme un objet,
+ * tantôt comme un tableau à 0 ou 1 élément selon l'état de son cache de
+ * schéma - normalise les deux formes (même correctif que sur
+ * /admin/niveaux) pour ne jamais rater une correspondance pourtant bien
+ * enregistrée en base.
+ */
+function normalizeMapping(
+  raw: unknown
+): { minRefereeLevel: { id: string; label: string; rank: number } } | null {
+  if (!raw) return null;
+  if (Array.isArray(raw)) {
+    return (raw[0] as { minRefereeLevel: { id: string; label: string; rank: number } }) ?? null;
+  }
+  return raw as { minRefereeLevel: { id: string; label: string; rank: number } };
+}
+
 export async function getMatchForSuggestion(matchId: string) {
   const { data, error } = await supabaseAdmin
     .from("Match")
@@ -50,7 +67,14 @@ export async function getMatchForSuggestion(matchId: string) {
   if (!data) return null;
 
   const match = data as unknown as RawMatchForSuggestion;
-  return { ...match, date: new Date(match.date) };
+  return {
+    ...match,
+    date: new Date(match.date),
+    competitionLevel: {
+      ...match.competitionLevel,
+      mapping: normalizeMapping(match.competitionLevel.mapping),
+    },
+  };
 }
 
 /**
