@@ -70,6 +70,13 @@ export default async function LoginPage({
             Se connecter
           </button>
         </form>
+
+        <p className="mt-4 text-sm text-neutral-500 text-center">
+          Pas encore de compte ?{" "}
+          <a href="/signup" className="text-neutral-900 underline">
+            S&apos;inscrire
+          </a>
+        </p>
       </div>
     </div>
   );

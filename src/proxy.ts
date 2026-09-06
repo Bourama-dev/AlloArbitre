@@ -1,13 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/env";
+
+const AUTH_ROUTES = ["/login", "/signup"];
 
 export default async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const isAuthRoute = AUTH_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r));
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  let supabaseResponse = NextResponse.next({ request });
+  let user = null;
+
+  try {
+    const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -20,17 +24,19 @@ export default async function proxy(request: NextRequest) {
           );
         },
       },
-    }
-  );
+    });
 
-  // Ne pas insérer de logique entre createServerClient et getUser() : ça
-  // revalide le token à chaque requête et rafraîchit la session si besoin.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // Ne pas insérer de logique entre createServerClient et getUser() : ça
+    // revalide le token à chaque requête et rafraîchit la session si besoin.
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (err) {
+    // Une session Supabase indisponible ne doit jamais faire planter tout le
+    // site (500 générique illisible) - on retombe sur "non connecté".
+    console.error("[proxy] Supabase auth check failed:", err);
+  }
 
   const isLoggedIn = !!user;
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
 
   if (!isLoggedIn && !isAuthRoute) {
     const loginUrl = new URL("/login", request.nextUrl);

@@ -10,19 +10,24 @@ export type CurrentUser = {
 
 /** Utilisateur connecté (session Supabase Auth) + son profil applicatif (nom, rôle). */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
 
-  const profile = await prisma.profile.findUnique({ where: { id: user.id } });
-  if (!profile) return null;
+    const profile = await prisma.profile.findUnique({ where: { id: user.id } });
+    if (!profile) return null;
 
-  return {
-    id: profile.id,
-    email: profile.email,
-    name: profile.name,
-    role: profile.role,
-  };
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+    };
+  } catch (err) {
+    console.error("[getCurrentUser] failed:", err);
+    return null;
+  }
 }

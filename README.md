@@ -50,18 +50,22 @@ POSTGRES_URL_NON_POOLING="postgresql://postgres.<ref>:<password>@aws-0-<region>.
 ## Authentification (Supabase Auth)
 
 L'authentification passe entièrement par le service Auth natif de Supabase
-(GoTrue), via `@supabase/ssr`. Il n'y a **pas** de page d'inscription dans
-l'app : les comptes sont créés côté Supabase.
+(GoTrue), via `@supabase/ssr`. Deux pages : `/login` et `/signup`
+(inscription libre, ouverte à qui a l'URL - pas de code d'invitation).
+Un nouveau compte créé via `/signup` obtient le rôle `REPARTITEUR` par
+défaut ; à évaluer si un contrôle d'accès plus strict devient nécessaire
+(code d'invitation, validation manuelle...).
 
 Table `Profile` (schéma `public`, gérée par Prisma) : id = `auth.users.id`,
 email, name, role (`ADMIN` ou `REPARTITEUR`, défaut `REPARTITEUR`). Un
 trigger Postgres (`handle_new_user`, voir la migration
 `20260906180000_profile_supabase_auth`) crée automatiquement la ligne
-`Profile` à chaque nouvelle inscription dans `auth.users`.
+`Profile` à chaque nouvelle inscription dans `auth.users`, que ce soit via
+`/signup` ou créée manuellement depuis le dashboard Supabase.
 
-**Créer un compte répartiteur** : dashboard Supabase > Authentication >
-Users > Add user (email + mot de passe, cocher "Auto Confirm User" pour
-qu'il puisse se connecter immédiatement sans email de confirmation).
+**Créer un compte manuellement** (alternative à `/signup`) : dashboard
+Supabase > Authentication > Users > Add user (cocher "Auto Confirm User"
+pour se connecter immédiatement sans email de confirmation).
 
 **Promouvoir un compte en ADMIN** (accès à `/admin/niveaux`) :
 
@@ -76,6 +80,14 @@ UPDATE "Profile" SET role = 'ADMIN' WHERE email = 'quelquun@example.com';
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` : URL et clé
   publique du projet Supabase (Project Settings > API) — fournies elles
   aussi par l'intégration Vercel-Supabase, sinon à renseigner dans `.env`
+
+**Piège fréquent en collant une valeur dans les Environment Variables de
+Vercel** : ne pas inclure les guillemets (le format `.env` ci-dessus en a,
+Vercel non) - une URL du genre `"https://...supabase.co"` avec les
+guillemets inclus est invalide et fait planter toutes les pages (500
+générique). Le code tente de nettoyer ça automatiquement
+(`src/lib/supabase/env.ts`), mais autant coller la valeur propre dès le
+départ.
 
 ## Démarrage
 
