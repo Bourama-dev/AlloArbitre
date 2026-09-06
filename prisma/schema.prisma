@@ -2,12 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client"
-  output        = "../src/generated/prisma"
-  // "native" pour le dev local, "rhel-openssl-3.0.x" pour le runtime Node.js
-  // des fonctions serverless Vercel (sinon le moteur binaire est introuvable
-  // au déploiement : PrismaClientInitializationError en production).
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider   = "prisma-client"
+  output     = "../src/generated/prisma"
+  // "client" = pas de moteur binaire natif du tout (WASM query compiler +
+  // driver adapter @prisma/adapter-pg dans src/lib/prisma.ts). C'est la
+  // vraie cause des PrismaClientInitializationError en production sur
+  // Vercel : sans ce réglage, Prisma tente encore de charger le moteur
+  // natif même quand un adapter est fourni au client.
+  engineType = "client"
 }
 
 // url/directUrl utilisent les noms fournis par l'intégration Vercel-Supabase
