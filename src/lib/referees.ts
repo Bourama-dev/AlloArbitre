@@ -107,7 +107,9 @@ export async function listRefereesWithLoad({
   withLoad.sort((a, b) => {
     switch (sort) {
       case "niveau":
-        return b.level.rank - a.level.rank || a.lastName.localeCompare(b.lastName);
+        // rank 1 = niveau le plus élevé : tri croissant pour afficher les plus
+        // expérimentés en premier.
+        return a.level.rank - b.level.rank || a.lastName.localeCompare(b.lastName);
       case "club":
         return (a.zone ?? "").localeCompare(b.zone ?? "") || a.lastName.localeCompare(b.lastName);
       case "charge_asc":

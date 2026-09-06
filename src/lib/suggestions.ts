@@ -84,7 +84,10 @@ export async function suggestReferees(matchId: string): Promise<{
     query = query.not("id", "in", `(${alreadyAssignedIds.join(",")})`);
   }
   if (minRank !== undefined) {
-    query = query.gte("level.rank", minRank);
+    // rank 1 = niveau le plus élevé (croissant = niveau plus bas) : un arbitre
+    // convient si son rang est au plus égal à celui exigé (aussi expérimenté
+    // ou plus).
+    query = query.lte("level.rank", minRank);
   }
 
   const { data, error } = await query;

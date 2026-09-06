@@ -41,7 +41,8 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- Niveau d'arbitre (ex: Jeune Arbitre, District 3, District 2, District 1...).
--- rank croissant = niveau plus élevé. Éditable pour coller à la grille réelle du CD45.
+-- rank 1 = niveau le plus élevé (rank croissant = niveau plus bas). Éditable
+-- pour coller à la grille réelle du CD45.
 create table "RefereeLevel" (
   id text primary key default gen_random_uuid()::text,
   label text not null unique,

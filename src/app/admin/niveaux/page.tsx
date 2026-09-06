@@ -234,8 +234,9 @@ export default async function LevelMappingAdminPage({
       <div>
         <h2 className="text-base font-semibold">Niveaux d&apos;arbitre</h2>
         <p className="text-sm text-[var(--muted)]">
-          Rang croissant = niveau plus élevé. La suppression échoue si des
-          arbitres ou une correspondance utilisent encore ce niveau.
+          Rang 1 = niveau le plus élevé (rang croissant = niveau plus bas). La
+          suppression échoue si des arbitres ou une correspondance utilisent
+          encore ce niveau.
         </p>
 
         <div className="table-shell overflow-x-auto mt-3">
