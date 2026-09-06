@@ -4,12 +4,12 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/current-user";
 import { getMatchById, matchStatus } from "@/lib/matches";
-import { suggestReferees, designateReferee } from "@/lib/suggestions";
+import { getMatchCandidates, designateReferee } from "@/lib/suggestions";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { AlertToast } from "@/components/alert-toast";
-import { SubmitButton } from "@/components/submit-button";
+import { SuggestionsList } from "@/components/suggestions-list";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +29,10 @@ export default async function MatchDetailPage({
   const status = matchStatus(match);
   const slotsLeft = match.refereesRequired - match.designations.length;
 
-  const { minLevelLabel, suggestions } =
-    status === "incomplet" ? await suggestReferees(id) : { minLevelLabel: null, suggestions: [] };
+  const { minLevelLabel, eligible, ineligible } =
+    status === "incomplet"
+      ? await getMatchCandidates(id)
+      : { minLevelLabel: null, eligible: [], ineligible: [] };
 
   async function designate(formData: FormData) {
     "use server";
@@ -168,44 +170,7 @@ export default async function MatchDetailPage({
               Niveau minimum requis : {minLevelLabel}
             </p>
           )}
-          {suggestions.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">
-              Aucun arbitre disponible ne correspond aux critères pour ce match.
-            </p>
-          ) : (
-            <ul className="table-shell divide-y divide-[var(--border)]">
-              {suggestions.map((s) => (
-                <li key={s.id} className="px-4 py-2.5 text-sm flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="avatar-chip">
-                      {s.firstName.charAt(0)}
-                      {s.lastName.charAt(0)}
-                    </span>
-                    <div>
-                      <Link href={`/arbitres/${s.id}`} className="hover:underline font-medium">
-                        {s.firstName} {s.lastName}
-                      </Link>
-                      <div className="text-[var(--muted)] text-xs">
-                        {s.levelLabel} · {s.zone ?? "zone inconnue"} ·{" "}
-                        {s.currentLoad} désignation{s.currentLoad > 1 ? "s" : ""}
-                        {s.distanceKm != null && (
-                          <>
-                            {" "}
-                            · {s.distanceKm.toFixed(1)} km ·{" "}
-                            {s.estimatedPayment!.toFixed(2)} €
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <form action={designate}>
-                    <input type="hidden" name="refereeId" value={s.id} />
-                    <SubmitButton pendingLabel="Désignation…">Désigner</SubmitButton>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
+          <SuggestionsList eligible={eligible} ineligible={ineligible} designateAction={designate} />
         </section>
       )}
     </div>
