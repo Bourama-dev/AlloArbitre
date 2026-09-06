@@ -46,6 +46,12 @@ export function Nav({ user }: { user: NavUser }) {
                 >
                   Import matchs
                 </Link>
+                <Link
+                  href="/admin/utilisateurs"
+                  className="text-neutral-600 hover:text-neutral-900"
+                >
+                  Utilisateurs
+                </Link>
               </>
             )}
           </nav>

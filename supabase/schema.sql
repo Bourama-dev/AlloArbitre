@@ -91,6 +91,20 @@ create table "Match" (
 );
 create index "Match_date_idx" on "Match"(date);
 
+-- Indisponibilité d'un arbitre sur une période (date à date, inclusif).
+-- Exclut l'arbitre des suggestions pour tout match dont la date tombe dans
+-- l'intervalle.
+create table "Unavailability" (
+  id text primary key default gen_random_uuid()::text,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  "startDate" date not null,
+  "endDate" date not null,
+  note text,
+  "createdAt" timestamp(3) not null default current_timestamp,
+  check ("endDate" >= "startDate")
+);
+create index "Unavailability_refereeId_idx" on "Unavailability"("refereeId");
+
 -- Désignation d'un arbitre sur un match. Toujours créée après validation manuelle
 -- d'une suggestion - jamais d'auto-assignation silencieuse.
 create table "Designation" (

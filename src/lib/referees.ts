@@ -69,7 +69,7 @@ export async function getRefereeSheet(id: string) {
   const { data: referee, error } = await supabaseAdmin
     .from("Referee")
     .select(
-      `id, firstName, lastName, phone, email, zone, active, notes,
+      `id, firstName, lastName, phone, email, zone, active, notes, levelId,
        level:RefereeLevel(id, label, rank),
        designations:Designation(id, matchId, match:Match(id, date, cancelled, homeTeam, awayTeam, competitionLevel:CompetitionLevel(id, label)))`
     )
@@ -77,6 +77,13 @@ export async function getRefereeSheet(id: string) {
     .maybeSingle();
   if (error) throw error;
   if (!referee) return null;
+
+  const { data: unavailability, error: unavailError } = await supabaseAdmin
+    .from("Unavailability")
+    .select("id, startDate, endDate, note")
+    .eq("refereeId", id)
+    .order("startDate", { ascending: true });
+  if (unavailError) throw unavailError;
 
   const refereeRow = referee as unknown as RawReferee & {
     designations: unknown;
@@ -108,7 +115,30 @@ export async function getRefereeSheet(id: string) {
     upcoming,
     past,
     currentLoad: upcoming.length,
+    unavailability: (unavailability ?? []) as {
+      id: string;
+      startDate: string;
+      endDate: string;
+      note: string | null;
+    }[],
   };
+}
+
+export async function addUnavailability(
+  refereeId: string,
+  startDate: string,
+  endDate: string,
+  note: string | null
+) {
+  const { error } = await supabaseAdmin
+    .from("Unavailability")
+    .insert({ refereeId, startDate, endDate, note });
+  if (error) throw error;
+}
+
+export async function removeUnavailability(id: string) {
+  const { error } = await supabaseAdmin.from("Unavailability").delete().eq("id", id);
+  if (error) throw error;
 }
 
 export async function listZones() {

@@ -20,6 +20,16 @@ TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
   est complété/mis à jour plutôt que dupliqué, donc le même fichier peut être
   réimporté sans risque. Les niveaux de compétition inconnus sont créés
   automatiquement.
+- CRUD manuel des matchs (`/matchs/nouveau`, `/matchs/[id]/modifier`) et des
+  arbitres (`/arbitres/nouveau`, `/arbitres/[id]/modifier`) : créer, modifier,
+  annuler/désactiver, supprimer
+- Gestion des niveaux eux-mêmes (pas seulement leur correspondance) et des
+  comptes utilisateurs (`/admin/utilisateurs`, réservé ADMIN)
+- Indisponibilités des arbitres (période du/au sur la fiche arbitre) :
+  exclues automatiquement des suggestions de désignation
+- Auto-désignation en lot (`/matchs/incomplets`) : sélection de matchs via
+  cases à cocher, assigne directement la meilleure suggestion à chaque
+  créneau vacant sans écran de confirmation intermédiaire
 
 ## Volontairement non traité pour l'instant
 

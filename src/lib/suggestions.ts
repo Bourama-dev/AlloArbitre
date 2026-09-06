@@ -65,7 +65,8 @@ export async function suggestReferees(matchId: string): Promise<{
     .select(
       `id, firstName, lastName, zone, phone,
        level:RefereeLevel!inner(id, label, rank),
-       designations:Designation(id, match:Match(date, durationMinutes, cancelled))`
+       designations:Designation(id, match:Match(date, durationMinutes, cancelled)),
+       unavailability:Unavailability(startDate, endDate)`
     )
     .eq("active", true);
 
@@ -87,9 +88,11 @@ export async function suggestReferees(matchId: string): Promise<{
     phone: string | null;
     level: { id: string; label: string; rank: number };
     designations: { id: string; match: { date: string; durationMinutes: number; cancelled: boolean } }[];
+    unavailability: { startDate: string; endDate: string }[];
   };
 
   const now = new Date();
+  const matchDay = match.date.toISOString().slice(0, 10);
   const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => ({
     ...c,
     activeDesignations: c.designations
@@ -101,7 +104,8 @@ export async function suggestReferees(matchId: string): Promise<{
     (c) =>
       !c.activeDesignations.some((d) =>
         overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
-      )
+      ) &&
+      !c.unavailability.some((u) => u.startDate <= matchDay && matchDay <= u.endDate)
   );
 
   const suggestions: RefereeSuggestion[] = withoutConflicts
