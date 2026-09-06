@@ -1,6 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { getRefereeSheet } from "@/lib/referees";
+import { revalidatePath } from "next/cache";
+import { getRefereeSheet, addUnavailability, removeUnavailability } from "@/lib/referees";
+import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +16,31 @@ export default async function RefereeSheetPage({
   const sheet = await getRefereeSheet(id);
   if (!sheet) notFound();
 
-  const { referee, upcoming, past, currentLoad } = sheet;
+  const { referee, upcoming, past, currentLoad, unavailability } = sheet;
+
+  async function addUnavailabilityAction(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (!user) redirect("/login");
+
+    const startDate = String(formData.get("startDate") ?? "");
+    const endDate = String(formData.get("endDate") ?? startDate);
+    const note = String(formData.get("note") ?? "").trim() || null;
+    if (!startDate) return;
+
+    await addUnavailability(id, startDate, endDate || startDate, note);
+    revalidatePath(`/arbitres/${id}`);
+  }
+
+  async function removeUnavailabilityAction(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (!user) redirect("/login");
+
+    const unavailabilityId = String(formData.get("unavailabilityId"));
+    await removeUnavailability(unavailabilityId);
+    revalidatePath(`/arbitres/${id}`);
+  }
 
   return (
     <div className="space-y-6">
@@ -70,6 +96,67 @@ export default async function RefereeSheetPage({
           </div>
         )}
       </div>
+
+      <section>
+        <h2 className="text-sm font-semibold text-neutral-700 mb-2">
+          Indisponibilités
+        </h2>
+        {unavailability.length === 0 ? (
+          <p className="text-sm text-neutral-500 mb-2">Aucune indisponibilité déclarée.</p>
+        ) : (
+          <ul className="divide-y divide-neutral-100 border border-neutral-200 rounded-lg bg-white mb-2">
+            {unavailability.map((u) => (
+              <li key={u.id} className="px-3 py-2 text-sm flex items-center justify-between">
+                <span>
+                  Du {u.startDate} au {u.endDate}
+                  {u.note ? ` · ${u.note}` : ""}
+                </span>
+                <form action={removeUnavailabilityAction}>
+                  <input type="hidden" name="unavailabilityId" value={u.id} />
+                  <button type="submit" className="text-xs text-red-600 hover:underline">
+                    Retirer
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+        <form
+          action={addUnavailabilityAction}
+          className="flex flex-wrap items-end gap-2 bg-white border border-neutral-200 rounded-lg p-3"
+        >
+          <div>
+            <label className="block text-xs text-neutral-500 mb-1">Du</label>
+            <input
+              type="date"
+              name="startDate"
+              required
+              className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-neutral-500 mb-1">Au</label>
+            <input
+              type="date"
+              name="endDate"
+              className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            />
+          </div>
+          <div className="flex-1 min-w-[10rem]">
+            <label className="block text-xs text-neutral-500 mb-1">Note</label>
+            <input
+              name="note"
+              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+          >
+            Ajouter
+          </button>
+        </form>
+      </section>
 
       <section>
         <h2 className="text-sm font-semibold text-neutral-700 mb-2">
