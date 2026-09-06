@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 import { findMatches, listCompetitionLevels } from "@/lib/matches";
 import { autoDesignateMatches } from "@/lib/suggestions";
 import { getCurrentUser } from "@/lib/current-user";
@@ -51,7 +52,13 @@ export default async function IncompleteMatchesPage({
         <div>
           <h1 className="text-lg font-semibold">Matchs incomplets</h1>
           <p className="text-sm text-neutral-500">
-            Tous les matchs à venir nécessitant encore une désignation.
+            Tous les matchs à venir nécessitant encore une désignation, toutes
+            semaines confondues - avec l&apos;auto-désignation en lot
+            ci-dessous. Pour naviguer semaine par semaine tous statuts, voir{" "}
+            <Link href="/matchs" className="underline">
+              Matchs
+            </Link>
+            .
           </p>
         </div>
         <form className="flex items-end gap-2">
@@ -89,8 +96,7 @@ export default async function IncompleteMatchesPage({
       )}
 
       <form action={autoDesignate} className="space-y-3">
-        <MatchesTable matches={matches} selectable />
-        {matches.some((m) => m.designations.length < m.refereesRequired) && (
+        {matches.length > 0 && (
           <button
             type="submit"
             className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
@@ -98,6 +104,7 @@ export default async function IncompleteMatchesPage({
             Auto-désignation des matchs sélectionnés
           </button>
         )}
+        <MatchesTable matches={matches} selectable />
       </form>
     </div>
   );

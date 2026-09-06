@@ -34,7 +34,17 @@ export default async function MatchesPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-lg font-semibold">Matchs</h1>
+        <div>
+          <h1 className="text-lg font-semibold">Matchs</h1>
+          <p className="text-xs text-neutral-500">
+            Vue par semaine, tous statuts confondus. Pour désigner en lot tous
+            les matchs incomplets à venir (toutes semaines), voir{" "}
+            <Link href="/matchs/incomplets" className="underline">
+              Matchs incomplets
+            </Link>
+            .
+          </p>
+        </div>
         <div className="flex items-center gap-2 text-sm">
           <Link
             href="/matchs/nouveau"

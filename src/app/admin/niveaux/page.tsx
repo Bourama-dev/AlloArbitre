@@ -236,37 +236,37 @@ export default async function LevelMappingAdminPage({
               {refereeLevels.map((l) => (
                 <tr key={l.id}>
                   <td colSpan={3} className="px-3 py-2">
-                    <form action={renameRefereeLevel} className="flex items-center gap-2">
-                      <input type="hidden" name="id" value={l.id} />
-                      <input
-                        name="label"
-                        defaultValue={l.label}
-                        className="rounded border border-neutral-300 px-2 py-1.5 text-sm flex-1"
-                      />
-                      <input
-                        type="number"
-                        name="rank"
-                        defaultValue={l.rank}
-                        className="rounded border border-neutral-300 px-2 py-1.5 text-sm w-20"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
-                      >
-                        Enregistrer
-                      </button>
-                    </form>
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <form action={deleteRefereeLevel}>
-                      <input type="hidden" name="id" value={l.id} />
-                      <button
-                        type="submit"
-                        className="text-xs text-red-600 hover:underline"
-                      >
-                        Supprimer
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-2">
+                      <form action={renameRefereeLevel} className="flex items-center gap-2 flex-1">
+                        <input type="hidden" name="id" value={l.id} />
+                        <input
+                          name="label"
+                          defaultValue={l.label}
+                          className="rounded border border-neutral-300 px-2 py-1.5 text-sm flex-1"
+                        />
+                        <input
+                          type="number"
+                          name="rank"
+                          defaultValue={l.rank}
+                          className="rounded border border-neutral-300 px-2 py-1.5 text-sm w-20"
+                        />
+                        <button
+                          type="submit"
+                          className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+                        >
+                          Enregistrer
+                        </button>
+                      </form>
+                      <form action={deleteRefereeLevel}>
+                        <input type="hidden" name="id" value={l.id} />
+                        <button
+                          type="submit"
+                          className="text-xs text-red-600 hover:underline whitespace-nowrap"
+                        >
+                          Supprimer
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}
