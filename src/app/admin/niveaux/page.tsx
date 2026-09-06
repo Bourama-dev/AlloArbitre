@@ -12,6 +12,20 @@ type CompetitionLevelRow = {
   mapping: { minRefereeLevel: { id: string; label: string } } | null;
 };
 
+/**
+ * PostgREST renvoie `mapping` tantôt comme un objet (relation to-one bien
+ * détectée), tantôt comme un tableau (à 0 ou 1 élément) selon l'état du
+ * cache de schéma - normalise les deux formes pour ne jamais rater une
+ * correspondance pourtant bien enregistrée en base.
+ */
+function normalizeMapping(
+  raw: unknown
+): { minRefereeLevel: { id: string; label: string } } | null {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return (raw[0] as { minRefereeLevel: { id: string; label: string } }) ?? null;
+  return raw as { minRefereeLevel: { id: string; label: string } };
+}
+
 export default async function LevelMappingAdminPage({
   searchParams,
 }: {
@@ -34,6 +48,10 @@ export default async function LevelMappingAdminPage({
     ]);
   if (clError) throw clError;
   if (rlError) throw rlError;
+
+  const competitionLevelRows: CompetitionLevelRow[] = (
+    (competitionLevels ?? []) as unknown as { id: string; label: string; mapping: unknown }[]
+  ).map((c) => ({ id: c.id, label: c.label, mapping: normalizeMapping(c.mapping) }));
 
   async function saveMapping(formData: FormData) {
     "use server";
@@ -178,7 +196,7 @@ export default async function LevelMappingAdminPage({
               </tr>
             </thead>
             <tbody>
-              {(competitionLevels as unknown as CompetitionLevelRow[]).map((c) => (
+              {competitionLevelRows.map((c) => (
                 <tr key={c.id}>
                   <td className="px-3 py-2 whitespace-nowrap">{c.label}</td>
                   <td className="px-3 py-2">
@@ -307,7 +325,7 @@ export default async function LevelMappingAdminPage({
         <div className="table-shell overflow-x-auto mt-3">
           <table className="w-full text-sm">
             <tbody>
-              {(competitionLevels as unknown as CompetitionLevelRow[]).map((c) => (
+              {competitionLevelRows.map((c) => (
                 <tr key={c.id}>
                   <td className="px-3 py-2">
                     <form action={renameCompetitionLevel} className="flex items-center gap-2">
