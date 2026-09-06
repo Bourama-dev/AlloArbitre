@@ -49,6 +49,11 @@ export default async function MatchesPage({
             <Link href="/matchs/incomplets" className="text-[var(--accent)] hover:underline">
               Matchs incomplets
             </Link>
+            . Pour le nombre d&apos;arbitres nécessaires par gymnase sur une
+            journée, voir{" "}
+            <Link href="/matchs/gymnase" className="text-[var(--accent)] hover:underline">
+              Arbitres par gymnase
+            </Link>
             .
           </p>
         </div>

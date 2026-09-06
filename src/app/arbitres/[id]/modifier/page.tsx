@@ -42,6 +42,7 @@ export default async function EditRefereePage({
     const notes = String(formData.get("notes") ?? "").trim() || null;
     const levelId = String(formData.get("levelId") ?? "");
     const active = formData.get("active") === "on";
+    const nationalNumber = String(formData.get("nationalNumber") ?? "").trim() || null;
     const licenseNumber = String(formData.get("licenseNumber") ?? "").trim() || null;
     const birthDate = String(formData.get("birthDate") ?? "").trim() || null;
     const qualificationDate = String(formData.get("qualificationDate") ?? "").trim() || null;
@@ -69,6 +70,7 @@ export default async function EditRefereePage({
         notes,
         levelId,
         active,
+        nationalNumber,
         licenseNumber,
         birthDate,
         qualificationDate,
@@ -196,7 +198,15 @@ export default async function EditRefereePage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="field-label">N° national</label>
+            <input
+              name="nationalNumber"
+              defaultValue={referee.nationalNumber ?? ""}
+              className="input w-full"
+            />
+          </div>
           <div>
             <label className="field-label">N° licence</label>
             <input

@@ -23,7 +23,7 @@ async function createMatch(formData: FormData) {
   const poule = String(formData.get("poule") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const competitionLevelId = String(formData.get("competitionLevelId") ?? "");
-  const refereesRequired = Number(formData.get("refereesRequired")) || 1;
+  const refereesRequired = Math.max(2, Number(formData.get("refereesRequired")) || 2);
 
   if (!homeTeam || !awayTeam || !date || !competitionLevelId) {
     redirect(`/matchs/nouveau?error=${encodeURIComponent("Champs obligatoires manquants.")}`);
@@ -172,7 +172,7 @@ export default async function NewMatchPage({
             <input
               type="number"
               name="refereesRequired"
-              min={1}
+              min={2}
               defaultValue={2}
               className="input w-full"
             />

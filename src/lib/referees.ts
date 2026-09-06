@@ -8,6 +8,7 @@ type RawReferee = {
   email: string | null;
   zone: string | null;
   address: string | null;
+  nationalNumber: string | null;
   licenseNumber: string | null;
   birthDate: string | null;
   qualificationDate: string | null;
@@ -20,7 +21,7 @@ type RawReferee = {
 };
 
 const REFEREE_FIELDS =
-  "id, firstName, lastName, phone, email, zone, address, licenseNumber, birthDate, qualificationDate, medicalFileDate, recyclingDate, active, notes, levelId";
+  "id, firstName, lastName, phone, email, zone, address, nationalNumber, licenseNumber, birthDate, qualificationDate, medicalFileDate, recyclingDate, active, notes, levelId";
 
 export type UnavailabilityRow = {
   id: string;
