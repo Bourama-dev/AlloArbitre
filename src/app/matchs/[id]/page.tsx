@@ -71,9 +71,19 @@ export default async function MatchDetailPage({
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted)] mt-2">
           <span>{match.competitionLevel.label}</span>
+          {match.poule && <span>Poule {match.poule}</span>}
           <span>{formatDateTimeFr(match.date)}</span>
-          {match.venue && <span>{match.venue}</span>}
+          {(match.venue || match.city) && (
+            <span>
+              {match.venue}
+              {match.venue && match.city ? " · " : ""}
+              {match.city}
+            </span>
+          )}
         </div>
+        {match.notes && (
+          <p className="text-sm text-[var(--muted)] mt-1 italic">{match.notes}</p>
+        )}
         <div className="grid grid-cols-2 gap-3 mt-4 max-w-md">
           <div className="card p-3 text-center">
             <p className="field-label mb-1">Domicile</p>

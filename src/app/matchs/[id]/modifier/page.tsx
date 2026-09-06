@@ -35,6 +35,9 @@ export default async function EditMatchPage({
     const date = String(formData.get("date") ?? "");
     const heure = String(formData.get("heure") ?? "00:00");
     const venue = String(formData.get("venue") ?? "").trim() || null;
+    const city = String(formData.get("city") ?? "").trim() || null;
+    const poule = String(formData.get("poule") ?? "").trim() || null;
+    const notes = String(formData.get("notes") ?? "").trim() || null;
     const competitionLevelId = String(formData.get("competitionLevelId") ?? "");
     const refereesRequired = Number(formData.get("refereesRequired")) || 1;
 
@@ -49,6 +52,9 @@ export default async function EditMatchPage({
         homeTeam,
         awayTeam,
         venue,
+        city,
+        poule,
+        notes,
         competitionLevelId,
         refereesRequired,
       })
@@ -157,13 +163,20 @@ export default async function EditMatchPage({
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">Lieu</label>
+            <input name="venue" defaultValue={match.venue ?? ""} className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">Ville</label>
+            <input name="city" defaultValue={match.city ?? ""} className="input w-full" />
+          </div>
+        </div>
+
         <div>
-          <label className="field-label">Lieu</label>
-          <input
-            name="venue"
-            defaultValue={match.venue ?? ""}
-            className="input w-full"
-          />
+          <label className="field-label">Poule</label>
+          <input name="poule" defaultValue={match.poule ?? ""} className="input w-full" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -192,6 +205,11 @@ export default async function EditMatchPage({
               className="input w-full"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Notes</label>
+          <textarea name="notes" rows={2} defaultValue={match.notes ?? ""} className="input w-full" />
         </div>
 
         <button
