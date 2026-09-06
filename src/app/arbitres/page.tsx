@@ -20,7 +20,15 @@ export default async function RefereesPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold">Arbitres</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Arbitres</h1>
+        <Link
+          href="/arbitres/nouveau"
+          className="px-2 py-1 text-sm rounded bg-neutral-900 text-white hover:bg-neutral-800"
+        >
+          + Nouvel arbitre
+        </Link>
+      </div>
 
       <form className="flex flex-wrap items-end gap-3 bg-white border border-neutral-200 rounded-lg p-4">
         <div>

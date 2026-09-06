@@ -22,9 +22,17 @@ export default async function RefereeSheetPage({
         <Link href="/arbitres" className="text-sm text-blue-600 hover:underline">
           ← Retour aux arbitres
         </Link>
-        <h1 className="text-lg font-semibold mt-2">
-          {referee.firstName} {referee.lastName}
-        </h1>
+        <div className="flex items-center gap-3 mt-2">
+          <h1 className="text-lg font-semibold">
+            {referee.firstName} {referee.lastName}
+          </h1>
+          <Link
+            href={`/arbitres/${id}/modifier`}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Modifier
+          </Link>
+        </div>
         {!referee.active && (
           <p className="text-sm text-neutral-500">Arbitre inactif</p>
         )}
