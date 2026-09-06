@@ -122,6 +122,55 @@ export async function suggestReferees(matchId: string): Promise<{
   };
 }
 
+export type AutoDesignateSummary = {
+  assigned: number;
+  errors: string[];
+};
+
+/**
+ * Auto-désignation : pour chaque match sélectionné, assigne directement la
+ * meilleure suggestion (équité) à chaque créneau vacant, sans écran de
+ * confirmation intermédiaire - déclenché par un clic explicite sur le
+ * bouton "Auto-désignation" (ce n'est jamais silencieux/en arrière-plan).
+ * Traitement séquentiel : chaque désignation est committée avant de
+ * recalculer les suggestions suivantes, ce qui évite qu'un même arbitre
+ * soit doublement affecté sur deux matchs simultanés du même lot.
+ */
+export async function autoDesignateMatches(
+  matchIds: string[],
+  createdById: string
+): Promise<AutoDesignateSummary> {
+  const summary: AutoDesignateSummary = { assigned: 0, errors: [] };
+
+  for (const matchId of matchIds) {
+    for (;;) {
+      const match = await getMatchForSuggestion(matchId);
+      if (!match) {
+        summary.errors.push(`Match introuvable (${matchId}).`);
+        break;
+      }
+      if (match.cancelled || match.designations.length >= match.refereesRequired) break;
+
+      const { suggestions } = await suggestReferees(matchId);
+      if (suggestions.length === 0) {
+        summary.errors.push(
+          `${match.competitionLevel.label} du ${match.date.toLocaleDateString("fr-FR")} : aucun arbitre disponible.`
+        );
+        break;
+      }
+
+      const result = await designateReferee(matchId, suggestions[0].id, createdById);
+      if (!result.ok) {
+        summary.errors.push(result.error);
+        break;
+      }
+      summary.assigned++;
+    }
+  }
+
+  return summary;
+}
+
 export type DesignateResult = { ok: true } | { ok: false; error: string };
 
 /** Création de la désignation - toujours suite à une validation manuelle explicite. */
