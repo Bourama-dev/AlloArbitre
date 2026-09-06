@@ -60,22 +60,22 @@ export default async function UsersAdminPage({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-lg font-semibold">Comptes utilisateurs</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-xl font-semibold tracking-tight">Comptes utilisateurs</h1>
+        <p className="text-sm text-[var(--muted)]">
           Un nouveau compte se crée via <code>/signup</code> avec le rôle
           REPARTITEUR par défaut. Promouvez-le en ADMIN ici si besoin.
         </p>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
-      <div className="overflow-x-auto border border-neutral-200 rounded-lg">
+      <div className="table-shell overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-500 text-left">
+          <thead>
             <tr>
               <th className="px-3 py-2 font-medium">Nom</th>
               <th className="px-3 py-2 font-medium">Email</th>
@@ -83,25 +83,25 @@ export default async function UsersAdminPage({
               <th className="px-3 py-2" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody>
             {(profiles as ProfileRow[]).map((p) => (
               <tr key={p.id}>
                 <td className="px-3 py-2 whitespace-nowrap">{p.name}</td>
-                <td className="px-3 py-2 whitespace-nowrap text-neutral-500">{p.email}</td>
+                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">{p.email}</td>
                 <td className="px-3 py-2">
                   <form action={changeRole} className="flex items-center gap-2">
                     <input type="hidden" name="id" value={p.id} />
                     <select
                       name="role"
                       defaultValue={p.role}
-                      className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+                      className="input"
                     >
                       <option value="REPARTITEUR">REPARTITEUR</option>
                       <option value="ADMIN">ADMIN</option>
                     </select>
                     <button
                       type="submit"
-                      className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+                      className="btn btn-primary text-xs"
                     >
                       Enregistrer
                     </button>
@@ -112,7 +112,7 @@ export default async function UsersAdminPage({
                     <input type="hidden" name="id" value={p.id} />
                     <ConfirmSubmitButton
                       confirmMessage={`Supprimer définitivement le compte de ${p.name} ?`}
-                      className="text-xs text-red-600 hover:underline"
+                      className="btn-danger text-xs"
                     >
                       Supprimer
                     </ConfirmSubmitButton>

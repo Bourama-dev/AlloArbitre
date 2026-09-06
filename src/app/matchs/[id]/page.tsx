@@ -56,52 +56,65 @@ export default async function MatchDetailPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/matchs" className="text-sm text-blue-600 hover:underline">
+        <Link href="/matchs" className="text-sm text-[var(--accent)] hover:underline">
           ← Retour aux matchs
         </Link>
-        <div className="flex items-center gap-3 mt-2">
-          <h1 className="text-lg font-semibold">
-            {match.homeTeam} - {match.awayTeam}
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
+          <h1 className="text-xl font-semibold tracking-tight">
+            {match.homeTeam} <span className="text-[var(--muted)] font-normal">vs</span>{" "}
+            {match.awayTeam}
           </h1>
           <StatusBadge status={status} />
-          <Link
-            href={`/matchs/${id}/modifier`}
-            className="text-xs text-blue-600 hover:underline"
-          >
+          <Link href={`/matchs/${id}/modifier`} className="btn-ghost text-sm">
             Modifier
           </Link>
         </div>
-        <p className="text-sm text-neutral-500 mt-1">
-          {match.competitionLevel.label} · {formatDateTimeFr(match.date)}
-          {match.venue ? ` · ${match.venue}` : ""}
-        </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted)] mt-2">
+          <span>{match.competitionLevel.label}</span>
+          <span>{formatDateTimeFr(match.date)}</span>
+          {match.venue && <span>{match.venue}</span>}
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-4 max-w-md">
+          <div className="card p-3 text-center">
+            <p className="field-label mb-1">Domicile</p>
+            <p className="font-semibold">{match.homeTeam}</p>
+          </div>
+          <div className="card p-3 text-center">
+            <p className="field-label mb-1">Extérieur</p>
+            <p className="font-semibold">{match.awayTeam}</p>
+          </div>
+        </div>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
       <section>
-        <h2 className="text-sm font-semibold text-neutral-700 mb-2">
+        <h2 className="text-sm font-semibold mb-2">
           Arbitres désignés ({match.designations.length}/{match.refereesRequired})
         </h2>
         {match.designations.length === 0 ? (
-          <p className="text-sm text-neutral-500">Aucun arbitre désigné pour l&apos;instant.</p>
+          <p className="text-sm text-[var(--muted)]">Aucun arbitre désigné pour l&apos;instant.</p>
         ) : (
-          <ul className="divide-y divide-neutral-100 border border-neutral-200 rounded-lg bg-white">
+          <ul className="table-shell divide-y divide-[var(--border)]">
             {match.designations.map((d) => (
-              <li key={d.id} className="px-3 py-2 text-sm flex items-center justify-between">
-                <Link href={`/arbitres/${d.referee.id}`} className="hover:underline">
+              <li key={d.id} className="px-4 py-2.5 text-sm flex items-center justify-between">
+                <Link
+                  href={`/arbitres/${d.referee.id}`}
+                  className="inline-flex items-center gap-2 hover:underline"
+                >
+                  <span className="avatar-chip">
+                    {d.referee.firstName.charAt(0)}
+                    {d.referee.lastName.charAt(0)}
+                  </span>
                   {d.referee.firstName} {d.referee.lastName}
                 </Link>
                 <form action={removeDesignation}>
                   <input type="hidden" name="designationId" value={d.id} />
-                  <button
-                    type="submit"
-                    className="text-xs text-red-600 hover:underline"
-                  >
+                  <button type="submit" className="btn-danger text-xs">
                     Retirer
                   </button>
                 </form>
@@ -113,12 +126,12 @@ export default async function MatchDetailPage({
 
       {status === "incomplet" && (
         <section>
-          <h2 className="text-sm font-semibold text-neutral-700 mb-2">
+          <h2 className="text-sm font-semibold mb-2">
             Suggestions ({slotsLeft} désignation{slotsLeft > 1 ? "s" : ""} restante
             {slotsLeft > 1 ? "s" : ""})
           </h2>
           {!minLevelLabel && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mb-2">
+            <p className="text-xs text-[var(--warning)] bg-[var(--warning-bg)] rounded-lg p-2 mb-2">
               Aucun niveau d&apos;arbitre minimum n&apos;est configuré pour «&nbsp;{match.competitionLevel.label}&nbsp;».
               Toutes les suggestions sont affichées sans filtre de niveau. Vous pouvez
               corriger cela dans{" "}
@@ -129,34 +142,36 @@ export default async function MatchDetailPage({
             </p>
           )}
           {minLevelLabel && (
-            <p className="text-xs text-neutral-500 mb-2">
+            <p className="text-xs text-[var(--muted)] mb-2">
               Niveau minimum requis : {minLevelLabel}
             </p>
           )}
           {suggestions.length === 0 ? (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-[var(--muted)]">
               Aucun arbitre disponible ne correspond aux critères pour ce match.
             </p>
           ) : (
-            <ul className="divide-y divide-neutral-100 border border-neutral-200 rounded-lg bg-white">
+            <ul className="table-shell divide-y divide-[var(--border)]">
               {suggestions.map((s) => (
-                <li key={s.id} className="px-3 py-2 text-sm flex items-center justify-between">
-                  <div>
-                    <Link href={`/arbitres/${s.id}`} className="hover:underline">
-                      {s.firstName} {s.lastName}
-                    </Link>
-                    <span className="text-neutral-500">
-                      {" "}
-                      · {s.levelLabel} · {s.zone ?? "zone inconnue"} ·{" "}
-                      {s.currentLoad} désignation{s.currentLoad > 1 ? "s" : ""}
+                <li key={s.id} className="px-4 py-2.5 text-sm flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="avatar-chip">
+                      {s.firstName.charAt(0)}
+                      {s.lastName.charAt(0)}
                     </span>
+                    <div>
+                      <Link href={`/arbitres/${s.id}`} className="hover:underline font-medium">
+                        {s.firstName} {s.lastName}
+                      </Link>
+                      <div className="text-[var(--muted)] text-xs">
+                        {s.levelLabel} · {s.zone ?? "zone inconnue"} ·{" "}
+                        {s.currentLoad} désignation{s.currentLoad > 1 ? "s" : ""}
+                      </div>
+                    </div>
                   </div>
                   <form action={designate}>
                     <input type="hidden" name="refereeId" value={s.id} />
-                    <button
-                      type="submit"
-                      className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
-                    >
+                    <button type="submit" className="btn btn-primary">
                       Désigner
                     </button>
                   </form>

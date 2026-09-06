@@ -13,62 +13,80 @@ export function MatchesTable({
 }) {
   if (matches.length === 0) {
     return (
-      <p className="text-sm text-neutral-500 py-8 text-center">
+      <p className="text-sm text-[var(--muted)] py-10 text-center card">
         Aucun match ne correspond à ces filtres.
       </p>
     );
   }
 
   return (
-    <div className="overflow-x-auto border border-neutral-200 rounded-lg">
-      <table className="w-full text-sm">
-        <thead className="bg-neutral-50 text-neutral-500 text-left">
+    <div className="table-shell overflow-x-auto">
+      <table>
+        <thead>
           <tr>
-            {selectable && <th className="px-3 py-2 w-8" />}
-            <th className="px-3 py-2 font-medium">Date</th>
-            <th className="px-3 py-2 font-medium">Niveau</th>
-            <th className="px-3 py-2 font-medium">Affiche</th>
-            <th className="px-3 py-2 font-medium">Lieu</th>
-            <th className="px-3 py-2 font-medium">Arbitres</th>
-            <th className="px-3 py-2 font-medium">Statut</th>
-            <th className="px-3 py-2" />
+            {selectable && <th className="w-8" />}
+            <th>Date</th>
+            <th>Niveau</th>
+            <th>Domicile</th>
+            <th>Extérieur</th>
+            <th>Lieu</th>
+            <th>Arbitres</th>
+            <th>Statut</th>
+            <th />
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-100">
+        <tbody>
           {matches.map((m) => {
             const status = matchStatus(m);
             return (
-              <tr key={m.id} className="hover:bg-neutral-50">
+              <tr key={m.id}>
                 {selectable && (
-                  <td className="px-3 py-2">
+                  <td>
                     {status === "incomplet" && (
                       <input type="checkbox" name="matchIds" value={m.id} />
                     )}
                   </td>
                 )}
-                <td className="px-3 py-2 whitespace-nowrap">
-                  {formatDateTimeFr(m.date)}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="whitespace-nowrap">{formatDateTimeFr(m.date)}</td>
+                <td className="whitespace-nowrap text-[var(--muted)]">
                   {m.competitionLevel.label}
                 </td>
-                <td className="px-3 py-2">
-                  {m.homeTeam} - {m.awayTeam}
+                <td className="font-medium whitespace-nowrap">{m.homeTeam}</td>
+                <td className="font-medium whitespace-nowrap">{m.awayTeam}</td>
+                <td className="whitespace-nowrap text-[var(--muted)]">{m.venue ?? "-"}</td>
+                <td className="min-w-[10rem]">
+                  {m.designations.length === 0 ? (
+                    <span className="text-[var(--muted)]">
+                      Aucun arbitre ({0}/{m.refereesRequired})
+                    </span>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      {m.designations.map((d) => (
+                        <Link
+                          key={d.id}
+                          href={`/arbitres/${d.referee.id}`}
+                          className="inline-flex items-center gap-1 hover:underline"
+                        >
+                          <span className="avatar-chip">
+                            {d.referee.firstName.charAt(0)}
+                            {d.referee.lastName.charAt(0)}
+                          </span>
+                          {d.referee.firstName} {d.referee.lastName}
+                        </Link>
+                      ))}
+                      {m.designations.length < m.refereesRequired && (
+                        <span className="text-[var(--muted)] text-xs">
+                          ({m.designations.length}/{m.refereesRequired})
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap text-neutral-500">
-                  {m.venue ?? "-"}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  {m.designations.length}/{m.refereesRequired}
-                </td>
-                <td className="px-3 py-2">
+                <td>
                   <StatusBadge status={status} />
                 </td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">
-                  <Link
-                    href={`/matchs/${m.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
+                <td className="text-right whitespace-nowrap">
+                  <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
                     Détails
                   </Link>
                 </td>

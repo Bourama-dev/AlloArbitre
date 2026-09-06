@@ -157,30 +157,30 @@ export default async function LevelMappingAdminPage({
   return (
     <div className="space-y-8">
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
       <div>
-        <h1 className="text-lg font-semibold">
+        <h1 className="text-xl font-semibold tracking-tight">
           Correspondance niveaux de compétition → niveau d&apos;arbitre minimum
         </h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-[var(--muted)]">
           Cette table pilote le filtre de niveau de l&apos;algorithme de suggestion
           d&apos;arbitres. Modifiez-la librement, rien n&apos;est figé dans le code.
         </p>
 
-        <div className="overflow-x-auto border border-neutral-200 rounded-lg mt-3">
+        <div className="table-shell overflow-x-auto mt-3">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-500 text-left">
+            <thead>
               <tr>
                 <th className="px-3 py-2 font-medium">Niveau de compétition</th>
                 <th className="px-3 py-2 font-medium">Niveau d&apos;arbitre minimum</th>
                 <th className="px-3 py-2" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody>
               {(competitionLevels as unknown as CompetitionLevelRow[]).map((c) => (
                 <tr key={c.id}>
                   <td className="px-3 py-2 whitespace-nowrap">{c.label}</td>
@@ -190,7 +190,7 @@ export default async function LevelMappingAdminPage({
                       <select
                         name="minRefereeLevelId"
                         defaultValue={c.mapping?.minRefereeLevel?.id ?? ""}
-                        className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+                        className="input"
                       >
                         <option value="" disabled>
                           Non défini
@@ -203,7 +203,7 @@ export default async function LevelMappingAdminPage({
                       </select>
                       <button
                         type="submit"
-                        className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+                        className="btn btn-primary text-xs"
                       >
                         Enregistrer
                       </button>
@@ -218,21 +218,21 @@ export default async function LevelMappingAdminPage({
 
       <div>
         <h2 className="text-base font-semibold">Niveaux d&apos;arbitre</h2>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-[var(--muted)]">
           Rang croissant = niveau plus élevé. La suppression échoue si des
           arbitres ou une correspondance utilisent encore ce niveau.
         </p>
 
-        <div className="overflow-x-auto border border-neutral-200 rounded-lg mt-3">
+        <div className="table-shell overflow-x-auto mt-3">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-500 text-left">
+            <thead>
               <tr>
                 <th className="px-3 py-2 font-medium">Libellé</th>
                 <th className="px-3 py-2 font-medium">Rang</th>
                 <th className="px-3 py-2" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody>
               {refereeLevels.map((l) => (
                 <tr key={l.id}>
                   <td colSpan={3} className="px-3 py-2">
@@ -242,17 +242,17 @@ export default async function LevelMappingAdminPage({
                         <input
                           name="label"
                           defaultValue={l.label}
-                          className="rounded border border-neutral-300 px-2 py-1.5 text-sm flex-1"
+                          className="input flex-1"
                         />
                         <input
                           type="number"
                           name="rank"
                           defaultValue={l.rank}
-                          className="rounded border border-neutral-300 px-2 py-1.5 text-sm w-20"
+                          className="input w-20"
                         />
                         <button
                           type="submit"
-                          className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+                          className="btn btn-primary text-xs"
                         >
                           Enregistrer
                         </button>
@@ -261,7 +261,7 @@ export default async function LevelMappingAdminPage({
                         <input type="hidden" name="id" value={l.id} />
                         <button
                           type="submit"
-                          className="text-xs text-red-600 hover:underline whitespace-nowrap"
+                          className="btn-danger text-xs whitespace-nowrap"
                         >
                           Supprimer
                         </button>
@@ -276,24 +276,24 @@ export default async function LevelMappingAdminPage({
 
         <form
           action={addRefereeLevel}
-          className="flex items-center gap-2 mt-3 bg-white border border-neutral-200 rounded-lg p-3"
+          className="flex items-center gap-2 mt-3 card p-3"
         >
           <input
             name="label"
             placeholder="Libellé (ex: DEP-2)"
             required
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm flex-1"
+            className="input flex-1"
           />
           <input
             type="number"
             name="rank"
             placeholder="Rang"
             required
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm w-24"
+            className="input w-24"
           />
           <button
             type="submit"
-            className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+            className="btn btn-primary text-xs"
           >
             Ajouter
           </button>
@@ -302,14 +302,14 @@ export default async function LevelMappingAdminPage({
 
       <div>
         <h2 className="text-base font-semibold">Niveaux de compétition</h2>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-[var(--muted)]">
           La suppression échoue si des matchs existants utilisent encore ce
           niveau.
         </p>
 
-        <div className="overflow-x-auto border border-neutral-200 rounded-lg mt-3">
+        <div className="table-shell overflow-x-auto mt-3">
           <table className="w-full text-sm">
-            <tbody className="divide-y divide-neutral-100">
+            <tbody>
               {(competitionLevels as unknown as CompetitionLevelRow[]).map((c) => (
                 <tr key={c.id}>
                   <td className="px-3 py-2">
@@ -318,11 +318,11 @@ export default async function LevelMappingAdminPage({
                       <input
                         name="label"
                         defaultValue={c.label}
-                        className="rounded border border-neutral-300 px-2 py-1.5 text-sm flex-1"
+                        className="input flex-1"
                       />
                       <button
                         type="submit"
-                        className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+                        className="btn btn-primary text-xs"
                       >
                         Enregistrer
                       </button>
@@ -333,7 +333,7 @@ export default async function LevelMappingAdminPage({
                       <input type="hidden" name="id" value={c.id} />
                       <button
                         type="submit"
-                        className="text-xs text-red-600 hover:underline"
+                        className="btn-danger text-xs"
                       >
                         Supprimer
                       </button>
@@ -347,17 +347,17 @@ export default async function LevelMappingAdminPage({
 
         <form
           action={addCompetitionLevel}
-          className="flex items-center gap-2 mt-3 bg-white border border-neutral-200 rounded-lg p-3"
+          className="flex items-center gap-2 mt-3 card p-3"
         >
           <input
             name="label"
             placeholder="Libellé (ex: TQR1_U15M)"
             required
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm flex-1"
+            className="input flex-1"
           />
           <button
             type="submit"
-            className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+            className="btn btn-primary text-xs"
           >
             Ajouter
           </button>

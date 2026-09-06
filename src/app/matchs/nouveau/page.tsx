@@ -57,78 +57,78 @@ export default async function NewMatchPage({
   return (
     <div className="space-y-4 max-w-xl">
       <div>
-        <Link href="/matchs" className="text-sm text-blue-600 hover:underline">
+        <Link href="/matchs" className="text-sm text-[var(--accent)] hover:underline">
           ← Retour aux matchs
         </Link>
-        <h1 className="text-lg font-semibold mt-2">Nouveau match</h1>
+        <h1 className="text-xl font-semibold tracking-tight mt-2">Nouveau match</h1>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
       <form
         action={createMatch}
-        className="space-y-3 bg-white border border-neutral-200 rounded-lg p-4"
+        className="space-y-3 card p-4"
       >
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Équipe domicile *</label>
+            <label className="field-label">Équipe domicile *</label>
             <input
               name="homeTeam"
               required
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Équipe extérieur *</label>
+            <label className="field-label">Équipe extérieur *</label>
             <input
               name="awayTeam"
               required
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Date *</label>
+            <label className="field-label">Date *</label>
             <input
               type="date"
               name="date"
               required
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Heure</label>
+            <label className="field-label">Heure</label>
             <input
               type="time"
               name="heure"
               defaultValue="00:00"
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Lieu</label>
+          <label className="field-label">Lieu</label>
           <input
             name="venue"
-            className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input w-full"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Niveau de compétition *</label>
+            <label className="field-label">Niveau de compétition *</label>
             <select
               name="competitionLevelId"
               required
               defaultValue=""
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             >
               <option value="" disabled>
                 Sélectionner...
@@ -141,20 +141,20 @@ export default async function NewMatchPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Arbitres requis</label>
+            <label className="field-label">Arbitres requis</label>
             <input
               type="number"
               name="refereesRequired"
               min={1}
               defaultValue={2}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <button
           type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          className="btn btn-primary"
         >
           Créer le match
         </button>

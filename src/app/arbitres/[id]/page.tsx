@@ -45,66 +45,66 @@ export default async function RefereeSheetPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/arbitres" className="text-sm text-blue-600 hover:underline">
+        <Link href="/arbitres" className="text-sm text-[var(--accent)] hover:underline">
           ← Retour aux arbitres
         </Link>
         <div className="flex items-center gap-3 mt-2">
-          <h1 className="text-lg font-semibold">
+          <h1 className="text-xl font-semibold tracking-tight">
             {referee.firstName} {referee.lastName}
           </h1>
           <Link
             href={`/arbitres/${id}/modifier`}
-            className="text-xs text-blue-600 hover:underline"
+            className="btn-ghost text-xs"
           >
             Modifier
           </Link>
         </div>
         {!referee.active && (
-          <p className="text-sm text-neutral-500">Arbitre inactif</p>
+          <p className="text-sm text-[var(--muted)]">Arbitre inactif</p>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white border border-neutral-200 rounded-lg p-4 space-y-2 text-sm">
+        <div className="card p-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-neutral-500">Niveau</span>
+            <span className="text-[var(--muted)]">Niveau</span>
             <span className="font-medium">{referee.level.label}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-neutral-500">Zone</span>
+            <span className="text-[var(--muted)]">Zone</span>
             <span className="font-medium">{referee.zone ?? "-"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-neutral-500">Téléphone</span>
+            <span className="text-[var(--muted)]">Téléphone</span>
             <span className="font-medium">{referee.phone ?? "-"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-neutral-500">Email</span>
+            <span className="text-[var(--muted)]">Email</span>
             <span className="font-medium">{referee.email ?? "-"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-neutral-500">Charge actuelle</span>
+            <span className="text-[var(--muted)]">Charge actuelle</span>
             <span className="font-medium">
               {currentLoad} désignation{currentLoad > 1 ? "s" : ""} à venir
             </span>
           </div>
         </div>
         {referee.notes && (
-          <div className="bg-white border border-neutral-200 rounded-lg p-4 text-sm">
-            <p className="text-neutral-500 mb-1">Notes</p>
+          <div className="card p-4 text-sm">
+            <p className="text-[var(--muted)] mb-1">Notes</p>
             <p>{referee.notes}</p>
           </div>
         )}
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold text-neutral-700 mb-2">
+        <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">
           Indisponibilités
         </h2>
         {unavailability.length === 0 ? (
-          <p className="text-sm text-neutral-500 mb-2">Aucune indisponibilité déclarée.</p>
+          <p className="text-sm text-[var(--muted)] mb-2">Aucune indisponibilité déclarée.</p>
         ) : (
-          <ul className="divide-y divide-neutral-100 border border-neutral-200 rounded-lg bg-white mb-2">
+          <ul className="table-shell divide-y divide-[var(--border)] mb-2">
             {unavailability.map((u) => (
               <li key={u.id} className="px-3 py-2 text-sm flex items-center justify-between">
                 <span>
@@ -113,7 +113,7 @@ export default async function RefereeSheetPage({
                 </span>
                 <form action={removeUnavailabilityAction}>
                   <input type="hidden" name="unavailabilityId" value={u.id} />
-                  <button type="submit" className="text-xs text-red-600 hover:underline">
+                  <button type="submit" className="btn-danger text-xs">
                     Retirer
                   </button>
                 </form>
@@ -123,35 +123,35 @@ export default async function RefereeSheetPage({
         )}
         <form
           action={addUnavailabilityAction}
-          className="flex flex-wrap items-end gap-2 bg-white border border-neutral-200 rounded-lg p-3"
+          className="flex flex-wrap items-end gap-2 card p-3"
         >
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Du</label>
+            <label className="field-label">Du</label>
             <input
               type="date"
               name="startDate"
               required
-              className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Au</label>
+            <label className="field-label">Au</label>
             <input
               type="date"
               name="endDate"
-              className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input"
             />
           </div>
           <div className="flex-1 min-w-[10rem]">
-            <label className="block text-xs text-neutral-500 mb-1">Note</label>
+            <label className="field-label">Note</label>
             <input
               name="note"
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <button
             type="submit"
-            className="rounded bg-neutral-900 text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
+            className="btn btn-primary text-xs"
           >
             Ajouter
           </button>
@@ -159,19 +159,19 @@ export default async function RefereeSheetPage({
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-neutral-700 mb-2">
+        <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">
           Désignations à venir
         </h2>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-neutral-500">Aucune désignation à venir.</p>
+          <p className="text-sm text-[var(--muted)]">Aucune désignation à venir.</p>
         ) : (
-          <ul className="divide-y divide-neutral-100 border border-neutral-200 rounded-lg bg-white">
+          <ul className="table-shell divide-y divide-[var(--border)]">
             {upcoming.map((d) => (
               <li key={d.id} className="px-3 py-2 text-sm flex justify-between">
                 <Link href={`/matchs/${d.match.id}`} className="hover:underline">
                   {d.match.homeTeam} - {d.match.awayTeam} ({d.match.competitionLevel.label})
                 </Link>
-                <span className="text-neutral-500">
+                <span className="text-[var(--muted)]">
                   {formatDateTimeFr(d.match.date)}
                 </span>
               </li>
@@ -181,15 +181,15 @@ export default async function RefereeSheetPage({
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-neutral-700 mb-2">
+        <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">
           Historique
         </h2>
         {past.length === 0 ? (
-          <p className="text-sm text-neutral-500">Aucun historique.</p>
+          <p className="text-sm text-[var(--muted)]">Aucun historique.</p>
         ) : (
-          <ul className="divide-y divide-neutral-100 border border-neutral-200 rounded-lg bg-white">
+          <ul className="table-shell divide-y divide-[var(--border)]">
             {past.map((d) => (
-              <li key={d.id} className="px-3 py-2 text-sm flex justify-between text-neutral-500">
+              <li key={d.id} className="px-3 py-2 text-sm flex justify-between text-[var(--muted)]">
                 <span>
                   {d.match.homeTeam} - {d.match.awayTeam} ({d.match.competitionLevel.label})
                 </span>
