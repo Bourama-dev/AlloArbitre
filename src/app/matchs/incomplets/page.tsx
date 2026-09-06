@@ -50,12 +50,12 @@ export default async function IncompleteMatchesPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Matchs incomplets</h1>
-          <p className="text-sm text-neutral-500">
+          <h1 className="text-xl font-semibold tracking-tight">Matchs incomplets</h1>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
             Tous les matchs à venir nécessitant encore une désignation, toutes
             semaines confondues - avec l&apos;auto-désignation en lot
             ci-dessous. Pour naviguer semaine par semaine tous statuts, voir{" "}
-            <Link href="/matchs" className="underline">
+            <Link href="/matchs" className="text-[var(--accent)] hover:underline">
               Matchs
             </Link>
             .
@@ -65,7 +65,7 @@ export default async function IncompleteMatchesPage({
           <select
             name="level"
             defaultValue={competitionLevelId ?? ""}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input"
           >
             <option value="">Tous les niveaux</option>
             {levels.map((l) => (
@@ -74,33 +74,27 @@ export default async function IncompleteMatchesPage({
               </option>
             ))}
           </select>
-          <button
-            type="submit"
-            className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
-          >
+          <button type="submit" className="btn btn-secondary">
             Filtrer
           </button>
         </form>
       </div>
 
       {params.error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(params.error)}
         </p>
       )}
       {params.assigned !== undefined && (
-        <div className="text-sm rounded border border-green-200 bg-green-50 text-green-800 px-3 py-2 space-y-1">
+        <div className="text-sm rounded-lg bg-[var(--success-bg)] text-[var(--success)] px-3 py-2 space-y-1">
           <p>{params.assigned} désignation(s) créée(s) automatiquement.</p>
-          {params.errors && <p className="text-red-700">{params.errors}</p>}
+          {params.errors && <p className="text-[var(--danger)]">{params.errors}</p>}
         </div>
       )}
 
       <form action={autoDesignate} className="space-y-3">
         {matches.length > 0 && (
-          <button
-            type="submit"
-            className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
-          >
+          <button type="submit" className="btn btn-primary">
             Auto-désignation des matchs sélectionnés
           </button>
         )}

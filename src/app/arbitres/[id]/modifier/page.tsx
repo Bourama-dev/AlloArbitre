@@ -81,79 +81,79 @@ export default async function EditRefereePage({
   return (
     <div className="space-y-4 max-w-xl">
       <div>
-        <Link href={`/arbitres/${id}`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/arbitres/${id}`} className="text-sm text-[var(--accent)] hover:underline">
           ← Retour à la fiche
         </Link>
-        <h1 className="text-lg font-semibold mt-2">Modifier l&apos;arbitre</h1>
+        <h1 className="text-xl font-semibold tracking-tight mt-2">Modifier l&apos;arbitre</h1>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
       <form
         action={updateReferee}
-        className="space-y-3 bg-white border border-neutral-200 rounded-lg p-4"
+        className="space-y-3 card p-4"
       >
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Prénom *</label>
+            <label className="field-label">Prénom *</label>
             <input
               name="firstName"
               required
               defaultValue={referee.firstName}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Nom *</label>
+            <label className="field-label">Nom *</label>
             <input
               name="lastName"
               required
               defaultValue={referee.lastName}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Téléphone</label>
+            <label className="field-label">Téléphone</label>
             <input
               name="phone"
               defaultValue={referee.phone ?? ""}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Email</label>
+            <label className="field-label">Email</label>
             <input
               type="email"
               name="email"
               defaultValue={referee.email ?? ""}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Zone / club</label>
+            <label className="field-label">Zone / club</label>
             <input
               name="zone"
               defaultValue={referee.zone ?? ""}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Niveau *</label>
+            <label className="field-label">Niveau *</label>
             <select
               name="levelId"
               required
               defaultValue={referee.levelId}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             >
               {levels.map((l) => (
                 <option key={l.id} value={l.id}>
@@ -165,12 +165,12 @@ export default async function EditRefereePage({
         </div>
 
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Notes</label>
+          <label className="field-label">Notes</label>
           <textarea
             name="notes"
             rows={2}
             defaultValue={referee.notes ?? ""}
-            className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input w-full"
           />
         </div>
 
@@ -181,16 +181,16 @@ export default async function EditRefereePage({
 
         <button
           type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          className="btn btn-primary"
         >
           Enregistrer
         </button>
       </form>
 
-      <form action={deleteReferee} className="bg-white border border-neutral-200 rounded-lg p-4">
+      <form action={deleteReferee} className="card p-4">
         <ConfirmSubmitButton
           confirmMessage="Supprimer définitivement cet arbitre ? Impossible s'il a des désignations existantes - désactivez-le plutôt dans ce cas."
-          className="rounded border border-red-300 text-red-700 text-sm px-3 py-1.5 hover:bg-red-50"
+          className="btn btn-secondary text-[var(--danger)]"
         >
           Supprimer définitivement
         </ConfirmSubmitButton>

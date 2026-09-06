@@ -24,15 +24,15 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-      <div className="w-full max-w-sm bg-white border border-neutral-200 rounded-lg p-6 shadow-sm">
-        <h1 className="text-lg font-semibold mb-1">AlloArbitre</h1>
-        <p className="text-sm text-neutral-500 mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <div className="w-full max-w-sm card p-6">
+        <h1 className="text-xl font-semibold tracking-tight mb-1">AlloArbitre</h1>
+        <p className="text-sm text-[var(--muted)] mb-6">
           Désignation des arbitres - CD45
         </p>
 
         {params.error && (
-          <p className="mb-4 text-sm text-red-600">
+          <p className="mb-4 text-sm text-[var(--danger)]">
             Identifiants incorrects.
           </p>
         )}
@@ -40,7 +40,7 @@ export default async function LoginPage({
         <form action={login} className="space-y-3">
           <input type="hidden" name="callbackUrl" value={params.callbackUrl ?? "/matchs"} />
           <div>
-            <label className="block text-sm text-neutral-700 mb-1" htmlFor="email">
+            <label className="block text-sm text-[var(--foreground)] mb-1" htmlFor="email">
               Email
             </label>
             <input
@@ -48,11 +48,11 @@ export default async function LoginPage({
               name="email"
               type="email"
               required
-              className="w-full rounded border border-neutral-300 px-3 py-2 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-sm text-neutral-700 mb-1" htmlFor="password">
+            <label className="block text-sm text-[var(--foreground)] mb-1" htmlFor="password">
               Mot de passe
             </label>
             <input
@@ -60,20 +60,20 @@ export default async function LoginPage({
               name="password"
               type="password"
               required
-              className="w-full rounded border border-neutral-300 px-3 py-2 text-sm"
+              className="input w-full"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded bg-neutral-900 text-white text-sm font-medium py-2 hover:bg-neutral-800"
+            className="btn btn-primary w-full py-2"
           >
             Se connecter
           </button>
         </form>
 
-        <p className="mt-4 text-sm text-neutral-500 text-center">
+        <p className="mt-4 text-sm text-[var(--muted)] text-center">
           Pas encore de compte ?{" "}
-          <a href="/signup" className="text-neutral-900 underline">
+          <a href="/signup" className="text-[var(--accent)] underline">
             S&apos;inscrire
           </a>
         </p>

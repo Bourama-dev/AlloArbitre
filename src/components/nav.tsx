@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { NavLinks } from "@/components/nav-links";
 
 type NavUser = {
   name?: string | null;
@@ -10,54 +11,39 @@ type NavUser = {
 
 const links = [
   { href: "/matchs", label: "Matchs" },
-  { href: "/matchs/incomplets", label: "Matchs incomplets" },
+  { href: "/matchs/incomplets", label: "Incomplets" },
   { href: "/arbitres", label: "Arbitres" },
 ];
 
+const adminLinks = [
+  { href: "/admin/niveaux", label: "Niveaux" },
+  { href: "/admin/import", label: "Import" },
+  { href: "/admin/utilisateurs", label: "Utilisateurs" },
+];
+
 export function Nav({ user }: { user: NavUser }) {
+  const allLinks = user.role === "ADMIN" ? [...links, ...adminLinks] : links;
+  const initial = (user.name ?? user.email ?? "?").charAt(0).toUpperCase();
+
   return (
-    <header className="border-b border-neutral-200 bg-white">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <Link href="/matchs" className="font-semibold text-neutral-900">
-            AlloArbitre
+    <header className="sticky top-0 z-10 bg-[var(--surface)]/90 backdrop-blur border-b border-[var(--border)]">
+      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-6 min-w-0">
+          <Link href="/matchs" className="flex items-center gap-2 shrink-0">
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--brand)] text-white font-bold text-sm">
+              A
+            </span>
+            <span className="font-semibold text-[var(--foreground)] tracking-tight">
+              AlloArbitre
+            </span>
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="text-neutral-600 hover:text-neutral-900"
-              >
-                {l.label}
-              </Link>
-            ))}
-            {user.role === "ADMIN" && (
-              <>
-                <Link
-                  href="/admin/niveaux"
-                  className="text-neutral-600 hover:text-neutral-900"
-                >
-                  Admin niveaux
-                </Link>
-                <Link
-                  href="/admin/import"
-                  className="text-neutral-600 hover:text-neutral-900"
-                >
-                  Import matchs
-                </Link>
-                <Link
-                  href="/admin/utilisateurs"
-                  className="text-neutral-600 hover:text-neutral-900"
-                >
-                  Utilisateurs
-                </Link>
-              </>
-            )}
-          </nav>
+          <NavLinks links={allLinks} />
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-neutral-500">{user.name ?? user.email}</span>
+        <div className="flex items-center gap-3 text-sm shrink-0">
+          <span className="hidden sm:flex items-center gap-2 text-[var(--muted)]">
+            <span className="avatar-chip">{initial}</span>
+            {user.name ?? user.email}
+          </span>
           <form
             action={async () => {
               "use server";
@@ -66,11 +52,8 @@ export function Nav({ user }: { user: NavUser }) {
               redirect("/login");
             }}
           >
-            <button
-              type="submit"
-              className="text-neutral-600 hover:text-neutral-900 underline"
-            >
-              Se déconnecter
+            <button type="submit" className="btn btn-secondary">
+              Déconnexion
             </button>
           </form>
         </div>

@@ -98,82 +98,82 @@ export default async function EditMatchPage({
   return (
     <div className="space-y-4 max-w-xl">
       <div>
-        <Link href={`/matchs/${id}`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/matchs/${id}`} className="text-sm text-[var(--accent)] hover:underline">
           ← Retour au match
         </Link>
-        <h1 className="text-lg font-semibold mt-2">Modifier le match</h1>
+        <h1 className="text-xl font-semibold tracking-tight mt-2">Modifier le match</h1>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
       <form
         action={updateMatch}
-        className="space-y-3 bg-white border border-neutral-200 rounded-lg p-4"
+        className="space-y-3 card p-4"
       >
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Équipe domicile *</label>
+            <label className="field-label">Équipe domicile *</label>
             <input
               name="homeTeam"
               required
               defaultValue={match.homeTeam}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Équipe extérieur *</label>
+            <label className="field-label">Équipe extérieur *</label>
             <input
               name="awayTeam"
               required
               defaultValue={match.awayTeam}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Date *</label>
+            <label className="field-label">Date *</label>
             <input
               type="date"
               name="date"
               required
               defaultValue={dateStr}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Heure</label>
+            <label className="field-label">Heure</label>
             <input
               type="time"
               name="heure"
               defaultValue={heureStr}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Lieu</label>
+          <label className="field-label">Lieu</label>
           <input
             name="venue"
             defaultValue={match.venue ?? ""}
-            className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input w-full"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Niveau de compétition *</label>
+            <label className="field-label">Niveau de compétition *</label>
             <select
               name="competitionLevelId"
               required
               defaultValue={match.competitionLevelId}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             >
               {levels.map((l) => (
                 <option key={l.id} value={l.id}>
@@ -183,31 +183,31 @@ export default async function EditMatchPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Arbitres requis</label>
+            <label className="field-label">Arbitres requis</label>
             <input
               type="number"
               name="refereesRequired"
               min={1}
               defaultValue={match.refereesRequired}
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <button
           type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          className="btn btn-primary"
         >
           Enregistrer
         </button>
       </form>
 
-      <div className="flex items-center gap-4 bg-white border border-neutral-200 rounded-lg p-4">
+      <div className="flex items-center gap-4 card p-4">
         <form action={toggleCancelled}>
           <input type="hidden" name="cancelled" value={match.cancelled ? "false" : "true"} />
           <button
             type="submit"
-            className="rounded border border-amber-300 text-amber-700 text-sm px-3 py-1.5 hover:bg-amber-50"
+            className="btn btn-secondary text-[var(--warning)]"
           >
             {match.cancelled ? "Réactiver le match" : "Annuler le match"}
           </button>
@@ -216,7 +216,7 @@ export default async function EditMatchPage({
         <form action={deleteMatch}>
           <ConfirmSubmitButton
             confirmMessage="Supprimer définitivement ce match et ses désignations ? Cette action est irréversible."
-            className="rounded border border-red-300 text-red-700 text-sm px-3 py-1.5 hover:bg-red-50"
+            className="btn btn-secondary text-[var(--danger)]"
           >
             Supprimer définitivement
           </ConfirmSubmitButton>

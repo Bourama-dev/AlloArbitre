@@ -58,8 +58,8 @@ export default async function ImportMatchsPage({
   return (
     <div className="space-y-4 max-w-2xl">
       <div>
-        <h1 className="text-lg font-semibold">Import des matchs (Excel)</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-xl font-semibold tracking-tight">Import des matchs (Excel)</h1>
+        <p className="text-sm text-[var(--muted)]">
           Fichier .xlsx avec les colonnes : <strong>Équipe domicile</strong>,{" "}
           <strong>Équipe extérieur</strong>, <strong>Date</strong> (AAAA-MM-JJ ou
           JJ/MM/AAAA), <strong>Heure</strong> (HH:MM), <strong>Lieu</strong>,{" "}
@@ -71,13 +71,13 @@ export default async function ImportMatchsPage({
       </div>
 
       {params.error && (
-        <div className="rounded border border-red-200 bg-red-50 text-red-700 text-sm px-3 py-2">
+        <div className="rounded-lg bg-[var(--danger-bg)] text-[var(--danger)] text-sm px-3 py-2">
           {params.error}
         </div>
       )}
 
       {(params.created !== undefined || params.updated !== undefined) && !params.error && (
-        <div className="rounded border border-green-200 bg-green-50 text-green-800 text-sm px-3 py-2 space-y-1">
+        <div className="rounded-lg bg-[var(--success-bg)] text-[var(--success)] text-sm px-3 py-2 space-y-1">
           <p>
             {params.created} match(s) créé(s), {params.updated} match(s) mis à jour.
           </p>
@@ -85,16 +85,16 @@ export default async function ImportMatchsPage({
             <p>Niveaux de compétition créés automatiquement : {params.levels}</p>
           )}
           {params.errors && (
-            <p className="text-red-700">Erreurs : {params.errors}</p>
+            <p className="text-[var(--danger)]">Erreurs : {params.errors}</p>
           )}
         </div>
       )}
 
-      <form action={submit} className="space-y-3 bg-white border border-neutral-200 rounded-lg p-4">
+      <form action={submit} className="space-y-3 card p-4">
         <input type="file" name="file" accept=".xlsx" required className="block w-full text-sm" />
         <button
           type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          className="btn btn-primary"
         >
           Importer
         </button>

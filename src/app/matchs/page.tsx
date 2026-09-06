@@ -35,59 +35,45 @@ export default async function MatchesPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Matchs</h1>
-          <p className="text-xs text-neutral-500">
+          <h1 className="text-xl font-semibold tracking-tight">Matchs</h1>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
             Vue par semaine, tous statuts confondus. Pour désigner en lot tous
             les matchs incomplets à venir (toutes semaines), voir{" "}
-            <Link href="/matchs/incomplets" className="underline">
+            <Link href="/matchs/incomplets" className="text-[var(--accent)] hover:underline">
               Matchs incomplets
             </Link>
             .
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <Link
-            href="/matchs/nouveau"
-            className="px-2 py-1 rounded bg-neutral-900 text-white hover:bg-neutral-800"
-          >
+          <Link href="/matchs/nouveau" className="btn btn-primary">
             + Nouveau match
           </Link>
-          <Link
-            href={`/matchs?week=${weekOffset - 1}`}
-            className="px-2 py-1 border border-neutral-300 rounded hover:bg-neutral-100"
-          >
-            ← Semaine préc.
+          <Link href={`/matchs?week=${weekOffset - 1}`} className="btn btn-secondary">
+            ← Préc.
           </Link>
-          <span className="text-neutral-600 px-2">
+          <span className="text-[var(--muted)] px-1 font-medium">
             {formatDateFr(start)} → {formatDateFr(weekEnd)}
           </span>
-          <Link
-            href={`/matchs?week=${weekOffset + 1}`}
-            className="px-2 py-1 border border-neutral-300 rounded hover:bg-neutral-100"
-          >
-            Semaine suiv. →
+          <Link href={`/matchs?week=${weekOffset + 1}`} className="btn btn-secondary">
+            Suiv. →
           </Link>
           {weekOffset !== 0 && (
-            <Link
-              href="/matchs"
-              className="px-2 py-1 text-blue-600 hover:underline"
-            >
+            <Link href="/matchs" className="btn-ghost text-sm">
               Revenir à cette semaine
             </Link>
           )}
         </div>
       </div>
 
-      <form className="flex flex-wrap items-end gap-3 bg-white border border-neutral-200 rounded-lg p-4">
+      <form className="flex flex-wrap items-end gap-3 card p-4">
         <input type="hidden" name="week" value={weekOffset} />
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">
-            Niveau de compétition
-          </label>
+          <label className="field-label">Niveau de compétition</label>
           <select
             name="level"
             defaultValue={competitionLevelId ?? ""}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input"
           >
             <option value="">Tous les niveaux</option>
             {levels.map((l) => (
@@ -98,22 +84,15 @@ export default async function MatchesPage({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Statut</label>
-          <select
-            name="status"
-            defaultValue={status}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
-          >
+          <label className="field-label">Statut</label>
+          <select name="status" defaultValue={status} className="input">
             <option value="toutes">Tous les statuts</option>
             <option value="incomplet">Incomplet</option>
             <option value="complet">Complet</option>
             <option value="annule">Annulé</option>
           </select>
         </div>
-        <button
-          type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
-        >
+        <button type="submit" className="btn btn-primary">
           Filtrer
         </button>
       </form>

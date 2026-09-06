@@ -21,22 +21,22 @@ export default async function RefereesPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Arbitres</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Arbitres</h1>
         <Link
           href="/arbitres/nouveau"
-          className="px-2 py-1 text-sm rounded bg-neutral-900 text-white hover:bg-neutral-800"
+          className="btn btn-primary text-sm"
         >
           + Nouvel arbitre
         </Link>
       </div>
 
-      <form className="flex flex-wrap items-end gap-3 bg-white border border-neutral-200 rounded-lg p-4">
+      <form className="flex flex-wrap items-end gap-3 card p-4">
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Niveau</label>
+          <label className="field-label">Niveau</label>
           <select
             name="level"
             defaultValue={levelId ?? ""}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input"
           >
             <option value="">Tous les niveaux</option>
             {levels.map((l) => (
@@ -47,11 +47,11 @@ export default async function RefereesPage({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Zone</label>
+          <label className="field-label">Zone</label>
           <select
             name="zone"
             defaultValue={zone ?? ""}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input"
           >
             <option value="">Toutes les zones</option>
             {zones.map((z) => (
@@ -63,15 +63,15 @@ export default async function RefereesPage({
         </div>
         <button
           type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          className="btn btn-primary"
         >
           Filtrer
         </button>
       </form>
 
-      <div className="overflow-x-auto border border-neutral-200 rounded-lg">
+      <div className="table-shell overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-neutral-500 text-left">
+          <thead>
             <tr>
               <th className="px-3 py-2 font-medium">Nom</th>
               <th className="px-3 py-2 font-medium">Niveau</th>
@@ -81,17 +81,17 @@ export default async function RefereesPage({
               <th className="px-3 py-2" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody>
             {referees.map((r) => (
-              <tr key={r.id} className="hover:bg-neutral-50">
+              <tr key={r.id}>
                 <td className="px-3 py-2 whitespace-nowrap">
                   {r.firstName} {r.lastName}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">{r.level.label}</td>
-                <td className="px-3 py-2 whitespace-nowrap text-neutral-500">
+                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">
                   {r.zone ?? "-"}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap text-neutral-500">
+                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">
                   {r.phone ?? r.email ?? "-"}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">
@@ -100,7 +100,7 @@ export default async function RefereesPage({
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <Link
                     href={`/arbitres/${r.id}`}
-                    className="text-blue-600 hover:underline"
+                    className="text-[var(--accent)] hover:underline"
                   >
                     Fiche
                   </Link>
@@ -109,7 +109,7 @@ export default async function RefereesPage({
             ))}
             {referees.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-neutral-500">
+                <td colSpan={6} className="px-3 py-8 text-center text-[var(--muted)]">
                   Aucun arbitre ne correspond à ces filtres.
                 </td>
               </tr>

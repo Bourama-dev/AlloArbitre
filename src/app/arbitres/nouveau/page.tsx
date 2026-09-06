@@ -50,74 +50,74 @@ export default async function NewRefereePage({
   return (
     <div className="space-y-4 max-w-xl">
       <div>
-        <Link href="/arbitres" className="text-sm text-blue-600 hover:underline">
+        <Link href="/arbitres" className="text-sm text-[var(--accent)] hover:underline">
           ← Retour aux arbitres
         </Link>
-        <h1 className="text-lg font-semibold mt-2">Nouvel arbitre</h1>
+        <h1 className="text-xl font-semibold tracking-tight mt-2">Nouvel arbitre</h1>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
           {decodeURIComponent(error)}
         </p>
       )}
 
       <form
         action={createReferee}
-        className="space-y-3 bg-white border border-neutral-200 rounded-lg p-4"
+        className="space-y-3 card p-4"
       >
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Prénom *</label>
+            <label className="field-label">Prénom *</label>
             <input
               name="firstName"
               required
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Nom *</label>
+            <label className="field-label">Nom *</label>
             <input
               name="lastName"
               required
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Téléphone</label>
+            <label className="field-label">Téléphone</label>
             <input
               name="phone"
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Email</label>
+            <label className="field-label">Email</label>
             <input
               type="email"
               name="email"
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Zone / club</label>
+            <label className="field-label">Zone / club</label>
             <input
               name="zone"
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-500 mb-1">Niveau *</label>
+            <label className="field-label">Niveau *</label>
             <select
               name="levelId"
               required
               defaultValue=""
-              className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+              className="input w-full"
             >
               <option value="" disabled>
                 Sélectionner...
@@ -132,17 +132,17 @@ export default async function NewRefereePage({
         </div>
 
         <div>
-          <label className="block text-xs text-neutral-500 mb-1">Notes</label>
+          <label className="field-label">Notes</label>
           <textarea
             name="notes"
             rows={2}
-            className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="input w-full"
           />
         </div>
 
         <button
           type="submit"
-          className="rounded bg-neutral-900 text-white text-sm px-4 py-1.5 hover:bg-neutral-800"
+          className="btn btn-primary"
         >
           Créer l&apos;arbitre
         </button>
