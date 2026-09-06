@@ -81,8 +81,8 @@ export function AutoDesignatePanel({ matches }: { matches: MatchWithRelations[] 
       )}
 
       {plan && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
-          <div className="card max-w-2xl w-full max-h-[85vh] overflow-y-auto p-5 space-y-3">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
+          <div className="card animate-scale-in max-w-2xl w-full max-h-[85vh] overflow-y-auto p-5 space-y-3">
             <div>
               <h2 className="font-semibold text-lg">Récapitulatif de l&apos;auto-désignation</h2>
               <p className="text-xs text-[var(--muted)] mt-1">

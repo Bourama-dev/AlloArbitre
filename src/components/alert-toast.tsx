@@ -19,7 +19,7 @@ export function AlertToast({ message, variant = "error" }: { message: string; va
     <div className="fixed inset-x-0 top-4 z-30 flex justify-center px-4 pointer-events-none">
       <div
         role="alert"
-        className={`pointer-events-auto max-w-lg w-full border rounded-lg shadow-lg px-4 py-3 text-sm flex items-start gap-3 ${VARIANT_CLASS[variant]}`}
+        className={`pointer-events-auto max-w-lg w-full border rounded-lg shadow-lg px-4 py-3 text-sm flex items-start gap-3 animate-slide-down ${VARIANT_CLASS[variant]}`}
       >
         <span className="flex-1">{message}</span>
         <button

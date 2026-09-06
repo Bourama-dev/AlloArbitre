@@ -216,4 +216,89 @@ body {
   font-size: 0.625rem;
   font-weight: 700;
   flex-shrink: 0;
+  transition: transform 0.12s ease;
+}
+
+/* --- Animations --- */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease both;
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.25s ease both;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.16s ease both;
+  }
+  .animate-slide-down {
+    animation: slideDown 0.16s ease both;
+  }
+
+  .table-shell,
+  .card {
+    animation: fadeInUp 0.25s ease both;
+  }
+
+  .badge {
+    animation: scaleIn 0.2s ease both;
+  }
+
+  a:hover .avatar-chip,
+  button:hover .avatar-chip {
+    transform: scale(1.08);
+  }
+
+  .btn,
+  .btn-ghost,
+  .btn-danger {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+      transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: translateY(-1px);
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
 }
