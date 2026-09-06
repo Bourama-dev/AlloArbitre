@@ -57,7 +57,15 @@ function excelTimeToHm(value: unknown): string {
   if (value instanceof Date) {
     return value.toISOString().slice(11, 16);
   }
-  const str = String(value ?? "00:00").trim();
+  // Cellule au format "heure" lue par exceljs comme une fraction de journée
+  // (ex : 20:30 -> 0.854166...) plutôt que comme une Date.
+  if (typeof value === "number" && value >= 0 && value < 1) {
+    const totalMinutes = Math.round(value * 24 * 60);
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = totalMinutes % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+  const str = String(value ?? "").trim();
   if (/^\d{1,2}:\d{2}$/.test(str)) {
     const [h, m] = str.split(":");
     return `${h.padStart(2, "0")}:${m}`;
@@ -158,11 +166,18 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
       }
 
       const date = new Date(`${row.date}T${row.heure}:00`);
+      const dayStart = new Date(`${row.date}T00:00:00`);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
 
+      // Un même match est identifié par jour (pas l'horaire exact) + équipes +
+      // niveau : l'horaire peut être corrigé d'un import à l'autre (ex :
+      // horaire absent/mal lu la première fois) sans créer de doublon.
       const { data: existing, error: findError } = await supabaseAdmin
         .from("Match")
         .select("id")
-        .eq("date", date.toISOString())
+        .gte("date", dayStart.toISOString())
+        .lt("date", dayEnd.toISOString())
         .eq("homeTeam", row.homeTeam)
         .eq("awayTeam", row.awayTeam)
         .eq("competitionLevelId", competitionLevelId)
@@ -173,6 +188,7 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
         const { error } = await supabaseAdmin
           .from("Match")
           .update({
+            date: date.toISOString(),
             venue: row.venue,
             city: row.city,
             poule: row.poule,
