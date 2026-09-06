@@ -17,6 +17,12 @@ export type DesignationRule = {
  */
 export const DESIGNATION_RULES: DesignationRule[] = [
   {
+    id: "max-2-jour",
+    label: "Maximum 2 matchs par jour",
+    description: "Un arbitre ne peut pas siffler plus de 2 matchs au cours d'une même journée.",
+    severity: "bloquant",
+  },
+  {
     id: "max-3-semaine",
     label: "Maximum 3 désignations par semaine",
     description:
@@ -33,6 +39,16 @@ export const DESIGNATION_RULES: DesignationRule[] = [
 ];
 
 const MAX_PER_PERIOD = 3;
+const MAX_PER_DAY = 2;
+
+/** Le jour calendaire (00:00 -> 00:00 le lendemain) contenant `date`. */
+function dayRange(date: Date): { start: Date; end: Date } {
+  const start = new Date(date);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 1);
+  return { start, end };
+}
 
 /** Le week-end (sam. 00:00 -> lun. 00:00) contenant `date`, ou null si `date` n'est ni un samedi ni un dimanche. */
 function weekendRange(date: Date): { start: Date; end: Date } | null {
@@ -55,6 +71,16 @@ export type RuleViolation = { ruleId: string; severity: RuleSeverity; message: s
  */
 export function checkQuotaRules(matchDate: Date, existingDates: Date[]): RuleViolation[] {
   const violations: RuleViolation[] = [];
+
+  const { start: dayStart, end: dayEnd } = dayRange(matchDate);
+  const dayCount = existingDates.filter((d) => d >= dayStart && d < dayEnd).length;
+  if (dayCount + 1 > MAX_PER_DAY) {
+    violations.push({
+      ruleId: "max-2-jour",
+      severity: "bloquant",
+      message: `Cet arbitre a déjà ${dayCount} match(s) ce jour-là (maximum ${MAX_PER_DAY}).`,
+    });
+  }
 
   const { start: weekStart, end: weekEnd } = weekRange(matchDate);
   const weekCount = existingDates.filter((d) => d >= weekStart && d < weekEnd).length;
