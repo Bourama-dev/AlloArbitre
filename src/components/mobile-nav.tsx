@@ -40,7 +40,7 @@ export function MobileNav({
         <span className="text-lg leading-none">{open ? "✕" : "☰"}</span>
       </button>
       {open && (
-        <div className="fixed inset-x-0 top-16 z-20 bg-[var(--surface)] border-b border-[var(--border)] shadow-lg p-3 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="fixed inset-x-0 top-16 z-20 bg-[var(--surface)] border-b border-[var(--border)] shadow-lg p-3 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto animate-slide-down">
           {links.map((l) => {
             const active = l.href === "/matchs" ? pathname === "/matchs" : pathname.startsWith(l.href);
             return (

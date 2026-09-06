@@ -55,7 +55,7 @@ export function NavLinks({
             <span className="text-[10px]">▾</span>
           </button>
           {open && (
-            <div className="absolute left-0 top-full mt-1 w-44 card p-1 z-20">
+            <div className="absolute left-0 top-full mt-1 w-44 card animate-slide-down p-1 z-20">
               {adminLinks.map((l) => (
                 <Link
                   key={l.href}
