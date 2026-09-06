@@ -1,7 +1,7 @@
 # AlloArbitre
 
 Outil de désignation des arbitres pour le CD45. Next.js (App Router) +
-TypeScript + Prisma + PostgreSQL (Supabase) + Supabase Auth (multi-utilisateurs).
+TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
 
 ## Fonctionnalités (V1)
 
@@ -24,28 +24,25 @@ TypeScript + Prisma + PostgreSQL (Supabase) + Supabase Auth (multi-utilisateurs)
   "Admin niveaux" (réservé aux comptes ADMIN) si elle ne colle pas à la
   grille réelle du CD45
 
-## Base de données
+## Architecture des données
 
-Le projet utilise Postgres hébergé sur Supabase (projet "FFBB arbitre",
-ref `rtecvnqsyvpehgesrmgn`), connecté au projet Vercel via l'**intégration
-officielle Vercel-Supabase**. Cette intégration synchronise automatiquement
-les variables de connexion dans les settings du projet Vercel — pas besoin
-de les copier-coller à la main. `prisma/schema.prisma` lit directement ces
-noms de variables :
+Le projet parle directement à Supabase via `@supabase/supabase-js` (pas
+d'ORM). Deux clients :
 
-- `POSTGRES_PRISMA_URL` : pooler (pgbouncer) — utilisée par l'application
-  au runtime, adaptée au serverless
-- `POSTGRES_URL_NON_POOLING` : connexion directe — utilisée par Prisma
-  pour les migrations (`prisma migrate dev`/`deploy`)
+- `src/lib/supabase/server.ts` : client lié à la session du visiteur
+  (cookies), utilisé uniquement pour l'authentification (login/signup/
+  session Supabase Auth)
+- `src/lib/supabase/admin.ts` : client "service_role", utilisé pour toutes
+  les données applicatives (matchs, arbitres, désignations...). Contourne
+  volontairement les policies RLS - l'autorisation (qui peut faire quoi)
+  est vérifiée par notre propre code (`getCurrentUser()` + rôle), jamais
+  par la base
 
-En local (sans l'intégration), reproduire ces deux variables dans `.env`
-avec les chaînes de connexion du dashboard Supabase (Project Settings >
-Database), mot de passe encodé en URL (ex: `!` devient `%21`) :
-
-```
-POSTGRES_PRISMA_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true"
-POSTGRES_URL_NON_POOLING="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
-```
+`supabase/schema.sql` et `supabase/seed.sql` documentent le schéma et les
+données de référence (déjà appliqués sur le projet). Ce ne sont pas des
+migrations exécutées automatiquement : toute évolution de schéma se fait
+en SQL direct sur le projet Supabase (dashboard > SQL editor, ou les
+outils MCP Supabase), puis en mettant à jour `supabase/schema.sql`.
 
 ## Authentification (Supabase Auth)
 
@@ -56,12 +53,11 @@ Un nouveau compte créé via `/signup` obtient le rôle `REPARTITEUR` par
 défaut ; à évaluer si un contrôle d'accès plus strict devient nécessaire
 (code d'invitation, validation manuelle...).
 
-Table `Profile` (schéma `public`, gérée par Prisma) : id = `auth.users.id`,
-email, name, role (`ADMIN` ou `REPARTITEUR`, défaut `REPARTITEUR`). Un
-trigger Postgres (`handle_new_user`, voir la migration
-`20260906180000_profile_supabase_auth`) crée automatiquement la ligne
-`Profile` à chaque nouvelle inscription dans `auth.users`, que ce soit via
-`/signup` ou créée manuellement depuis le dashboard Supabase.
+Table `Profile` (schéma `public`) : id = `auth.users.id`, email, name,
+role (`ADMIN` ou `REPARTITEUR`, défaut `REPARTITEUR`). Un trigger Postgres
+(`handle_new_user`, voir `supabase/schema.sql`) crée automatiquement la
+ligne `Profile` à chaque nouvelle inscription dans `auth.users`, que ce
+soit via `/signup` ou créée manuellement depuis le dashboard Supabase.
 
 **Créer un compte manuellement** (alternative à `/signup`) : dashboard
 Supabase > Authentication > Users > Add user (cocher "Auto Confirm User"
@@ -75,39 +71,33 @@ UPDATE "Profile" SET role = 'ADMIN' WHERE email = 'quelquun@example.com';
 
 ## Variables d'environnement
 
-- `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` : voir section Base de
-  données
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` : URL et clé
-  publique du projet Supabase (Project Settings > API) — fournies elles
-  aussi par l'intégration Vercel-Supabase, sinon à renseigner dans `.env`
+  publique du projet Supabase (Project Settings > API)
+- `SUPABASE_SERVICE_ROLE_KEY` : clé secrète (même page, section
+  "service_role") - **ne jamais** l'exposer côté client, uniquement utilisée
+  dans du code serveur (`src/lib/supabase/admin.ts`)
 
 **Piège fréquent en collant une valeur dans les Environment Variables de
-Vercel** : ne pas inclure les guillemets (le format `.env` ci-dessus en a,
-Vercel non) - une URL du genre `"https://...supabase.co"` avec les
-guillemets inclus est invalide et fait planter toutes les pages (500
-générique). Le code tente de nettoyer ça automatiquement
-(`src/lib/supabase/env.ts`), mais autant coller la valeur propre dès le
-départ.
+Vercel** : ne pas inclure les guillemets (le format `.env` en a, Vercel
+non) - une URL du genre `"https://...supabase.co"` avec les guillemets
+inclus est invalide et fait planter toutes les pages (500 générique). Le
+code tente de nettoyer ça automatiquement (`src/lib/supabase/env.ts`),
+mais autant coller la valeur propre dès le départ.
 
 ## Démarrage
 
 ```bash
 npm install
-npx prisma migrate deploy   # applique le schéma sur la base configurée
-npx prisma db seed          # niveaux, mapping par défaut, arbitres/matchs d'exemple
 npm run dev
 ```
 
-Créer ensuite un compte via le dashboard Supabase (voir section
-Authentification ci-dessus) pour pouvoir te connecter.
+Créer ensuite un compte via `/signup` ou le dashboard Supabase (voir
+section Authentification ci-dessus) pour pouvoir te connecter.
 
 ## Déploiement
 
 - **Base de données + Auth** : Supabase (déjà provisionné)
 - **Application** : Vercel — connecter le repo GitHub, brancher sur
   `claude/referee-assignment-system-zy1i9t` (ou `main` une fois mergé),
-  puis dans les settings du projet Vercel, onglet Integrations, connecter
-  l'intégration Supabase existante au projet "FFBB arbitre" (elle injecte
-  automatiquement les variables ci-dessus), puis déployer. Le script
-  `postinstall` (`prisma generate`) s'exécute automatiquement à chaque
-  build.
+  renseigner les trois variables d'environnement ci-dessus (cocher
+  Production + Preview pour chacune), puis déployer.

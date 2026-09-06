@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type CurrentUser = {
   id: string;
@@ -17,15 +17,15 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const profile = await prisma.profile.findUnique({ where: { id: user.id } });
+    const { data: profile, error } = await supabaseAdmin
+      .from("Profile")
+      .select("id, email, name, role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (error) throw error;
     if (!profile) return null;
 
-    return {
-      id: profile.id,
-      email: profile.email,
-      name: profile.name,
-      role: profile.role,
-    };
+    return profile as CurrentUser;
   } catch (err) {
     console.error("[getCurrentUser] failed:", err);
     return null;

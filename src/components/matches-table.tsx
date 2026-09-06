@@ -2,14 +2,9 @@ import Link from "next/link";
 import { matchStatus } from "@/lib/matches";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
-import type { Prisma } from "@/generated/prisma/client";
-import { matchWithRelationsInclude } from "@/lib/matches";
+import type { MatchWithRelations } from "@/lib/matches";
 
-type MatchRow = Prisma.MatchGetPayload<{
-  include: typeof matchWithRelationsInclude;
-}>;
-
-export function MatchesTable({ matches }: { matches: MatchRow[] }) {
+export function MatchesTable({ matches }: { matches: MatchWithRelations[] }) {
   if (matches.length === 0) {
     return (
       <p className="text-sm text-neutral-500 py-8 text-center">
