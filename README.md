@@ -17,7 +17,9 @@ TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
   automatiquement, toujours par un clic explicite sur une suggestion
 - Authentification multi-utilisateurs via Supabase Auth (email + mot de passe)
 - Import des matchs par fichier Excel (`/admin/import`, réservé ADMIN) :
-  colonnes Équipe domicile / Équipe extérieur / Date / Heure / Lieu / Niveau.
+  colonnes Équipe domicile / Équipe extérieur / Date / Heure / Lieu / Niveau,
+  avec alias reconnus (Equipe 1/Equipe 2, Salle, Code) pour être compatible
+  directement avec l'export "Recherche désignation" de FFBB Compet.
   Idempotent - un match déjà présent (même date, mêmes équipes, même niveau)
   est complété/mis à jour plutôt que dupliqué, donc le même fichier peut être
   réimporté sans risque. Les niveaux de compétition inconnus sont créés
