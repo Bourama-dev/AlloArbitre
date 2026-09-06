@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { matchStatus } from "@/lib/matches";
+import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import type { MatchWithRelations } from "@/lib/matches";
