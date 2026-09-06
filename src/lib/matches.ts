@@ -1,6 +1,9 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { matchStatus } from "@/lib/match-status";
+import type { MatchStatus } from "@/lib/match-status";
 
-export type MatchStatus = "incomplet" | "complet" | "annule";
+export type { MatchStatus } from "@/lib/match-status";
+export { matchStatus } from "@/lib/match-status";
 
 export type MatchWithRelations = {
   id: string;
@@ -25,17 +28,6 @@ export type MatchWithRelations = {
     referee: { id: string; firstName: string; lastName: string; lat: number | null; lng: number | null };
   }[];
 };
-
-export function matchStatus(match: {
-  cancelled: boolean;
-  refereesRequired: number;
-  designations: unknown[];
-}): MatchStatus {
-  if (match.cancelled) return "annule";
-  return match.designations.length >= match.refereesRequired
-    ? "complet"
-    : "incomplet";
-}
 
 const MATCH_SELECT = `
   id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId,
