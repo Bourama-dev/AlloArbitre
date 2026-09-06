@@ -128,7 +128,7 @@ export default async function EditMatchPage({
         action={updateMatch}
         className="space-y-3 card p-4"
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Équipe domicile *</label>
             <input
@@ -149,7 +149,7 @@ export default async function EditMatchPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Date *</label>
             <input
@@ -171,7 +171,7 @@ export default async function EditMatchPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Lieu</label>
             <input name="venue" defaultValue={match.venue ?? ""} className="input w-full" />
@@ -197,7 +197,7 @@ export default async function EditMatchPage({
           <input name="poule" defaultValue={match.poule ?? ""} className="input w-full" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Niveau de compétition *</label>
             <select

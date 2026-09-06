@@ -7,7 +7,9 @@ TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
 
 - Liste des matchs filtrable par semaine, niveau de compétition et statut
 - Vue dédiée "matchs incomplets"
-- Fiche arbitre (niveau, zone, contact, charge actuelle)
+- Fiche arbitre (niveau, club, adresse, contact, charge actuelle, n° de
+  licence, date de naissance, dates réglementaires : qualification, dossier
+  médical, recyclage)
 - Algorithme de suggestion d'arbitres par match : filtre par niveau minimum
   requis (table éditable dans "Admin niveaux"), exclusion des conflits
   d'horaire, tri par équité (nombre de désignations croissant)

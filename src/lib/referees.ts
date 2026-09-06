@@ -8,11 +8,19 @@ type RawReferee = {
   email: string | null;
   zone: string | null;
   address: string | null;
+  licenseNumber: string | null;
+  birthDate: string | null;
+  qualificationDate: string | null;
+  medicalFileDate: string | null;
+  recyclingDate: string | null;
   active: boolean;
   notes: string | null;
   levelId: string;
   level: { id: string; label: string; rank: number };
 };
+
+const REFEREE_FIELDS =
+  "id, firstName, lastName, phone, email, zone, address, licenseNumber, birthDate, qualificationDate, medicalFileDate, recyclingDate, active, notes, levelId";
 
 export type UnavailabilityRow = {
   id: string;
@@ -56,9 +64,7 @@ export async function listRefereesWithLoad({
 } = {}) {
   let query = supabaseAdmin
     .from("Referee")
-    .select(
-      "id, firstName, lastName, phone, email, zone, address, active, notes, levelId, level:RefereeLevel(id, label, rank)"
-    )
+    .select(`${REFEREE_FIELDS}, level:RefereeLevel(id, label, rank)`)
     .order("lastName", { ascending: true })
     .order("firstName", { ascending: true });
 
@@ -91,7 +97,7 @@ export async function getRefereeSheet(id: string) {
   const { data: referee, error } = await supabaseAdmin
     .from("Referee")
     .select(
-      `id, firstName, lastName, phone, email, zone, address, active, notes, levelId,
+      `${REFEREE_FIELDS},
        level:RefereeLevel(id, label, rank),
        designations:Designation(id, matchId, match:Match(id, date, cancelled, homeTeam, awayTeam, competitionLevel:CompetitionLevel(id, label)))`
     )

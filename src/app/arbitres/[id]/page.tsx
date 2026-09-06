@@ -9,7 +9,7 @@ import {
   WEEKDAY_LABELS,
 } from "@/lib/referees";
 import { getCurrentUser } from "@/lib/current-user";
-import { formatDateTimeFr } from "@/lib/dates";
+import { formatDateTimeFr, formatDateOnlyFr } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -92,8 +92,16 @@ export default async function RefereeSheetPage({
             <span className="font-medium">{referee.level.label}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[var(--muted)]">Zone</span>
+            <span className="text-[var(--muted)]">Club</span>
             <span className="font-medium">{referee.zone ?? "-"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-[var(--muted)]">N° licence</span>
+            <span className="font-medium">{referee.licenseNumber ?? "-"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-[var(--muted)]">Date de naissance</span>
+            <span className="font-medium">{formatDateOnlyFr(referee.birthDate)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-[var(--muted)]">Téléphone</span>
@@ -114,12 +122,27 @@ export default async function RefereeSheetPage({
             </span>
           </div>
         </div>
-        {referee.notes && (
-          <div className="card p-4 text-sm">
-            <p className="text-[var(--muted)] mb-1">Notes</p>
-            <p>{referee.notes}</p>
+        <div className="card p-4 space-y-2 text-sm">
+          <p className="field-label mb-1">Dates réglementaires</p>
+          <div className="flex justify-between">
+            <span className="text-[var(--muted)]">Qualification</span>
+            <span className="font-medium">{formatDateOnlyFr(referee.qualificationDate)}</span>
           </div>
-        )}
+          <div className="flex justify-between">
+            <span className="text-[var(--muted)]">Dossier médical</span>
+            <span className="font-medium">{formatDateOnlyFr(referee.medicalFileDate)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-[var(--muted)]">Recyclage</span>
+            <span className="font-medium">{formatDateOnlyFr(referee.recyclingDate)}</span>
+          </div>
+          {referee.notes && (
+            <>
+              <p className="field-label mb-1 pt-2 border-t border-[var(--border)]">Notes</p>
+              <p>{referee.notes}</p>
+            </>
+          )}
+        </div>
       </div>
 
       <section>

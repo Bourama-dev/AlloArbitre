@@ -86,7 +86,7 @@ export default async function NewMatchPage({
         action={createMatch}
         className="space-y-3 card p-4"
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Équipe domicile *</label>
             <input
@@ -105,7 +105,7 @@ export default async function NewMatchPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Date *</label>
             <input
@@ -126,7 +126,7 @@ export default async function NewMatchPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Lieu</label>
             <input name="venue" className="input w-full" />
@@ -151,7 +151,7 @@ export default async function NewMatchPage({
           <input name="poule" className="input w-full" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="field-label">Niveau de compétition *</label>
             <select
