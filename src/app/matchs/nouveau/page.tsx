@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { listCompetitionLevels } from "@/lib/matches";
 import { geocodeAddress } from "@/lib/geocoding";
 import { AlertToast } from "@/components/alert-toast";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -184,12 +185,7 @@ export default async function NewMatchPage({
           <textarea name="notes" rows={2} className="input w-full" />
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-        >
-          Créer le match
-        </button>
+        <SubmitButton pendingLabel="Création…">Créer le match</SubmitButton>
       </form>
     </div>
   );

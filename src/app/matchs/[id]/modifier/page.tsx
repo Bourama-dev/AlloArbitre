@@ -7,6 +7,7 @@ import { getMatchById, listCompetitionLevels } from "@/lib/matches";
 import { geocodeAddress } from "@/lib/geocoding";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { AlertToast } from "@/components/alert-toast";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -227,23 +228,15 @@ export default async function EditMatchPage({
           <textarea name="notes" rows={2} defaultValue={match.notes ?? ""} className="input w-full" />
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-        >
-          Enregistrer
-        </button>
+        <SubmitButton pendingLabel="Enregistrement…">Enregistrer</SubmitButton>
       </form>
 
       <div className="flex items-center gap-4 card p-4">
         <form action={toggleCancelled}>
           <input type="hidden" name="cancelled" value={match.cancelled ? "false" : "true"} />
-          <button
-            type="submit"
-            className="btn btn-secondary text-[var(--warning)]"
-          >
+          <SubmitButton className="btn btn-secondary text-[var(--warning)]">
             {match.cancelled ? "Réactiver le match" : "Annuler le match"}
-          </button>
+          </SubmitButton>
         </form>
 
         <form action={deleteMatch}>

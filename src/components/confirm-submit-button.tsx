@@ -1,5 +1,7 @@
 "use client";
 
+import { useFormStatus } from "react-dom";
+
 export function ConfirmSubmitButton({
   confirmMessage,
   className,
@@ -9,14 +11,17 @@ export function ConfirmSubmitButton({
   className?: string;
   children: React.ReactNode;
 }) {
+  const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      className={className}
+      disabled={pending}
+      className={`${className ?? ""} inline-flex items-center gap-2`}
       onClick={(e) => {
         if (!window.confirm(confirmMessage)) e.preventDefault();
       }}
     >
+      {pending && <span className="spinner" aria-hidden />}
       {children}
     </button>
   );

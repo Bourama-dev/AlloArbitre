@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { parseMatchesWorkbook, importMatches } from "@/lib/import-matches";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -95,12 +96,7 @@ export default async function ImportMatchsPage({
 
       <form action={submit} className="space-y-3 card p-4">
         <input type="file" name="file" accept=".xlsx" required className="block w-full text-sm" />
-        <button
-          type="submit"
-          className="btn btn-primary"
-        >
-          Importer
-        </button>
+        <SubmitButton pendingLabel="Import en cours…">Importer</SubmitButton>
       </form>
     </div>
   );

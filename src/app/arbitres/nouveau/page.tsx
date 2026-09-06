@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { listRefereeLevels } from "@/lib/referees";
 import { geocodeAddress } from "@/lib/geocoding";
 import { AlertToast } from "@/components/alert-toast";
+import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -200,12 +201,7 @@ export default async function NewRefereePage({
           />
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-        >
-          Créer l&apos;arbitre
-        </button>
+        <SubmitButton pendingLabel="Création…">Créer l&apos;arbitre</SubmitButton>
       </form>
     </div>
   );
