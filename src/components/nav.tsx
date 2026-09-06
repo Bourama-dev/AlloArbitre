@@ -48,11 +48,11 @@ export function Nav({ user }: { user: NavUser }) {
           <NavLinks links={links} adminLinks={user.role === "ADMIN" ? adminLinks : undefined} />
         </div>
         <div className="flex items-center gap-2 text-sm shrink-0">
-          <span className="hidden lg:flex items-center gap-2 text-[var(--muted)]">
+          <span className="hidden xl:flex items-center gap-2 text-[var(--muted)]">
             <span className="avatar-chip">{initial}</span>
             <span className="max-w-[10rem] truncate">{user.name ?? user.email}</span>
           </span>
-          <form action={logout} className="hidden md:block">
+          <form action={logout} className="hidden lg:block">
             <button type="submit" className="btn btn-secondary">
               Déconnexion
             </button>

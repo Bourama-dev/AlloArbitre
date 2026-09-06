@@ -60,12 +60,15 @@ export default async function ImportMatchsPage({
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Import des matchs (Excel)</h1>
         <p className="text-sm text-[var(--muted)]">
-          Fichier .xlsx avec les colonnes : <strong>Équipe domicile</strong>,{" "}
-          <strong>Équipe extérieur</strong>, <strong>Date</strong> (AAAA-MM-JJ ou
-          JJ/MM/AAAA), <strong>Heure</strong> (HH:MM), <strong>Lieu</strong>,{" "}
-          <strong>Niveau</strong>. Les niveaux de compétition inconnus sont créés
-          automatiquement. Un match déjà présent (même date, mêmes équipes, même
-          niveau) est complété/mis à jour plutôt que dupliqué — l&apos;import peut
+          Fichier .xlsx avec les colonnes : <strong>Équipe domicile</strong> (ou{" "}
+          <strong>Equipe 1</strong>), <strong>Équipe extérieur</strong> (ou{" "}
+          <strong>Equipe 2</strong>), <strong>Date</strong> (AAAA-MM-JJ ou JJ/MM/AAAA),{" "}
+          <strong>Heure</strong> (HH:MM), <strong>Lieu</strong> (ou{" "}
+          <strong>Salle</strong>), <strong>Niveau</strong> (ou{" "}
+          <strong>Code</strong>) — compatible avec l&apos;export &laquo;&nbsp;Recherche
+          désignation&nbsp;&raquo; de FFBB Compet. Les niveaux de compétition inconnus
+          sont créés automatiquement. Un match déjà présent (même date, mêmes équipes,
+          même niveau) est complété/mis à jour plutôt que dupliqué — l&apos;import peut
           être rejoué sans risque.
         </p>
       </div>
