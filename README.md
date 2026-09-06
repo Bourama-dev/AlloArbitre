@@ -14,6 +14,12 @@ TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
 - Validation manuelle obligatoire : une désignation n'est jamais créée
   automatiquement, toujours par un clic explicite sur une suggestion
 - Authentification multi-utilisateurs via Supabase Auth (email + mot de passe)
+- Import des matchs par fichier Excel (`/admin/import`, réservé ADMIN) :
+  colonnes Équipe domicile / Équipe extérieur / Date / Heure / Lieu / Niveau.
+  Idempotent - un match déjà présent (même date, mêmes équipes, même niveau)
+  est complété/mis à jour plutôt que dupliqué, donc le même fichier peut être
+  réimporté sans risque. Les niveaux de compétition inconnus sont créés
+  automatiquement.
 
 ## Volontairement non traité pour l'instant
 

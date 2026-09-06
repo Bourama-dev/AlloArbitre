@@ -33,12 +33,20 @@ export function Nav({ user }: { user: NavUser }) {
               </Link>
             ))}
             {user.role === "ADMIN" && (
-              <Link
-                href="/admin/niveaux"
-                className="text-neutral-600 hover:text-neutral-900"
-              >
-                Admin niveaux
-              </Link>
+              <>
+                <Link
+                  href="/admin/niveaux"
+                  className="text-neutral-600 hover:text-neutral-900"
+                >
+                  Admin niveaux
+                </Link>
+                <Link
+                  href="/admin/import"
+                  className="text-neutral-600 hover:text-neutral-900"
+                >
+                  Import matchs
+                </Link>
+              </>
             )}
           </nav>
         </div>
