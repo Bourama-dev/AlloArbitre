@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { findMatches, listCompetitionLevels } from "@/lib/matches";
+import { findMatches, listCompetitionLevels, listMatchCities } from "@/lib/matches";
 import { addWeeks, weekRange, formatDateFr } from "@/lib/dates";
 import { MatchesTable } from "@/components/matches-table";
-import type { MatchStatus } from "@/lib/matches";
+import type { MatchSort, MatchStatus } from "@/lib/matches";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,9 @@ export default async function MatchesPage({
     week?: string;
     level?: string;
     status?: string;
+    search?: string;
+    city?: string;
+    sort?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -22,10 +25,14 @@ export default async function MatchesPage({
 
   const status = (params.status as MatchStatus | "toutes" | undefined) ?? "toutes";
   const competitionLevelId = params.level || undefined;
+  const search = params.search || undefined;
+  const city = params.city || undefined;
+  const sort = (params.sort as MatchSort | undefined) ?? "date_asc";
 
-  const [matches, levels] = await Promise.all([
-    findMatches({ from: start, to: end, competitionLevelId, status }),
+  const [matches, levels, cities] = await Promise.all([
+    findMatches({ from: start, to: end, competitionLevelId, status, search, city, sort }),
     listCompetitionLevels(),
+    listMatchCities(),
   ]);
 
   const weekEnd = new Date(end);
@@ -69,6 +76,16 @@ export default async function MatchesPage({
       <form className="flex flex-wrap items-end gap-3 card p-4">
         <input type="hidden" name="week" value={weekOffset} />
         <div>
+          <label className="field-label">Équipe</label>
+          <input
+            type="text"
+            name="search"
+            defaultValue={search ?? ""}
+            placeholder="Domicile ou extérieur"
+            className="input"
+          />
+        </div>
+        <div>
           <label className="field-label">Niveau de compétition</label>
           <select
             name="level"
@@ -84,12 +101,32 @@ export default async function MatchesPage({
           </select>
         </div>
         <div>
+          <label className="field-label">Ville</label>
+          <select name="city" defaultValue={city ?? ""} className="input">
+            <option value="">Toutes les villes</option>
+            {cities.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="field-label">Statut</label>
           <select name="status" defaultValue={status} className="input">
             <option value="toutes">Tous les statuts</option>
             <option value="incomplet">Incomplet</option>
             <option value="complet">Complet</option>
             <option value="annule">Annulé</option>
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Trier par</label>
+          <select name="sort" defaultValue={sort} className="input">
+            <option value="date_asc">Date (croissant)</option>
+            <option value="date_desc">Date (décroissant)</option>
+            <option value="level">Niveau</option>
+            <option value="city">Ville</option>
           </select>
         </div>
         <button type="submit" className="btn btn-primary">

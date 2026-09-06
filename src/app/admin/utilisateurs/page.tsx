@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { AlertToast } from "@/components/alert-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -67,11 +68,7 @@ export default async function UsersAdminPage({
         </p>
       </div>
 
-      {error && (
-        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
-          {decodeURIComponent(error)}
-        </p>
-      )}
+      {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
 
       <div className="table-shell overflow-x-auto">
         <table className="w-full text-sm">

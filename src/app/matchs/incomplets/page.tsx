@@ -2,9 +2,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { findMatches, listCompetitionLevels } from "@/lib/matches";
+import type { MatchSort } from "@/lib/matches";
 import { autoDesignateMatches } from "@/lib/suggestions";
 import { getCurrentUser } from "@/lib/current-user";
 import { MatchesTable } from "@/components/matches-table";
+import { AlertToast } from "@/components/alert-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +35,25 @@ async function autoDesignate(formData: FormData) {
 export default async function IncompleteMatchesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ level?: string; error?: string; assigned?: string; errors?: string }>;
+  searchParams: Promise<{
+    level?: string;
+    search?: string;
+    sort?: string;
+    error?: string;
+    assigned?: string;
+    errors?: string;
+  }>;
 }) {
   const params = await searchParams;
   const competitionLevelId = params.level || undefined;
+  const search = params.search || undefined;
+  const sort = (params.sort as MatchSort | undefined) ?? "date_asc";
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const [matches, levels] = await Promise.all([
-    findMatches({ from: today, status: "incomplet", competitionLevelId }),
+    findMatches({ from: today, status: "incomplet", competitionLevelId, search, sort }),
     listCompetitionLevels(),
   ]);
 
@@ -61,36 +72,54 @@ export default async function IncompleteMatchesPage({
             .
           </p>
         </div>
-        <form className="flex items-end gap-2">
-          <select
-            name="level"
-            defaultValue={competitionLevelId ?? ""}
-            className="input"
-          >
-            <option value="">Tous les niveaux</option>
-            {levels.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.label}
-              </option>
-            ))}
-          </select>
+        <form className="flex flex-wrap items-end gap-2">
+          <div>
+            <label className="field-label">Équipe</label>
+            <input
+              type="text"
+              name="search"
+              defaultValue={search ?? ""}
+              placeholder="Domicile ou extérieur"
+              className="input"
+            />
+          </div>
+          <div>
+            <label className="field-label">Niveau</label>
+            <select
+              name="level"
+              defaultValue={competitionLevelId ?? ""}
+              className="input"
+            >
+              <option value="">Tous les niveaux</option>
+              {levels.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="field-label">Trier par</label>
+            <select name="sort" defaultValue={sort} className="input">
+              <option value="date_asc">Date (croissant)</option>
+              <option value="date_desc">Date (décroissant)</option>
+              <option value="level">Niveau</option>
+              <option value="city">Ville</option>
+            </select>
+          </div>
           <button type="submit" className="btn btn-secondary">
             Filtrer
           </button>
         </form>
       </div>
 
-      {params.error && (
-        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
-          {decodeURIComponent(params.error)}
-        </p>
-      )}
+      {params.error && <AlertToast message={decodeURIComponent(params.error)} variant="error" />}
       {params.assigned !== undefined && (
-        <div className="text-sm rounded-lg bg-[var(--success-bg)] text-[var(--success)] px-3 py-2 space-y-1">
+        <div className="text-sm rounded-lg bg-[var(--success-bg)] text-[var(--success)] px-3 py-2">
           <p>{params.assigned} désignation(s) créée(s) automatiquement.</p>
-          {params.errors && <p className="text-[var(--danger)]">{params.errors}</p>}
         </div>
       )}
+      {params.errors && <AlertToast message={params.errors} variant="warning" />}
 
       <form action={autoDesignate} className="space-y-3">
         {matches.length > 0 && (

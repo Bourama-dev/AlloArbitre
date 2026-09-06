@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { AlertToast } from "@/components/alert-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -156,11 +157,7 @@ export default async function LevelMappingAdminPage({
 
   return (
     <div className="space-y-8">
-      {error && (
-        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
-          {decodeURIComponent(error)}
-        </p>
-      )}
+      {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
 
       <div>
         <h1 className="text-xl font-semibold tracking-tight">
