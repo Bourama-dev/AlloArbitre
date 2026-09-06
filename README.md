@@ -92,6 +92,12 @@ UPDATE "Profile" SET role = 'ADMIN' WHERE email = 'quelquun@example.com';
 - `SUPABASE_SERVICE_ROLE_KEY` : clé secrète (même page, section
   "service_role") - **ne jamais** l'exposer côté client, uniquement utilisée
   dans du code serveur (`src/lib/supabase/admin.ts`)
+- `GOOGLE_MAPS_API_KEY` (optionnelle) : clé API Google Cloud avec la
+  **Geocoding API** activée. Sert à convertir l'adresse d'un arbitre et
+  l'adresse d'un gymnase en coordonnées GPS, pour prioriser les
+  suggestions par proximité et estimer la rémunération (40€/match +
+  0,35€/km aller-retour). Sans cette variable, l'app fonctionne
+  normalement, juste sans ce tri par distance ni cette estimation.
 
 **Piège fréquent en collant une valeur dans les Environment Variables de
 Vercel** : ne pas inclure les guillemets (le format `.env` en a, Vercel

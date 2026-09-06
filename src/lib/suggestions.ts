@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { overlaps } from "@/lib/dates";
+import { distanceKm, estimatePayment } from "@/lib/geocoding";
 
 export type RefereeSuggestion = {
   id: string;
@@ -9,6 +10,8 @@ export type RefereeSuggestion = {
   phone: string | null;
   levelLabel: string;
   currentLoad: number;
+  distanceKm: number | null;
+  estimatedPayment: number | null;
 };
 
 type RawMatchForSuggestion = {
@@ -18,6 +21,8 @@ type RawMatchForSuggestion = {
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;
+  lat: number | null;
+  lng: number | null;
   competitionLevel: {
     id: string;
     label: string;
@@ -30,7 +35,7 @@ export async function getMatchForSuggestion(matchId: string) {
   const { data, error } = await supabaseAdmin
     .from("Match")
     .select(
-      `id, date, durationMinutes, refereesRequired, cancelled, competitionLevelId,
+      `id, date, durationMinutes, refereesRequired, cancelled, competitionLevelId, lat, lng,
        competitionLevel:CompetitionLevel(id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label, rank))),
        designations:Designation(id, refereeId)`
     )
@@ -63,7 +68,7 @@ export async function suggestReferees(matchId: string): Promise<{
   let query = supabaseAdmin
     .from("Referee")
     .select(
-      `id, firstName, lastName, zone, phone,
+      `id, firstName, lastName, zone, phone, lat, lng,
        level:RefereeLevel!inner(id, label, rank),
        designations:Designation(id, match:Match(date, durationMinutes, cancelled)),
        unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
@@ -86,6 +91,8 @@ export async function suggestReferees(matchId: string): Promise<{
     lastName: string;
     zone: string | null;
     phone: string | null;
+    lat: number | null;
+    lng: number | null;
     level: { id: string; label: string; rank: number };
     designations: { id: string; match: { date: string; durationMinutes: number; cancelled: boolean } }[];
     unavailability: {
@@ -130,17 +137,37 @@ export async function suggestReferees(matchId: string): Promise<{
       !c.unavailability.some(isUnavailable)
   );
 
+  const hasMatchCoords = match.lat != null && match.lng != null;
+
   const suggestions: RefereeSuggestion[] = withoutConflicts
-    .map((c) => ({
-      id: c.id,
-      firstName: c.firstName,
-      lastName: c.lastName,
-      zone: c.zone,
-      phone: c.phone,
-      levelLabel: c.level.label,
-      currentLoad: c.activeDesignations.filter((d) => d.date >= now).length,
-    }))
-    .sort((a, b) => a.currentLoad - b.currentLoad);
+    .map((c) => {
+      const oneWayKm =
+        hasMatchCoords && c.lat != null && c.lng != null
+          ? distanceKm({ lat: match.lat!, lng: match.lng! }, { lat: c.lat, lng: c.lng })
+          : null;
+      return {
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        zone: c.zone,
+        phone: c.phone,
+        levelLabel: c.level.label,
+        currentLoad: c.activeDesignations.filter((d) => d.date >= now).length,
+        distanceKm: oneWayKm,
+        estimatedPayment: oneWayKm != null ? estimatePayment(oneWayKm) : null,
+      };
+    })
+    .sort((a, b) => {
+      // Priorité aux arbitres proches (distance connue < distance inconnue),
+      // puis équité (nombre de désignations croissant) en cas d'égalité ou
+      // quand la distance n'est pas disponible (adresse non géocodée).
+      if (a.distanceKm != null && b.distanceKm != null) {
+        return a.distanceKm - b.distanceKm || a.currentLoad - b.currentLoad;
+      }
+      if (a.distanceKm != null) return -1;
+      if (b.distanceKm != null) return 1;
+      return a.currentLoad - b.currentLoad;
+    });
 
   return {
     minLevelLabel: match.competitionLevel.mapping?.minRefereeLevel?.label ?? null,

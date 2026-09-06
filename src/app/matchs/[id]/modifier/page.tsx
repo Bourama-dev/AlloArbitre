@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getMatchById, listCompetitionLevels } from "@/lib/matches";
+import { geocodeAddress } from "@/lib/geocoding";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function EditMatchPage({
   const match = await getMatchById(id);
   if (!match) notFound();
   const levels = await listCompetitionLevels();
+  const currentVenueAddress = match.venueAddress;
 
   async function updateMatch(formData: FormData) {
     "use server";
@@ -36,6 +38,7 @@ export default async function EditMatchPage({
     const heure = String(formData.get("heure") ?? "00:00");
     const venue = String(formData.get("venue") ?? "").trim() || null;
     const city = String(formData.get("city") ?? "").trim() || null;
+    const venueAddress = String(formData.get("venueAddress") ?? "").trim() || null;
     const poule = String(formData.get("poule") ?? "").trim() || null;
     const notes = String(formData.get("notes") ?? "").trim() || null;
     const competitionLevelId = String(formData.get("competitionLevelId") ?? "");
@@ -45,6 +48,9 @@ export default async function EditMatchPage({
       redirect(`/matchs/${id}/modifier?error=${encodeURIComponent("Champs obligatoires manquants.")}`);
     }
 
+    const addressChanged = venueAddress !== (currentVenueAddress ?? null);
+    const coords = addressChanged && venueAddress ? await geocodeAddress(venueAddress) : null;
+
     const { error } = await supabaseAdmin
       .from("Match")
       .update({
@@ -53,10 +59,12 @@ export default async function EditMatchPage({
         awayTeam,
         venue,
         city,
+        venueAddress,
         poule,
         notes,
         competitionLevelId,
         refereesRequired,
+        ...(addressChanged ? { lat: coords?.lat ?? null, lng: coords?.lng ?? null } : {}),
       })
       .eq("id", id);
 
@@ -172,6 +180,16 @@ export default async function EditMatchPage({
             <label className="field-label">Ville</label>
             <input name="city" defaultValue={match.city ?? ""} className="input w-full" />
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Adresse du gymnase</label>
+          <input
+            name="venueAddress"
+            defaultValue={match.venueAddress ?? ""}
+            placeholder="Pour le calcul de distance/rémunération"
+            className="input w-full"
+          />
         </div>
 
         <div>

@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/current-user";
 import { getMatchById, matchStatus } from "@/lib/matches";
 import { suggestReferees, designateReferee } from "@/lib/suggestions";
+import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 
@@ -110,7 +111,12 @@ export default async function MatchDetailPage({
           <p className="text-sm text-[var(--muted)]">Aucun arbitre désigné pour l&apos;instant.</p>
         ) : (
           <ul className="table-shell divide-y divide-[var(--border)]">
-            {match.designations.map((d) => (
+            {match.designations.map((d) => {
+              const oneWayKm =
+                match.lat != null && match.lng != null && d.referee.lat != null && d.referee.lng != null
+                  ? distanceKm({ lat: match.lat, lng: match.lng }, { lat: d.referee.lat, lng: d.referee.lng })
+                  : null;
+              return (
               <li key={d.id} className="px-4 py-2.5 text-sm flex items-center justify-between">
                 <Link
                   href={`/arbitres/${d.referee.id}`}
@@ -120,7 +126,14 @@ export default async function MatchDetailPage({
                     {d.referee.firstName.charAt(0)}
                     {d.referee.lastName.charAt(0)}
                   </span>
-                  {d.referee.firstName} {d.referee.lastName}
+                  <span>
+                    {d.referee.firstName} {d.referee.lastName}
+                    {oneWayKm != null && (
+                      <span className="text-[var(--muted)] text-xs block">
+                        {oneWayKm.toFixed(1)} km · {estimatePayment(oneWayKm).toFixed(2)} €
+                      </span>
+                    )}
+                  </span>
                 </Link>
                 <form action={removeDesignation}>
                   <input type="hidden" name="designationId" value={d.id} />
@@ -129,7 +142,8 @@ export default async function MatchDetailPage({
                   </button>
                 </form>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>
@@ -176,6 +190,13 @@ export default async function MatchDetailPage({
                       <div className="text-[var(--muted)] text-xs">
                         {s.levelLabel} · {s.zone ?? "zone inconnue"} ·{" "}
                         {s.currentLoad} désignation{s.currentLoad > 1 ? "s" : ""}
+                        {s.distanceKm != null && (
+                          <>
+                            {" "}
+                            · {s.distanceKm.toFixed(1)} km ·{" "}
+                            {s.estimatedPayment!.toFixed(2)} €
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
