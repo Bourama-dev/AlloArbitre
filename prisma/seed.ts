@@ -1,5 +1,4 @@
 import { PrismaClient } from "../src/generated/prisma/client";
-import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -99,19 +98,11 @@ async function main() {
     refereeIds.push(referee.id);
   }
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "bouramad900@gmail.com";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "changeme123";
-  const passwordHash = await bcrypt.hash(adminPassword, 10);
-  await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: {},
-    create: {
-      email: adminEmail,
-      name: "Bourama",
-      role: "ADMIN",
-      passwordHash,
-    },
-  });
+  // Les comptes utilisateurs sont gérés par Supabase Auth (dashboard >
+  // Authentication > Users), pas par ce seed. Un Profile est créé
+  // automatiquement à l'inscription (trigger handle_new_user) avec le rôle
+  // REPARTITEUR par défaut ; promouvoir un compte en ADMIN se fait avec :
+  //   UPDATE "Profile" SET role = 'ADMIN' WHERE email = '...';
 
   const sampleMatches: {
     competitionLevel: string;
@@ -185,7 +176,6 @@ async function main() {
   }
 
   console.log("Seed terminé.");
-  console.log(`Compte admin: ${adminEmail} / mot de passe: ${adminPassword} (à changer après connexion)`);
 }
 
 main()

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { AuthError } from "next-auth";
-import { signIn } from "@/auth";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function LoginPage({
   searchParams,
@@ -15,14 +14,13 @@ export default async function LoginPage({
     const password = String(formData.get("password") ?? "");
     const callbackUrl = String(formData.get("callbackUrl") ?? "/matchs");
 
-    try {
-      await signIn("credentials", { email, password, redirectTo: callbackUrl });
-    } catch (err) {
-      if (err instanceof AuthError) {
-        redirect(`/login?error=1&callbackUrl=${encodeURIComponent(callbackUrl)}`);
-      }
-      throw err;
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      redirect(`/login?error=1&callbackUrl=${encodeURIComponent(callbackUrl)}`);
     }
+    redirect(callbackUrl);
   }
 
   return (

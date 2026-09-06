@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { auth } from "@/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { Nav } from "@/components/nav";
 
 const geistSans = Geist({
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const session = await auth();
+  const user = await getCurrentUser();
 
   return (
     <html
@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-neutral-50 text-neutral-900">
-        {session?.user && <Nav user={session.user} />}
+        {user && <Nav user={user} />}
         <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6">
           {children}
         </main>

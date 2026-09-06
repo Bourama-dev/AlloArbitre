@@ -20,13 +20,16 @@ enum UserRole {
   REPARTITEUR
 }
 
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         UserRole @default(REPARTITEUR)
-  createdAt    DateTime @default(now())
+/// Profil applicatif (nom, rôle) d'un utilisateur Supabase Auth.
+/// id = auth.users.id (FK gérée en SQL brut, hors Prisma - voir migration
+/// et note dans le schéma sur les schémas gérés par Supabase). Une ligne
+/// est créée automatiquement par un trigger à l'inscription (handle_new_user).
+model Profile {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String
+  role      UserRole @default(REPARTITEUR)
+  createdAt DateTime @default(now())
 
   designations Designation[]
 }
@@ -112,8 +115,8 @@ model Designation {
   refereeId String
   referee   Referee  @relation(fields: [refereeId], references: [id])
 
-  createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String  @db.Uuid
+  createdBy   Profile @relation(fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
 

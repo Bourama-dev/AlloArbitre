@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { matchWithRelationsInclude, matchStatus } from "@/lib/matches";
 import { suggestReferees, designateReferee } from "@/lib/suggestions";
 import { formatDateTimeFr } from "@/lib/dates";
@@ -34,10 +34,10 @@ export default async function MatchDetailPage({
 
   async function designate(formData: FormData) {
     "use server";
-    const session = await auth();
-    if (!session?.user) return;
+    const user = await getCurrentUser();
+    if (!user) return;
     const refereeId = String(formData.get("refereeId"));
-    const result = await designateReferee(id, refereeId, session.user.id);
+    const result = await designateReferee(id, refereeId, user.id);
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
     revalidatePath("/matchs/incomplets");

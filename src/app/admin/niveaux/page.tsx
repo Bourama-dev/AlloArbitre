@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function LevelMappingAdminPage() {
-  const session = await auth();
-  if (session?.user.role !== "ADMIN") {
+  const user = await getCurrentUser();
+  if (user?.role !== "ADMIN") {
     redirect("/matchs");
   }
 
@@ -21,8 +21,8 @@ export default async function LevelMappingAdminPage() {
 
   async function saveMapping(formData: FormData) {
     "use server";
-    const session = await auth();
-    if (session?.user.role !== "ADMIN") return;
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
 
     const competitionLevelId = String(formData.get("competitionLevelId"));
     const minRefereeLevelId = String(formData.get("minRefereeLevelId"));

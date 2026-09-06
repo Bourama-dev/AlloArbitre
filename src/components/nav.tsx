@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { signOut } from "@/auth";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 type NavUser = {
   name?: string | null;
@@ -46,7 +47,9 @@ export function Nav({ user }: { user: NavUser }) {
           <form
             action={async () => {
               "use server";
-              await signOut({ redirectTo: "/login" });
+              const supabase = await createClient();
+              await supabase.auth.signOut();
+              redirect("/login");
             }}
           >
             <button

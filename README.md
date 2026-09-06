@@ -1,7 +1,7 @@
 # AlloArbitre
 
 Outil de désignation des arbitres pour le CD45. Next.js (App Router) +
-TypeScript + Prisma + PostgreSQL (Supabase) + NextAuth (multi-utilisateurs).
+TypeScript + Prisma + PostgreSQL (Supabase) + Supabase Auth (multi-utilisateurs).
 
 ## Fonctionnalités (V1)
 
@@ -13,7 +13,7 @@ TypeScript + Prisma + PostgreSQL (Supabase) + NextAuth (multi-utilisateurs).
   d'horaire, tri par équité (nombre de désignations croissant)
 - Validation manuelle obligatoire : une désignation n'est jamais créée
   automatiquement, toujours par un clic explicite sur une suggestion
-- Authentification multi-utilisateurs (email + mot de passe)
+- Authentification multi-utilisateurs via Supabase Auth (email + mot de passe)
 
 ## Volontairement non traité pour l'instant
 
@@ -47,35 +47,55 @@ POSTGRES_PRISMA_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.poole
 POSTGRES_URL_NON_POOLING="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
 ```
 
+## Authentification (Supabase Auth)
+
+L'authentification passe entièrement par le service Auth natif de Supabase
+(GoTrue), via `@supabase/ssr`. Il n'y a **pas** de page d'inscription dans
+l'app : les comptes sont créés côté Supabase.
+
+Table `Profile` (schéma `public`, gérée par Prisma) : id = `auth.users.id`,
+email, name, role (`ADMIN` ou `REPARTITEUR`, défaut `REPARTITEUR`). Un
+trigger Postgres (`handle_new_user`, voir la migration
+`20260906180000_profile_supabase_auth`) crée automatiquement la ligne
+`Profile` à chaque nouvelle inscription dans `auth.users`.
+
+**Créer un compte répartiteur** : dashboard Supabase > Authentication >
+Users > Add user (email + mot de passe, cocher "Auto Confirm User" pour
+qu'il puisse se connecter immédiatement sans email de confirmation).
+
+**Promouvoir un compte en ADMIN** (accès à `/admin/niveaux`) :
+
+```sql
+UPDATE "Profile" SET role = 'ADMIN' WHERE email = 'quelquun@example.com';
+```
+
+## Variables d'environnement
+
+- `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` : voir section Base de
+  données
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` : URL et clé
+  publique du projet Supabase (Project Settings > API) — fournies elles
+  aussi par l'intégration Vercel-Supabase, sinon à renseigner dans `.env`
+
 ## Démarrage
 
 ```bash
 npm install
 npx prisma migrate deploy   # applique le schéma sur la base configurée
-npx prisma db seed          # niveaux, mapping par défaut, arbitres/matchs d'exemple, compte admin
+npx prisma db seed          # niveaux, mapping par défaut, arbitres/matchs d'exemple
 npm run dev
 ```
 
-Le seed crée un compte ADMIN avec l'email `bouramad900@gmail.com` et le mot
-de passe `changeme123` (ou les valeurs de `SEED_ADMIN_EMAIL` /
-`SEED_ADMIN_PASSWORD` si définies) — à changer après la première connexion.
-
-## Variables d'environnement
-
-- `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` : fournies
-  automatiquement par l'intégration Vercel-Supabase (voir section Base de
-  données ci-dessus) ; à défaut, renseigner `.env` en local
-- `AUTH_SECRET` : secret NextAuth (générer avec `openssl rand -base64 32`)
-- `AUTH_TRUST_HOST` : `true` (utile en local/self-hosted ; sans effet sur Vercel)
+Créer ensuite un compte via le dashboard Supabase (voir section
+Authentification ci-dessus) pour pouvoir te connecter.
 
 ## Déploiement
 
-- **Base de données** : Supabase (Postgres managé, déjà provisionné)
+- **Base de données + Auth** : Supabase (déjà provisionné)
 - **Application** : Vercel — connecter le repo GitHub, brancher sur
   `claude/referee-assignment-system-zy1i9t` (ou `main` une fois mergé),
   puis dans les settings du projet Vercel, onglet Integrations, connecter
   l'intégration Supabase existante au projet "FFBB arbitre" (elle injecte
-  automatiquement `POSTGRES_PRISMA_URL`/`POSTGRES_URL_NON_POOLING`).
-  Ajouter ensuite `AUTH_SECRET` manuellement, puis déployer. Le script
+  automatiquement les variables ci-dessus), puis déployer. Le script
   `postinstall` (`prisma generate`) s'exécute automatiquement à chaque
   build.
