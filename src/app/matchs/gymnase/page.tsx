@@ -50,9 +50,10 @@ export default async function GymnaseJourneePage({
           Pour une journée donnée, regroupe les matchs par gymnase et calcule le nombre
           minimum d&apos;arbitres distincts nécessaires (un même arbitre peut couvrir
           plusieurs matchs tant qu&apos;ils ne se chevauchent pas dans le temps - par
-          exemple un doublage sur des TQR qui s&apos;enchaînent au même endroit), sans
-          dépasser 2 matchs par arbitre et par jour. Chaque match exige au moins 2
-          arbitres.
+          exemple un doublage sur des TQR qui s&apos;enchaînent au même endroit). La
+          règle des 2 matchs par arbitre et par jour s&apos;applique aux matchs
+          classiques, mais pas aux TQR (tournoi, plusieurs matchs courts le même
+          jour). Chaque match exige au moins 2 arbitres.
         </p>
       </div>
 

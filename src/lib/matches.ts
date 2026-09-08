@@ -111,13 +111,19 @@ export type MatchSort = "date_asc" | "date_desc" | "level" | "city";
  * appropriée.
  */
 export function computeMinReferees(
-  matches: { date: Date; durationMinutes: number; refereesRequired: number }[]
+  matches: {
+    date: Date;
+    durationMinutes: number;
+    refereesRequired: number;
+    competitionLevel?: { label: string };
+  }[]
 ): number {
   const events: { time: number; delta: number }[] = [];
-  let totalDemand = 0;
+  let nonTqrDemand = 0;
   for (const m of matches) {
     const demand = Math.max(2, m.refereesRequired);
-    totalDemand += demand;
+    const isTqr = (m.competitionLevel?.label ?? "").trim().toUpperCase().startsWith("TQR");
+    if (!isTqr) nonTqrDemand += demand;
     const start = m.date.getTime();
     const end = start + m.durationMinutes * 60_000;
     events.push({ time: start, delta: demand });
@@ -135,10 +141,12 @@ export function computeMinReferees(
   }
 
   // Même sans chevauchement horaire, un arbitre ne peut siffler que
-  // MAX_PER_DAY matchs par jour (règle "max-2-jour") : avec 3 matchs
-  // consécutifs à 2 arbitres chacun, 2 arbitres ne suffisent pas (ça ferait
-  // 3 matchs chacun) même s'ils ne se chevauchent jamais dans le temps.
-  const quotaFloor = Math.ceil(totalDemand / MAX_PER_DAY);
+  // MAX_PER_DAY matchs classiques par jour (règle "max-2-jour") : avec 3
+  // matchs consécutifs à 2 arbitres chacun, 2 arbitres ne suffisent pas (ça
+  // ferait 3 matchs chacun) même s'ils ne se chevauchent jamais dans le
+  // temps. Cette règle ne s'applique pas aux TQR (tournoi, plusieurs matchs
+  // courts enchaînés au même endroit) - exclus de ce plancher.
+  const quotaFloor = Math.ceil(nonTqrDemand / MAX_PER_DAY);
 
   return Math.max(overlapPeak, quotaFloor);
 }

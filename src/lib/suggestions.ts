@@ -192,7 +192,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
     }
     const quotaViolations = checkQuotaRules(
       match.date,
-      activeDesignations.map((d) => d.date)
+      activeDesignations.map((d) => d.date),
+      match.competitionLevel.label.trim().toUpperCase().startsWith("TQR")
     ).filter((v) => v.severity === "bloquant");
     for (const v of quotaViolations) reasons.push(v.message);
 
@@ -271,12 +272,21 @@ export async function designateReferee(
 ): Promise<DesignateResult> {
   const { data: match, error: matchError } = await supabaseAdmin
     .from("Match")
-    .select("id, date, durationMinutes, cancelled, refereesRequired, designations:Designation(id, refereeId)")
+    .select(
+      "id, date, durationMinutes, cancelled, refereesRequired, designations:Designation(id, refereeId), competitionLevel:CompetitionLevel(label)"
+    )
     .eq("id", matchId)
     .maybeSingle();
   if (matchError) throw matchError;
   if (!match) return { ok: false, error: "Match introuvable." };
   if (match.cancelled) return { ok: false, error: "Ce match est annulé." };
+
+  const rawLevel = match.competitionLevel as unknown;
+  const competitionLevel = (Array.isArray(rawLevel) ? rawLevel[0] : rawLevel) as
+    | { label: string }
+    | null
+    | undefined;
+  const isTqr = (competitionLevel?.label ?? "").trim().toUpperCase().startsWith("TQR");
 
   const designations = (match.designations ?? []) as { id: string; refereeId: string }[];
   if (designations.length >= match.refereesRequired) {
@@ -308,7 +318,7 @@ export async function designateReferee(
     return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau." };
   }
 
-  const quotaViolations = checkQuotaRules(matchDate, existingDates).filter(
+  const quotaViolations = checkQuotaRules(matchDate, existingDates, isTqr).filter(
     (v) => v.severity === "bloquant"
   );
   if (quotaViolations.length > 0) {
