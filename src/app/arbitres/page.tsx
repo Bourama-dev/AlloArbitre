@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { listRefereesWithLoad, listRefereeLevels, listZones } from "@/lib/referees";
-import type { RefereeSort, RefereeStatusFilter } from "@/lib/referees";
+import type { RefereeAvailabilityFilter, RefereeSort, RefereeStatusFilter } from "@/lib/referees";
 
 export const dynamic = "force-dynamic";
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default async function RefereesPage({
   searchParams,
@@ -13,6 +17,8 @@ export default async function RefereesPage({
     search?: string;
     status?: string;
     sort?: string;
+    date?: string;
+    availability?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -21,9 +27,11 @@ export default async function RefereesPage({
   const search = params.search || undefined;
   const status = (params.status as RefereeStatusFilter | undefined) ?? "actifs";
   const sort = (params.sort as RefereeSort | undefined) ?? "nom";
+  const date = params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : todayIso();
+  const availability = (params.availability as RefereeAvailabilityFilter | undefined) ?? "toutes";
 
   const [referees, levels, zones] = await Promise.all([
-    listRefereesWithLoad({ levelId, zone, search, status, sort }),
+    listRefereesWithLoad({ levelId, zone, search, status, sort, date, availability }),
     listRefereeLevels(),
     listZones(),
   ]);
@@ -90,6 +98,18 @@ export default async function RefereesPage({
           </select>
         </div>
         <div>
+          <label className="field-label">Date</label>
+          <input type="date" name="date" defaultValue={date} className="input" />
+        </div>
+        <div>
+          <label className="field-label">Disponibilité</label>
+          <select name="availability" defaultValue={availability} className="input">
+            <option value="toutes">Peu importe</option>
+            <option value="disponibles">Disponibles ce jour</option>
+            <option value="indisponibles">Indisponibles ce jour</option>
+          </select>
+        </div>
+        <div>
           <label className="field-label">Trier par</label>
           <select name="sort" defaultValue={sort} className="input">
             <option value="nom">Nom</option>
@@ -116,6 +136,7 @@ export default async function RefereesPage({
               <th className="px-3 py-2 font-medium">Club</th>
               <th className="px-3 py-2 font-medium">Contact</th>
               <th className="px-3 py-2 font-medium">Charge actuelle</th>
+              <th className="px-3 py-2 font-medium">Disponibilité</th>
               <th className="px-3 py-2" />
             </tr>
           </thead>
@@ -135,6 +156,19 @@ export default async function RefereesPage({
                 <td className="px-3 py-2 whitespace-nowrap">
                   {r.currentLoad} désignation{r.currentLoad > 1 ? "s" : ""}
                 </td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  {r.availableOnDate === null ? (
+                    "-"
+                  ) : r.availableOnDate ? (
+                    <span className="badge text-[var(--success)] bg-[var(--success-bg)]">
+                      Disponible
+                    </span>
+                  ) : (
+                    <span className="badge text-[var(--danger)] bg-[var(--danger-bg)]">
+                      Indisponible
+                    </span>
+                  )}
+                </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <Link
                     href={`/arbitres/${r.id}`}
@@ -147,7 +181,7 @@ export default async function RefereesPage({
             ))}
             {referees.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-[var(--muted)]">
+                <td colSpan={7} className="px-3 py-8 text-center text-[var(--muted)]">
                   Aucun arbitre ne correspond à ces filtres.
                 </td>
               </tr>

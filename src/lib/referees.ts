@@ -55,6 +55,38 @@ export async function listRefereeLevels() {
 
 export type RefereeStatusFilter = "actifs" | "inactifs" | "toutes";
 export type RefereeSort = "nom" | "niveau" | "club" | "charge_asc" | "charge_desc";
+export type RefereeAvailabilityFilter = "toutes" | "disponibles" | "indisponibles";
+
+/**
+ * Arbitres dont une indisponibilité (récurrente ou ponctuelle) couvre
+ * `dateStr` (YYYY-MM-DD) - au niveau de la journée entière, sans tenir
+ * compte des horaires précis d'une indisponibilité récurrente partielle
+ * (contrairement à la vérification faite au moment de désigner un arbitre
+ * sur un match précis, voir getMatchCandidates).
+ */
+async function computeUnavailableRefereeIds(dateStr: string): Promise<Set<string>> {
+  const weekday = new Date(`${dateStr}T00:00:00Z`).getUTCDay();
+  const { data, error } = await supabaseAdmin
+    .from("Unavailability")
+    .select("refereeId, recurring, startDate, endDate, dayOfWeek");
+  if (error) throw error;
+
+  const ids = new Set<string>();
+  for (const u of (data ?? []) as {
+    refereeId: string;
+    recurring: boolean;
+    startDate: string | null;
+    endDate: string | null;
+    dayOfWeek: number | null;
+  }[]) {
+    if (u.recurring) {
+      if (u.dayOfWeek === weekday) ids.add(u.refereeId);
+    } else if (u.startDate && u.endDate && u.startDate <= dateStr && dateStr <= u.endDate) {
+      ids.add(u.refereeId);
+    }
+  }
+  return ids;
+}
 
 /** Arbitres avec leur charge actuelle = nb de désignations sur des matchs à venir (non annulés). */
 export async function listRefereesWithLoad({
@@ -63,12 +95,17 @@ export async function listRefereesWithLoad({
   search,
   status = "actifs",
   sort = "nom",
+  date,
+  availability = "toutes",
 }: {
   levelId?: string;
   zone?: string;
   search?: string;
   status?: RefereeStatusFilter;
   sort?: RefereeSort;
+  /** Date (YYYY-MM-DD) sur laquelle évaluer la disponibilité. */
+  date?: string;
+  availability?: RefereeAvailabilityFilter;
 } = {}) {
   let query = supabaseAdmin
     .from("Referee")
@@ -99,10 +136,19 @@ export async function listRefereesWithLoad({
     loadByReferee.set(row.refereeId, (loadByReferee.get(row.refereeId) ?? 0) + 1);
   }
 
-  const withLoad = ((referees ?? []) as unknown as RawReferee[]).map((r) => ({
+  const unavailableIds = date ? await computeUnavailableRefereeIds(date) : null;
+
+  let withLoad = ((referees ?? []) as unknown as RawReferee[]).map((r) => ({
     ...r,
     currentLoad: loadByReferee.get(r.id) ?? 0,
+    availableOnDate: unavailableIds ? !unavailableIds.has(r.id) : null,
   }));
+
+  if (unavailableIds && availability !== "toutes") {
+    withLoad = withLoad.filter((r) =>
+      availability === "disponibles" ? r.availableOnDate : !r.availableOnDate
+    );
+  }
 
   withLoad.sort((a, b) => {
     switch (sort) {
