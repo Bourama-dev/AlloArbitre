@@ -17,6 +17,10 @@ export type RefereeSuggestion = {
 
 export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
 
+// Niveaux d'arbitre stagiaire : encore en formation, ne peuvent être
+// désignés sur aucun match (règle CD45) tant qu'ils ne sont pas validés.
+const NON_DESIGNABLE_LEVELS = ["DEP-STG"];
+
 type RawMatchForSuggestion = {
   id: string;
   date: string;
@@ -177,6 +181,9 @@ export async function getMatchCandidates(matchId: string): Promise<{
       .map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes }));
 
     const reasons: string[] = [];
+    if (NON_DESIGNABLE_LEVELS.includes(c.level.label)) {
+      reasons.push(`Niveau ${c.level.label} non désignable sur un match`);
+    }
     if (minRank !== undefined && c.level.rank > minRank) {
       reasons.push("Niveau insuffisant");
     }
@@ -281,6 +288,21 @@ export async function designateReferee(
   if (matchError) throw matchError;
   if (!match) return { ok: false, error: "Match introuvable." };
   if (match.cancelled) return { ok: false, error: "Ce match est annulé." };
+
+  const { data: referee, error: refereeError } = await supabaseAdmin
+    .from("Referee")
+    .select("level:RefereeLevel(label)")
+    .eq("id", refereeId)
+    .maybeSingle();
+  if (refereeError) throw refereeError;
+  const rawRefereeLevel = referee?.level as unknown;
+  const refereeLevel = (Array.isArray(rawRefereeLevel) ? rawRefereeLevel[0] : rawRefereeLevel) as
+    | { label: string }
+    | null
+    | undefined;
+  if (refereeLevel?.label && NON_DESIGNABLE_LEVELS.includes(refereeLevel.label)) {
+    return { ok: false, error: `Niveau ${refereeLevel.label} : non désignable sur un match.` };
+  }
 
   const rawLevel = match.competitionLevel as unknown;
   const competitionLevel = (Array.isArray(rawLevel) ? rawLevel[0] : rawLevel) as
