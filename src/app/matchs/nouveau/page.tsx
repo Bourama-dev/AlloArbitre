@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { listCompetitionLevels } from "@/lib/matches";
+import { matchDurationMinutes } from "@/lib/import-matches";
 import { geocodeAddress } from "@/lib/geocoding";
 import { AlertToast } from "@/components/alert-toast";
 import { SubmitButton } from "@/components/submit-button";
@@ -32,6 +33,14 @@ async function createMatch(formData: FormData) {
 
   const coords = venueAddress ? await geocodeAddress(venueAddress) : null;
 
+  const { data: level, error: levelError } = await supabaseAdmin
+    .from("CompetitionLevel")
+    .select("label")
+    .eq("id", competitionLevelId)
+    .maybeSingle();
+  if (levelError) throw levelError;
+  const durationMinutes = matchDurationMinutes(level?.label ?? "");
+
   const { data, error } = await supabaseAdmin
     .from("Match")
     .insert({
@@ -45,6 +54,7 @@ async function createMatch(formData: FormData) {
       notes,
       competitionLevelId,
       refereesRequired,
+      durationMinutes,
       lat: coords?.lat ?? null,
       lng: coords?.lng ?? null,
     })
