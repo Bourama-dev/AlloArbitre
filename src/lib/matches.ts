@@ -26,14 +26,21 @@ export type MatchWithRelations = {
   designations: {
     id: string;
     refereeId: string;
-    referee: { id: string; firstName: string; lastName: string; lat: number | null; lng: number | null };
+    referee: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      lat: number | null;
+      lng: number | null;
+      nationalNumber: string | null;
+    };
   }[];
 };
 
 const MATCH_SELECT = `
   id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId,
   competitionLevel:CompetitionLevel(id, label),
-  designations:Designation(id, refereeId, referee:Referee(id, firstName, lastName, lat, lng))
+  designations:Designation(id, refereeId, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber))
 `;
 
 function mapMatch(row: {

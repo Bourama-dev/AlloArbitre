@@ -31,6 +31,7 @@ export function MatchesTable({
             <th>Extérieur</th>
             <th>Lieu</th>
             <th>Arbitres</th>
+            <th>N°national</th>
             <th>Statut</th>
             <th />
           </tr>
@@ -79,6 +80,17 @@ export function MatchesTable({
                           ({m.designations.length}/{m.refereesRequired})
                         </span>
                       )}
+                    </div>
+                  )}
+                </td>
+                <td className="whitespace-nowrap text-[var(--muted)]">
+                  {m.designations.length === 0 ? (
+                    "-"
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      {m.designations.map((d) => (
+                        <span key={d.id}>{d.referee.nationalNumber ?? "-"}</span>
+                      ))}
                     </div>
                   )}
                 </td>
