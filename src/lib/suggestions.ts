@@ -81,13 +81,6 @@ export async function getMatchForSuggestion(matchId: string) {
   };
 }
 
-// Poids de l'équité dans le classement : chaque désignation à venir déjà en
-// poche pénalise l'arbitre comme s'il était EQUITY_KM_PER_DESIGNATION km plus
-// loin. Sans ça, un tri strictement par distance laisse un écart de 100m
-// l'emporter sur un écart de charge de 5 matchs, ce qui ne reflète pas
-// l'objectif réel (répartir équitablement, pas juste minimiser les trajets).
-const EQUITY_KM_PER_DESIGNATION = 5;
-
 // Pénalité appliquée quand l'adresse de l'arbitre n'est pas géocodée
 // (distance inconnue), pour que ces arbitres restent classables au même
 // titre que les autres (ni systématiquement en tête, ni systématiquement en
@@ -95,8 +88,7 @@ const EQUITY_KM_PER_DESIGNATION = 5;
 const UNKNOWN_DISTANCE_KM = 25;
 
 function rankScore(s: RefereeSuggestion): number {
-  const distance = s.distanceKm ?? UNKNOWN_DISTANCE_KM;
-  return distance + s.currentLoad * EQUITY_KM_PER_DESIGNATION;
+  return s.distanceKm ?? UNKNOWN_DISTANCE_KM;
 }
 
 /**
@@ -229,6 +221,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
     .sort(
       (a, b) =>
         rankScore(a) - rankScore(b) ||
+        a.currentLoad - b.currentLoad ||
         a.lastName.localeCompare(b.lastName) ||
         a.firstName.localeCompare(b.firstName)
     );
@@ -265,7 +258,7 @@ export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number)
   return (
     `${parts.join(" · ")} — classé 1er sur ${totalCandidates} arbitre(s) disponible(s) ` +
     `(sans conflit d'horaire, ni indisponibilité, ni dépassement de quota), ` +
-    `classement combinant proximité et équité (${EQUITY_KM_PER_DESIGNATION} km équivalents par désignation à venir).`
+    `trié du plus proche au plus loin (équité en départage à distance égale).`
   );
 }
 
