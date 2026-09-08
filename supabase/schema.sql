@@ -134,11 +134,16 @@ create index "Unavailability_refereeId_idx" on "Unavailability"("refereeId");
 
 -- Désignation d'un arbitre sur un match. Toujours créée après validation manuelle
 -- d'une suggestion - jamais d'auto-assignation silencieuse.
+-- position : 1 (arbitre 1) ou 2 (arbitre 2). Pas d'unicité imposée en base sur
+-- (matchId, position) - maintenue par l'application (designateReferee), pour
+-- permettre l'échange atomique des positions lors de la rotation 1/2 entre
+-- deux matchs consécutifs d'un même binôme.
 create table "Designation" (
   id text primary key default gen_random_uuid()::text,
   "matchId" text not null references "Match"(id) on delete cascade,
   "refereeId" text not null references "Referee"(id),
   "createdById" uuid not null references "Profile"(id),
   "createdAt" timestamp(3) not null default current_timestamp,
+  "position" smallint not null default 1 check ("position" in (1, 2)),
   unique ("matchId", "refereeId")
 );
