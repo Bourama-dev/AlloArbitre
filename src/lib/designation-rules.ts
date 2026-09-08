@@ -40,14 +40,14 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     id: "max-3-semaine",
     label: "Maximum 3 désignations par semaine",
     description:
-      "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'une même semaine (du lundi au dimanche).",
+      "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'une même semaine (du lundi au dimanche). Ne s'applique pas aux TQR.",
     severity: "bloquant",
   },
   {
     id: "max-3-weekend",
     label: "Maximum 3 désignations par week-end",
     description:
-      "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'un même week-end (samedi et dimanche).",
+      "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'un même week-end (samedi et dimanche). Ne s'applique pas aux TQR.",
     severity: "bloquant",
   },
 ];
@@ -89,7 +89,9 @@ export type RuleViolation = { ruleId: string; severity: RuleSeverity; message: s
  * au même endroit) - la règle "max 2 matchs/jour", pensée pour des matchs
  * classiques répartis sur des lieux différents, est remplacée par "max 4
  * matchs TQR/jour" (l'équivalent en mi-temps de 2 matchs classiques), avec
- * obligation de repos après 2 TQR joués sans interruption.
+ * obligation de repos après 2 TQR joués sans interruption. Les plafonds
+ * "max 3/semaine" et "max 3/week-end" (pensés pour des matchs classiques
+ * espacés dans la semaine) ne s'appliquent pas non plus aux TQR.
  */
 export function checkQuotaRules(
   matchDate: Date,
@@ -142,27 +144,29 @@ export function checkQuotaRules(
     });
   }
 
-  const { start: weekStart, end: weekEnd } = weekRange(matchDate);
-  const weekCount = existingDates.filter((d) => d >= weekStart && d < weekEnd).length;
-  if (weekCount + 1 > MAX_PER_PERIOD) {
-    violations.push({
-      ruleId: "max-3-semaine",
-      severity: "bloquant",
-      message: `Cet arbitre a déjà ${weekCount} désignation(s) cette semaine (maximum ${MAX_PER_PERIOD}).`,
-    });
-  }
-
-  const weekend = weekendRange(matchDate);
-  if (weekend) {
-    const weekendCount = existingDates.filter(
-      (d) => d >= weekend.start && d < weekend.end
-    ).length;
-    if (weekendCount + 1 > MAX_PER_PERIOD) {
+  if (!isTqr) {
+    const { start: weekStart, end: weekEnd } = weekRange(matchDate);
+    const weekCount = existingDates.filter((d) => d >= weekStart && d < weekEnd).length;
+    if (weekCount + 1 > MAX_PER_PERIOD) {
       violations.push({
-        ruleId: "max-3-weekend",
+        ruleId: "max-3-semaine",
         severity: "bloquant",
-        message: `Cet arbitre a déjà ${weekendCount} désignation(s) ce week-end (maximum ${MAX_PER_PERIOD}).`,
+        message: `Cet arbitre a déjà ${weekCount} désignation(s) cette semaine (maximum ${MAX_PER_PERIOD}).`,
       });
+    }
+
+    const weekend = weekendRange(matchDate);
+    if (weekend) {
+      const weekendCount = existingDates.filter(
+        (d) => d >= weekend.start && d < weekend.end
+      ).length;
+      if (weekendCount + 1 > MAX_PER_PERIOD) {
+        violations.push({
+          ruleId: "max-3-weekend",
+          severity: "bloquant",
+          message: `Cet arbitre a déjà ${weekendCount} désignation(s) ce week-end (maximum ${MAX_PER_PERIOD}).`,
+        });
+      }
     }
   }
 
