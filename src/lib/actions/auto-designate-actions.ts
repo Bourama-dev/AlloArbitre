@@ -105,3 +105,25 @@ export async function applyAutoDesignation(
   }
   return summary;
 }
+
+/**
+ * Désigne un même arbitre sur plusieurs matchs choisis manuellement (multi-
+ * désignation depuis la fiche arbitre). Chaque match repasse par
+ * designateReferee - un match est ignoré avec une erreur explicite s'il viole
+ * une règle (conflit d'horaire, quota, niveau...).
+ */
+export async function applyRefereeToMatches(
+  refereeId: string,
+  matchIds: string[]
+): Promise<AutoDesignateSummary> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Non authentifié.");
+
+  const summary: AutoDesignateSummary = { assigned: 0, errors: [] };
+  for (const matchId of matchIds) {
+    const result = await designateReferee(matchId, refereeId, user.id);
+    if (result.ok) summary.assigned++;
+    else summary.errors.push(result.error);
+  }
+  return summary;
+}

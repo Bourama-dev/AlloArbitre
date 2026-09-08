@@ -80,6 +80,12 @@ export default async function RefereeSheetPage({
           >
             Modifier
           </Link>
+          <Link
+            href={`/arbitres/${id}/designer`}
+            className="btn btn-primary text-xs"
+          >
+            Désigner sur plusieurs matchs
+          </Link>
         </div>
         {!referee.active && (
           <p className="text-sm text-[var(--muted)]">Arbitre inactif</p>
