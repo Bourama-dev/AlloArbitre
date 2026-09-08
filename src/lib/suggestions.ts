@@ -77,6 +77,24 @@ export async function getMatchForSuggestion(matchId: string) {
   };
 }
 
+// Poids de l'équité dans le classement : chaque désignation à venir déjà en
+// poche pénalise l'arbitre comme s'il était EQUITY_KM_PER_DESIGNATION km plus
+// loin. Sans ça, un tri strictement par distance laisse un écart de 100m
+// l'emporter sur un écart de charge de 5 matchs, ce qui ne reflète pas
+// l'objectif réel (répartir équitablement, pas juste minimiser les trajets).
+const EQUITY_KM_PER_DESIGNATION = 5;
+
+// Pénalité appliquée quand l'adresse de l'arbitre n'est pas géocodée
+// (distance inconnue), pour que ces arbitres restent classables au même
+// titre que les autres (ni systématiquement en tête, ni systématiquement en
+// queue de liste) plutôt que d'être reportés après tous les arbitres géocodés.
+const UNKNOWN_DISTANCE_KM = 25;
+
+function rankScore(s: RefereeSuggestion): number {
+  const distance = s.distanceKm ?? UNKNOWN_DISTANCE_KM;
+  return distance + s.currentLoad * EQUITY_KM_PER_DESIGNATION;
+}
+
 /**
  * Candidats pour un match, en deux groupes : les arbitres compatibles
  * (respectant tous les critères - niveau requis si configuré, pas de
@@ -199,17 +217,12 @@ export async function getMatchCandidates(matchId: string): Promise<{
 
   const eligible: RefereeSuggestion[] = candidates
     .filter((c) => c.reasons.length === 0)
-    .sort((a, b) => {
-      // Priorité aux arbitres proches (distance connue < distance inconnue),
-      // puis équité (nombre de désignations croissant) en cas d'égalité ou
-      // quand la distance n'est pas disponible (adresse non géocodée).
-      if (a.distanceKm != null && b.distanceKm != null) {
-        return a.distanceKm - b.distanceKm || a.currentLoad - b.currentLoad;
-      }
-      if (a.distanceKm != null) return -1;
-      if (b.distanceKm != null) return 1;
-      return a.currentLoad - b.currentLoad;
-    });
+    .sort(
+      (a, b) =>
+        rankScore(a) - rankScore(b) ||
+        a.lastName.localeCompare(b.lastName) ||
+        a.firstName.localeCompare(b.firstName)
+    );
 
   const ineligible: IneligibleReferee[] = candidates
     .filter((c) => c.reasons.length > 0)
@@ -242,7 +255,8 @@ export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number)
   ];
   return (
     `${parts.join(" · ")} — classé 1er sur ${totalCandidates} arbitre(s) disponible(s) ` +
-    `(sans conflit d'horaire, ni indisponibilité, ni dépassement de quota), trié par proximité puis équité.`
+    `(sans conflit d'horaire, ni indisponibilité, ni dépassement de quota), ` +
+    `classement combinant proximité et équité (${EQUITY_KM_PER_DESIGNATION} km équivalents par désignation à venir).`
   );
 }
 

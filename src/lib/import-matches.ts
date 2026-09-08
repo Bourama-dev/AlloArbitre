@@ -38,6 +38,20 @@ function normalizeHeader(raw: string) {
   return raw.trim().toLowerCase();
 }
 
+// Un TQR (Tournoi Qualificatif Régional) se joue en format réduit (2 mi-temps
+// au lieu de 4 quart-temps) : ~45 min à 1h de présence réelle en gymnase,
+// contre 1h40 pour un match classique. Sans cette distinction, le calcul de
+// chevauchement (computeMinReferees) traite les TQR comme des matchs complets
+// et surestime le nombre d'arbitres requis quand plusieurs s'enchaînent.
+const TQR_DURATION_MINUTES = 60;
+const STANDARD_DURATION_MINUTES = 100;
+
+export function matchDurationMinutes(competitionLevelLabel: string): number {
+  return competitionLevelLabel.trim().toUpperCase().startsWith("TQR")
+    ? TQR_DURATION_MINUTES
+    : STANDARD_DURATION_MINUTES;
+}
+
 function excelDateToIso(value: unknown): string {
   if (value instanceof Date) {
     return value.toISOString().slice(0, 10);
@@ -184,6 +198,8 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
         .maybeSingle();
       if (findError) throw findError;
 
+      const durationMinutes = matchDurationMinutes(row.competitionLevel);
+
       if (existing) {
         const { error } = await supabaseAdmin
           .from("Match")
@@ -193,6 +209,7 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
             city: row.city,
             poule: row.poule,
             refereesRequired: row.refereesRequired,
+            durationMinutes,
           })
           .eq("id", existing.id);
         if (error) throw error;
@@ -207,6 +224,7 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
           poule: row.poule,
           refereesRequired: row.refereesRequired,
           competitionLevelId,
+          durationMinutes,
         });
         if (error) throw error;
         summary.created++;

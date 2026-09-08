@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getMatchById, listCompetitionLevels } from "@/lib/matches";
+import { matchDurationMinutes } from "@/lib/import-matches";
 import { geocodeAddress } from "@/lib/geocoding";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { AlertToast } from "@/components/alert-toast";
@@ -53,6 +54,14 @@ export default async function EditMatchPage({
     const addressChanged = venueAddress !== (currentVenueAddress ?? null);
     const coords = addressChanged && venueAddress ? await geocodeAddress(venueAddress) : null;
 
+    const { data: level, error: levelError } = await supabaseAdmin
+      .from("CompetitionLevel")
+      .select("label")
+      .eq("id", competitionLevelId)
+      .maybeSingle();
+    if (levelError) throw levelError;
+    const durationMinutes = matchDurationMinutes(level?.label ?? "");
+
     const { error } = await supabaseAdmin
       .from("Match")
       .update({
@@ -66,6 +75,7 @@ export default async function EditMatchPage({
         notes,
         competitionLevelId,
         refereesRequired,
+        durationMinutes,
         ...(addressChanged ? { lat: coords?.lat ?? null, lng: coords?.lng ?? null } : {}),
       })
       .eq("id", id);
