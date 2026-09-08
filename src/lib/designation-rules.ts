@@ -39,7 +39,7 @@ export const DESIGNATION_RULES: DesignationRule[] = [
 ];
 
 const MAX_PER_PERIOD = 3;
-const MAX_PER_DAY = 2;
+export const MAX_PER_DAY = 2;
 
 /** Le jour calendaire (00:00 -> 00:00 le lendemain) contenant `date`. */
 function dayRange(date: Date): { start: Date; end: Date } {

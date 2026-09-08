@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchStatus } from "@/lib/match-status";
 import type { MatchStatus } from "@/lib/match-status";
+import { MAX_PER_DAY } from "@/lib/designation-rules";
 
 export type { MatchStatus } from "@/lib/match-status";
 export { matchStatus } from "@/lib/match-status";
@@ -106,8 +107,10 @@ export function computeMinReferees(
   matches: { date: Date; durationMinutes: number; refereesRequired: number }[]
 ): number {
   const events: { time: number; delta: number }[] = [];
+  let totalDemand = 0;
   for (const m of matches) {
     const demand = Math.max(2, m.refereesRequired);
+    totalDemand += demand;
     const start = m.date.getTime();
     const end = start + m.durationMinutes * 60_000;
     events.push({ time: start, delta: demand });
@@ -118,12 +121,19 @@ export function computeMinReferees(
   events.sort((a, b) => a.time - b.time || a.delta - b.delta);
 
   let running = 0;
-  let peak = 0;
+  let overlapPeak = 0;
   for (const e of events) {
     running += e.delta;
-    if (running > peak) peak = running;
+    if (running > overlapPeak) overlapPeak = running;
   }
-  return peak;
+
+  // Même sans chevauchement horaire, un arbitre ne peut siffler que
+  // MAX_PER_DAY matchs par jour (règle "max-2-jour") : avec 3 matchs
+  // consécutifs à 2 arbitres chacun, 2 arbitres ne suffisent pas (ça ferait
+  // 3 matchs chacun) même s'ils ne se chevauchent jamais dans le temps.
+  const quotaFloor = Math.ceil(totalDemand / MAX_PER_DAY);
+
+  return Math.max(overlapPeak, quotaFloor);
 }
 
 export async function getMatchById(id: string): Promise<MatchWithRelations | null> {
