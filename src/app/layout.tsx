@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
         {user && <Nav user={user} />}
-        <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
+        <main className="flex-1 w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
           {children}
         </main>
       </body>

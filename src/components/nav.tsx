@@ -35,7 +35,7 @@ export function Nav({ user }: { user: NavUser }) {
 
   return (
     <header className="sticky top-0 z-10 bg-[var(--surface)]/90 backdrop-blur border-b border-[var(--border)]">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <div className="px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-3">
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <Link href="/matchs" className="flex items-center gap-2 shrink-0">
             <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--brand)] text-white font-bold text-sm">
