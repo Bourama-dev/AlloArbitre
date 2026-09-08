@@ -26,6 +26,7 @@ export type MatchWithRelations = {
   designations: {
     id: string;
     refereeId: string;
+    position: number;
     referee: {
       id: string;
       firstName: string;
@@ -40,7 +41,7 @@ export type MatchWithRelations = {
 const MATCH_SELECT = `
   id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId,
   competitionLevel:CompetitionLevel(id, label),
-  designations:Designation(id, refereeId, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber))
+  designations:Designation(id, refereeId, position, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber))
 `;
 
 function mapMatch(row: {
@@ -65,7 +66,7 @@ function mapMatch(row: {
   return {
     ...row,
     date: new Date(row.date),
-    designations: row.designations ?? [],
+    designations: (row.designations ?? []).slice().sort((a, b) => a.position - b.position),
   };
 }
 

@@ -127,7 +127,8 @@ export default async function MatchDetailPage({
                     {d.referee.lastName.charAt(0)}
                   </span>
                   <span>
-                    {d.referee.firstName} {d.referee.lastName}
+                    {d.referee.firstName} {d.referee.lastName}{" "}
+                    <span className="text-[var(--muted)] text-xs">(Arbitre {d.position})</span>
                     {oneWayKm != null && (
                       <span className="text-[var(--muted)] text-xs block">
                         {oneWayKm.toFixed(1)} km · {estimatePayment(oneWayKm).toFixed(2)} €

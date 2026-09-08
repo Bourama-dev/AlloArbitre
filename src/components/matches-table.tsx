@@ -73,6 +73,7 @@ export function MatchesTable({
                             {d.referee.lastName.charAt(0)}
                           </span>
                           {d.referee.firstName} {d.referee.lastName}
+                          <span className="text-[var(--muted)] text-xs">(A{d.position})</span>
                         </Link>
                       ))}
                       {m.designations.length < m.refereesRequired && (

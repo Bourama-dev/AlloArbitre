@@ -192,7 +192,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
     }
     const quotaViolations = checkQuotaRules(
       match.date,
-      activeDesignations.map((d) => d.date),
+      match.durationMinutes,
+      activeDesignations,
       match.competitionLevel.label.trim().toUpperCase().startsWith("TQR")
     ).filter((v) => v.severity === "bloquant");
     for (const v of quotaViolations) reasons.push(v.message);
@@ -305,29 +306,65 @@ export async function designateReferee(
     .eq("match.cancelled", false);
   if (conflictError) throw conflictError;
 
-  const existingDates = (
+  const existingMatches = (
     (existingDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number } }[]
-  ).map((d) => new Date(d.match.date));
+  ).map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes }));
 
-  const hasConflict = (
-    (existingDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number } }[]
-  ).some((d) =>
-    overlaps(matchDate, match.durationMinutes, new Date(d.match.date), d.match.durationMinutes)
+  const hasConflict = existingMatches.some((d) =>
+    overlaps(matchDate, match.durationMinutes, d.date, d.durationMinutes)
   );
   if (hasConflict) {
     return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau." };
   }
 
-  const quotaViolations = checkQuotaRules(matchDate, existingDates, isTqr).filter(
-    (v) => v.severity === "bloquant"
-  );
+  const quotaViolations = checkQuotaRules(
+    matchDate,
+    match.durationMinutes,
+    existingMatches,
+    isTqr
+  ).filter((v) => v.severity === "bloquant");
   if (quotaViolations.length > 0) {
     return { ok: false, error: quotaViolations.map((v) => v.message).join(" ") };
   }
 
+  let position = designations.length + 1;
+
+  // Rotation "arbitre 1 / arbitre 2" : quand un même binôme enchaîne deux
+  // matchs dos à dos (fin du précédent = début de celui-ci), celui qui était
+  // en position 1 la fois précédente repasse en position 2 - et inversement.
+  if (designations.length === 1) {
+    const otherRefereeId = designations[0].refereeId;
+    const { data: otherPending, error: otherError } = await supabaseAdmin
+      .from("Designation")
+      .select("position, refereeId, match:Match!inner(date, durationMinutes, cancelled)")
+      .eq("refereeId", otherRefereeId)
+      .eq("match.cancelled", false);
+    if (otherError) throw otherError;
+
+    const previousTogether = (
+      (otherPending ?? []) as unknown as {
+        position: number;
+        match: { date: string; durationMinutes: number };
+      }[]
+    ).find((d) => {
+      const prevEnd = new Date(d.match.date).getTime() + d.match.durationMinutes * 60_000;
+      return prevEnd === matchDate.getTime();
+    });
+
+    if (previousTogether && previousTogether.position === 1) {
+      const { error: swapError } = await supabaseAdmin
+        .from("Designation")
+        .update({ position: 2 })
+        .eq("matchId", matchId)
+        .eq("refereeId", otherRefereeId);
+      if (swapError) throw swapError;
+      position = 1;
+    }
+  }
+
   const { error: insertError } = await supabaseAdmin
     .from("Designation")
-    .insert({ matchId, refereeId, createdById });
+    .insert({ matchId, refereeId, createdById, position });
   if (insertError) {
     return { ok: false, error: "Erreur lors de la création de la désignation." };
   }
