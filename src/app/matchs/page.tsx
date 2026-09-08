@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { findMatches, listCompetitionLevels, listMatchCities } from "@/lib/matches";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { findMatches, listCompetitionLevels, listMatchCities, listActiveReferees } from "@/lib/matches";
+import { designateReferee } from "@/lib/suggestions";
+import { getCurrentUser } from "@/lib/current-user";
 import { addWeeks, weekRange, formatDateFr } from "@/lib/dates";
 import { MatchesTable } from "@/components/matches-table";
+import { AlertToast } from "@/components/alert-toast";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +21,7 @@ export default async function MatchesPage({
     search?: string;
     city?: string;
     sort?: string;
+    error?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -29,17 +35,34 @@ export default async function MatchesPage({
   const city = params.city || undefined;
   const sort = (params.sort as MatchSort | undefined) ?? "date_asc";
 
-  const [matches, levels, cities] = await Promise.all([
+  const [matches, levels, cities, referees] = await Promise.all([
     findMatches({ from: start, to: end, competitionLevelId, status, search, city, sort }),
     listCompetitionLevels(),
     listMatchCities(),
+    listActiveReferees(),
   ]);
+
+  async function designate(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (!user) redirect("/login");
+    const matchId = String(formData.get("matchId"));
+    const refereeId = String(formData.get("refereeId"));
+    const result = await designateReferee(matchId, refereeId, user.id);
+    revalidatePath("/matchs");
+    revalidatePath("/matchs/incomplets");
+    revalidatePath(`/matchs/${matchId}`);
+    if (!result.ok) {
+      redirect(`/matchs?error=${encodeURIComponent(result.error)}`);
+    }
+  }
 
   const weekEnd = new Date(end);
   weekEnd.setDate(weekEnd.getDate() - 1);
 
   return (
     <div className="space-y-4">
+      {params.error && <AlertToast message={decodeURIComponent(params.error)} variant="error" />}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Matchs</h1>
@@ -139,7 +162,7 @@ export default async function MatchesPage({
         </button>
       </form>
 
-      <MatchesTable matches={matches} />
+      <MatchesTable matches={matches} referees={referees} designateAction={designate} />
     </div>
   );
 }

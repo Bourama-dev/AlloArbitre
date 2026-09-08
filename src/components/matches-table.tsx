@@ -2,14 +2,20 @@ import Link from "next/link";
 import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
-import type { MatchWithRelations } from "@/lib/matches";
+import { SubmitButton } from "@/components/submit-button";
+import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 
 export function MatchesTable({
   matches,
   selectable = false,
+  referees,
+  designateAction,
 }: {
   matches: MatchWithRelations[];
   selectable?: boolean;
+  /** Arbitres actifs, pour la désignation directe depuis un menu déroulant sur chaque ligne incomplète. */
+  referees?: ActiveReferee[];
+  designateAction?: (formData: FormData) => void | Promise<void>;
 }) {
   if (matches.length === 0) {
     return (
@@ -82,6 +88,31 @@ export function MatchesTable({
                         </span>
                       )}
                     </div>
+                  )}
+                  {designateAction && referees && status === "incomplet" && (
+                    <form action={designateAction} className="flex items-center gap-1 mt-1">
+                      <input type="hidden" name="matchId" value={m.id} />
+                      <select
+                        name="refereeId"
+                        required
+                        defaultValue=""
+                        className="input text-xs py-1"
+                      >
+                        <option value="" disabled>
+                          Désigner…
+                        </option>
+                        {referees
+                          .filter((r) => !m.designations.some((d) => d.refereeId === r.id))
+                          .map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.firstName} {r.lastName} ({r.levelLabel})
+                            </option>
+                          ))}
+                      </select>
+                      <SubmitButton className="btn btn-primary text-xs px-2 py-1" pendingLabel="…">
+                        OK
+                      </SubmitButton>
+                    </form>
                   )}
                 </td>
                 <td className="whitespace-nowrap text-[var(--muted)]">

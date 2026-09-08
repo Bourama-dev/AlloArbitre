@@ -99,6 +99,27 @@ export async function listMatchVenues() {
   return venues.sort();
 }
 
+export type ActiveReferee = { id: string; firstName: string; lastName: string; levelLabel: string };
+
+/** Liste légère des arbitres actifs (id, nom, niveau) pour la désignation directe depuis un select. */
+export async function listActiveReferees(): Promise<ActiveReferee[]> {
+  const { data, error } = await supabaseAdmin
+    .from("Referee")
+    .select("id, firstName, lastName, level:RefereeLevel(label)")
+    .eq("active", true)
+    .order("lastName", { ascending: true })
+    .order("firstName", { ascending: true });
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as { id: string; firstName: string; lastName: string; level: unknown }[]).map(
+    (r) => {
+      const rawLevel = r.level as unknown;
+      const level = (Array.isArray(rawLevel) ? rawLevel[0] : rawLevel) as { label: string } | null;
+      return { id: r.id, firstName: r.firstName, lastName: r.lastName, levelLabel: level?.label ?? "-" };
+    }
+  );
+}
+
 export type MatchSort = "date_asc" | "date_desc" | "level" | "city";
 
 /**
