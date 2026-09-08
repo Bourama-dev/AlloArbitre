@@ -65,21 +65,32 @@ function weekendRange(date: Date): { start: Date; end: Date } | null {
 export type RuleViolation = { ruleId: string; severity: RuleSeverity; message: string };
 
 /**
- * Vérifie les règles de quota (semaine / week-end) pour une nouvelle
+ * Vérifie les règles de quota (jour / semaine / week-end) pour une nouvelle
  * désignation d'un arbitre sur `matchDate`, étant donné ses désignations
  * actives existantes (`existingDates`, hors match en cours de création).
+ *
+ * `isTqr` : un TQR se joue en tournoi (plusieurs matchs courts le même jour,
+ * au même endroit) - la règle "max 2 matchs/jour", pensée pour des matchs
+ * classiques répartis sur des lieux différents, ne s'applique pas dans ce
+ * format.
  */
-export function checkQuotaRules(matchDate: Date, existingDates: Date[]): RuleViolation[] {
+export function checkQuotaRules(
+  matchDate: Date,
+  existingDates: Date[],
+  isTqr = false
+): RuleViolation[] {
   const violations: RuleViolation[] = [];
 
-  const { start: dayStart, end: dayEnd } = dayRange(matchDate);
-  const dayCount = existingDates.filter((d) => d >= dayStart && d < dayEnd).length;
-  if (dayCount + 1 > MAX_PER_DAY) {
-    violations.push({
-      ruleId: "max-2-jour",
-      severity: "bloquant",
-      message: `Cet arbitre a déjà ${dayCount} match(s) ce jour-là (maximum ${MAX_PER_DAY}).`,
-    });
+  if (!isTqr) {
+    const { start: dayStart, end: dayEnd } = dayRange(matchDate);
+    const dayCount = existingDates.filter((d) => d >= dayStart && d < dayEnd).length;
+    if (dayCount + 1 > MAX_PER_DAY) {
+      violations.push({
+        ruleId: "max-2-jour",
+        severity: "bloquant",
+        message: `Cet arbitre a déjà ${dayCount} match(s) ce jour-là (maximum ${MAX_PER_DAY}).`,
+      });
+    }
   }
 
   const { start: weekStart, end: weekEnd } = weekRange(matchDate);
