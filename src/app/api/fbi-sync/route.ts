@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { FbiClient } from "@/lib/fbi/client";
 import { searchDesignations } from "@/lib/fbi/searchDesignations";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
+import { getCurrentUser } from "@/lib/current-user";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -18,12 +19,19 @@ function formatDateFr(d: Date): string {
  * premier temps).
  *
  * Protégé par CRON_SECRET (header Authorization: Bearer <secret>), comme
- * recommandé par Vercel pour les cron jobs.
+ * recommandé par Vercel pour les cron jobs. Un admin déjà connecté dans le
+ * navigateur peut aussi appeler cette route directement (pratique pour
+ * tester sans avoir à manipuler le secret), la session Supabase suffit.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const hasValidSecret = Boolean(process.env.CRON_SECRET) && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+  if (!hasValidSecret) {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
   }
 
   const identifiant = process.env.FBI_USERNAME;
