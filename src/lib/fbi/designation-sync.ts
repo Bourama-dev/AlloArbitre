@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { overlaps } from "@/lib/dates";
 import type { FbiOfficiel } from "./detail";
 
 /**
@@ -7,7 +8,11 @@ import type { FbiOfficiel } from "./detail";
  * colonne "Arbitres" affiche "0/2" alors que FBI a déjà un arbitre en place
  * (visible seulement dans le détail déplié). Ne crée jamais de doublon : une
  * position déjà désignée dans AlloArbitre (quel que soit l'arbitre) n'est
- * jamais touchée.
+ * jamais touchée. Même garde-fou de conflit d'horaire que designateReferee :
+ * si l'arbitre reconnu a déjà un autre match AlloArbitre qui chevauche
+ * celui-ci, on n'importe pas cette désignation FBI (elle reste visible dans
+ * le détail FBI déplié, mais n'entre pas dans AlloArbitre en doublon
+ * d'agenda).
  */
 export async function syncFbiOfficielsToDesignations(
   matchId: string,
@@ -17,20 +22,26 @@ export async function syncFbiOfficielsToDesignations(
   const candidates = officiels.filter((o) => o.licence && (o.ordre === "1" || o.ordre === "2"));
   if (candidates.length === 0) return { created: 0 };
 
-  const [{ data: existingDesignations, error: desigError }, { data: matchingReferees, error: refError }] =
-    await Promise.all([
-      supabaseAdmin.from("Designation").select("position").eq("matchId", matchId),
-      supabaseAdmin
-        .from("Referee")
-        .select("id, nationalNumber")
-        .in(
-          "nationalNumber",
-          candidates.map((o) => o.licence)
-        ),
-    ]);
+  const [
+    { data: match, error: matchError },
+    { data: existingDesignations, error: desigError },
+    { data: matchingReferees, error: refError },
+  ] = await Promise.all([
+    supabaseAdmin.from("Match").select("date, durationMinutes").eq("id", matchId).single(),
+    supabaseAdmin.from("Designation").select("position").eq("matchId", matchId),
+    supabaseAdmin
+      .from("Referee")
+      .select("id, nationalNumber")
+      .in(
+        "nationalNumber",
+        candidates.map((o) => o.licence)
+      ),
+  ]);
+  if (matchError) throw matchError;
   if (desigError) throw desigError;
   if (refError) throw refError;
 
+  const matchDate = new Date(match.date);
   const occupiedPositions = new Set((existingDesignations ?? []).map((d) => d.position));
   const refereeIdByNational = new Map((matchingReferees ?? []).map((r) => [r.nationalNumber as string, r.id as string]));
 
@@ -40,6 +51,18 @@ export async function syncFbiOfficielsToDesignations(
     if (occupiedPositions.has(position)) continue;
     const refereeId = refereeIdByNational.get(o.licence);
     if (!refereeId) continue;
+
+    const { data: otherDesignations, error: otherError } = await supabaseAdmin
+      .from("Designation")
+      .select("match:Match!inner(date, durationMinutes, cancelled)")
+      .eq("refereeId", refereeId)
+      .neq("matchId", matchId);
+    if (otherError) throw otherError;
+
+    const hasConflict = ((otherDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number; cancelled: boolean } }[])
+      .filter((d) => !d.match.cancelled)
+      .some((d) => overlaps(matchDate, match.durationMinutes, new Date(d.match.date), d.match.durationMinutes));
+    if (hasConflict) continue;
 
     const { error } = await supabaseAdmin
       .from("Designation")
