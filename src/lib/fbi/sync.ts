@@ -27,7 +27,7 @@ export function parseFbiDateTime(dateStr: string, heureStr: string): Date | null
   return new Date(`${yyyy}-${mm}-${dd}T${hh}:${min}:00`);
 }
 
-function normalize(s: string): string {
+export function normalize(s: string): string {
   return s
     .toUpperCase()
     .normalize("NFD")
@@ -52,13 +52,14 @@ export function matchesFbiRow(
   const sameTime = Math.abs(new Date(match.date).getTime() - fbiDate.getTime()) < 5 * 60 * 1000;
   if (!sameTime) return false;
 
-  const home = normalize(fbiRow.equipe1.replace(/\.{3}$/, ""));
-  const away = normalize(fbiRow.equipe2.replace(/\.{3}$/, ""));
-  const mHome = normalize(match.homeTeam);
-  const mAway = normalize(match.awayTeam);
-  const homeMatches = mHome.startsWith(home) || home.startsWith(mHome);
-  const awayMatches = mAway.startsWith(away) || away.startsWith(mAway);
-  return homeMatches && awayMatches;
+  return teamNamesMatch(fbiRow.equipe1, match.homeTeam) && teamNamesMatch(fbiRow.equipe2, match.awayTeam);
+}
+
+/** Vrai si un nom d'équipe FBI (potentiellement tronqué, ex: "...") et un nom AlloArbitre désignent la même équipe. */
+export function teamNamesMatch(fbiTeamName: string, alloTeamName: string): boolean {
+  const fbi = normalize(fbiTeamName.replace(/\.{3}$/, ""));
+  const allo = normalize(alloTeamName);
+  return allo.startsWith(fbi) || fbi.startsWith(allo);
 }
 
 /**

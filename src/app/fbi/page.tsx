@@ -3,7 +3,7 @@ import type { FbiDesignationRow } from "@/lib/fbi/searchDesignations";
 import { FbiRencontreRow } from "@/components/fbi-rencontre-row";
 import { findMatches } from "@/lib/matches";
 import { AutoDesignatePanel } from "@/components/auto-designate-panel";
-import { PushAllToFbiButton } from "@/components/push-all-to-fbi-button";
+import { PushAllToFbiButton, ImportFbiMatchesButton } from "@/components/push-all-to-fbi-button";
 
 export const dynamic = "force-dynamic";
 // Login FBI + recherche : quelques secondes, parfois plus quand FBI est lent.
@@ -183,6 +183,18 @@ export default async function FbiPage({
           </button>
         </form>
       </div>
+
+      <section className="space-y-2">
+        <div>
+          <h2 className="text-sm font-semibold">Calendrier AlloArbitre</h2>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Importé automatiquement chaque matin depuis FBI (cron). En cas de
+            besoin immédiat (nouvelle rencontre FBI pas encore reprise ici),
+            relancez l&apos;import maintenant.
+          </p>
+        </div>
+        <ImportFbiMatchesButton />
+      </section>
 
       <section className="space-y-2">
         <div>

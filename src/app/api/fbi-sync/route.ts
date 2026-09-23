@@ -3,6 +3,7 @@ import type { FbiDump } from "@/lib/fbi/client";
 import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInClient } from "@/lib/fbi/fetch";
 import { assignRefereeToFbiRencontre } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
+import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -13,27 +14,33 @@ export const maxDuration = 60;
 
 /**
  * Cron (déclaré dans vercel.json, tous les jours à 7h) : se logue sur FBI,
- * récupère l'état des désignations pour les 14 prochains jours, et compare
- * avec AlloArbitre. Renvoie les écarts, n'écrit rien nulle part pour
- * l'instant (lecture seule, cf. décision de ne pas écrire sur FBI dans un
- * premier temps). Pour consulter les rencontres FBI : page /fbi.
+ * récupère les rencontres des 14 prochains jours, importe/complète les
+ * matchs AlloArbitre correspondants (import.ts - idempotent, jamais de
+ * doublon), puis compare l'état des désignations entre les deux systèmes.
+ * N'écrit jamais sur FBI depuis ce chemin (l'écriture FBI se fait via
+ * ?assign=/?push=/?pushAll=, plus bas, explicitement).
  *
  * Protégé par CRON_SECRET (header Authorization: Bearer <secret>), comme
  * recommandé par Vercel pour les cron jobs. Tout utilisateur déjà connecté
- * dans le navigateur peut aussi appeler cette route (même accès que la page
- * /fbi elle-même, qui appelle `?detail=` pour la fiche dépliée sous chaque
- * rencontre), la session Supabase suffit - pas besoin d'être admin.
+ * dans le navigateur peut aussi appeler cette route en lecture (même accès
+ * que la page /fbi, qui appelle `?detail=` pour la fiche dépliée sous chaque
+ * rencontre) ; seuls le cron et les admins déclenchent l'import de matchs.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   const hasValidSecret = Boolean(process.env.CRON_SECRET) && authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
+  let currentUser: Awaited<ReturnType<typeof getCurrentUser>> = null;
   if (!hasValidSecret) {
-    const user = await getCurrentUser();
-    if (!user) {
+    currentUser = await getCurrentUser();
+    if (!currentUser) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
   }
+  // Le cron (lecture + écriture des matchs) et les admins peuvent déclencher
+  // l'import du calendrier FBI ; un utilisateur non-admin reste en lecture
+  // seule sur cette route (comparaison uniquement, jamais d'écriture DB).
+  const canImportMatches = hasValidSecret || currentUser?.role === "ADMIN";
 
   const today = new Date();
   const in14Days = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
@@ -139,12 +146,14 @@ export async function GET(request: Request) {
 
   try {
     const rows = await fetchFbiRencontres({ du: today, au: in14Days }, onDump);
+    const importSummary = canImportMatches ? await importFbiRencontresAsMatches(rows) : null;
     const mismatches = await compareWithAlloArbitre(rows);
 
     return NextResponse.json({
       ...(debugRunId ? { debugRunId } : {}),
       periode: { du: formatDateFr(today), au: formatDateFr(in14Days) },
       rencontresFbi: rows.length,
+      import: importSummary,
       ecarts: mismatches.length,
       mismatches,
     });

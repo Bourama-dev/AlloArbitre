@@ -4,6 +4,56 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FbiPushMatchResult } from "@/lib/fbi/push";
 
+export function ImportFbiMatchesButton() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
+
+  function importNow() {
+    setMessage(null);
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/fbi-sync`);
+        const data = await res.json();
+        if (!res.ok) {
+          setIsError(true);
+          setMessage(data.error ?? "Erreur inconnue");
+          return;
+        }
+        const s = data.import;
+        setIsError(false);
+        setMessage(
+          s
+            ? `${s.created} match(s) créé(s), ${s.updated} mis à jour.${s.competitionLevelsCreated.length ? ` Niveaux créés : ${s.competitionLevelsCreated.join(", ")}.` : ""}${s.errors.length ? ` Erreurs : ${s.errors.join(" | ")}` : ""}`
+            : "Import non déclenché (droits insuffisants)."
+        );
+        router.refresh();
+      } catch (err) {
+        setIsError(true);
+        setMessage(err instanceof Error ? err.message : "Erreur réseau");
+      }
+    });
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        type="button"
+        onClick={importNow}
+        disabled={isPending}
+        className="btn btn-secondary inline-flex items-center gap-2"
+      >
+        {isPending && <span className="spinner" aria-hidden />}
+        {isPending ? "Import en cours…" : "Importer le calendrier depuis FBI"}
+      </button>
+      {message && (
+        <p className={`text-sm ${isError ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>{message}</p>
+      )}
+    </div>
+  );
+}
+
 export function PushAllToFbiButton() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
