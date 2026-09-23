@@ -101,16 +101,16 @@ export default async function MatchesPage({
         </div>
       </div>
 
-      <form className="flex flex-wrap items-end gap-3 card p-4">
+      <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end card p-4">
         <input type="hidden" name="week" value={weekOffset} />
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <label className="field-label">Équipe</label>
           <input
             type="text"
             name="search"
             defaultValue={search ?? ""}
             placeholder="Domicile ou extérieur"
-            className="input"
+            className="input w-full"
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ export default async function MatchesPage({
           <select
             name="level"
             defaultValue={competitionLevelId ?? ""}
-            className="input"
+            className="input w-full"
           >
             <option value="">Tous les niveaux</option>
             {levels.map((l) => (
@@ -130,7 +130,7 @@ export default async function MatchesPage({
         </div>
         <div>
           <label className="field-label">Ville</label>
-          <select name="city" defaultValue={city ?? ""} className="input">
+          <select name="city" defaultValue={city ?? ""} className="input w-full">
             <option value="">Toutes les villes</option>
             {cities.map((c) => (
               <option key={c} value={c}>
@@ -141,7 +141,7 @@ export default async function MatchesPage({
         </div>
         <div>
           <label className="field-label">Statut</label>
-          <select name="status" defaultValue={status} className="input">
+          <select name="status" defaultValue={status} className="input w-full">
             <option value="toutes">Tous les statuts</option>
             <option value="incomplet">Incomplet</option>
             <option value="complet">Complet</option>
@@ -150,14 +150,14 @@ export default async function MatchesPage({
         </div>
         <div>
           <label className="field-label">Trier par</label>
-          <select name="sort" defaultValue={sort} className="input">
+          <select name="sort" defaultValue={sort} className="input w-full">
             <option value="date_asc">Date (croissant)</option>
             <option value="date_desc">Date (décroissant)</option>
             <option value="level">Niveau</option>
             <option value="city">Ville</option>
           </select>
         </div>
-        <button type="submit" className="btn btn-primary">
+        <button type="submit" className="btn btn-primary w-full sm:w-auto">
           Filtrer
         </button>
       </form>

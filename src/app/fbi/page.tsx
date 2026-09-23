@@ -119,18 +119,18 @@ export default async function FbiPage({
             n&apos;est enregistré dans AlloArbitre. Période limitée à {MAX_DAYS} jours.
           </p>
         </div>
-        <form className="flex flex-wrap items-end gap-2">
+        <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 items-end card p-3 w-full lg:w-auto">
           <div>
             <label className="field-label">Du</label>
-            <input type="date" name="du" defaultValue={toIsoDay(du)} className="input" />
+            <input type="date" name="du" defaultValue={toIsoDay(du)} className="input w-full" />
           </div>
           <div>
             <label className="field-label">Au</label>
-            <input type="date" name="au" defaultValue={toIsoDay(au)} className="input" />
+            <input type="date" name="au" defaultValue={toIsoDay(au)} className="input w-full" />
           </div>
           <div>
             <label className="field-label">Groupe</label>
-            <select name="groupe" defaultValue={groupe} className="input">
+            <select name="groupe" defaultValue={groupe} className="input w-full">
               <option value="">Tous</option>
               {Object.entries(GROUPES).map(([key, g]) => (
                 <option key={key} value={key}>
@@ -141,7 +141,7 @@ export default async function FbiPage({
           </div>
           <div>
             <label className="field-label">Division</label>
-            <select name="code" defaultValue={code} className="input">
+            <select name="code" defaultValue={code} className="input w-full">
               <option value="">Toutes</option>
               {codes.map((c) => (
                 <option key={c} value={c}>
@@ -152,7 +152,7 @@ export default async function FbiPage({
           </div>
           <div>
             <label className="field-label">État</label>
-            <select name="etat" defaultValue={etat} className="input">
+            <select name="etat" defaultValue={etat} className="input w-full">
               <option value="">Tous</option>
               {ETATS.map((e) => (
                 <option key={e} value={e}>
@@ -161,11 +161,17 @@ export default async function FbiPage({
               ))}
             </select>
           </div>
-          <div>
+          <div className="col-span-2 sm:col-span-1">
             <label className="field-label">Équipe</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Domicile ou extérieur" className="input" />
+            <input
+              type="text"
+              name="search"
+              defaultValue={search}
+              placeholder="Domicile ou extérieur"
+              className="input w-full"
+            />
           </div>
-          <button type="submit" className="btn btn-secondary">
+          <button type="submit" className="btn btn-secondary w-full sm:w-auto">
             Afficher
           </button>
         </form>

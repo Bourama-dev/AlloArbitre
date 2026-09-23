@@ -48,15 +48,15 @@ export default async function RefereesPage({
         </Link>
       </div>
 
-      <form className="flex flex-wrap items-end gap-3 card p-4">
-        <div>
+      <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 items-end card p-4">
+        <div className="col-span-2 sm:col-span-1">
           <label className="field-label">Nom</label>
           <input
             type="text"
             name="search"
             defaultValue={search ?? ""}
             placeholder="Prénom ou nom"
-            className="input"
+            className="input w-full"
           />
         </div>
         <div>
@@ -64,7 +64,7 @@ export default async function RefereesPage({
           <select
             name="level"
             defaultValue={levelId ?? ""}
-            className="input"
+            className="input w-full"
           >
             <option value="">Tous les niveaux</option>
             {levels.map((l) => (
@@ -79,7 +79,7 @@ export default async function RefereesPage({
           <select
             name="zone"
             defaultValue={zone ?? ""}
-            className="input"
+            className="input w-full"
           >
             <option value="">Tous les clubs</option>
             {zones.map((z) => (
@@ -91,7 +91,7 @@ export default async function RefereesPage({
         </div>
         <div>
           <label className="field-label">Statut</label>
-          <select name="status" defaultValue={status} className="input">
+          <select name="status" defaultValue={status} className="input w-full">
             <option value="actifs">Actifs</option>
             <option value="inactifs">Inactifs</option>
             <option value="toutes">Tous</option>
@@ -99,11 +99,11 @@ export default async function RefereesPage({
         </div>
         <div>
           <label className="field-label">Date</label>
-          <input type="date" name="date" defaultValue={date} className="input" />
+          <input type="date" name="date" defaultValue={date} className="input w-full" />
         </div>
         <div>
           <label className="field-label">Disponibilité</label>
-          <select name="availability" defaultValue={availability} className="input">
+          <select name="availability" defaultValue={availability} className="input w-full">
             <option value="toutes">Peu importe</option>
             <option value="disponibles">Disponibles ce jour</option>
             <option value="indisponibles">Indisponibles ce jour</option>
@@ -111,7 +111,7 @@ export default async function RefereesPage({
         </div>
         <div>
           <label className="field-label">Trier par</label>
-          <select name="sort" defaultValue={sort} className="input">
+          <select name="sort" defaultValue={sort} className="input w-full">
             <option value="nom">Nom</option>
             <option value="niveau">Niveau</option>
             <option value="club">Club</option>
@@ -119,10 +119,7 @@ export default async function RefereesPage({
             <option value="charge_desc">Charge (décroissant)</option>
           </select>
         </div>
-        <button
-          type="submit"
-          className="btn btn-primary"
-        >
+        <button type="submit" className="btn btn-primary w-full sm:w-auto">
           Filtrer
         </button>
       </form>

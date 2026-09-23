@@ -42,15 +42,15 @@ export default async function IncompleteMatchesPage({
             .
           </p>
         </div>
-        <form className="flex flex-wrap items-end gap-2">
-          <div>
+        <form className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end card p-3 w-full lg:w-auto">
+          <div className="col-span-2 sm:col-span-1">
             <label className="field-label">Équipe</label>
             <input
               type="text"
               name="search"
               defaultValue={search ?? ""}
               placeholder="Domicile ou extérieur"
-              className="input"
+              className="input w-full"
             />
           </div>
           <div>
@@ -58,7 +58,7 @@ export default async function IncompleteMatchesPage({
             <select
               name="level"
               defaultValue={competitionLevelId ?? ""}
-              className="input"
+              className="input w-full"
             >
               <option value="">Tous les niveaux</option>
               {levels.map((l) => (
@@ -70,14 +70,14 @@ export default async function IncompleteMatchesPage({
           </div>
           <div>
             <label className="field-label">Trier par</label>
-            <select name="sort" defaultValue={sort} className="input">
+            <select name="sort" defaultValue={sort} className="input w-full">
               <option value="date_asc">Date (croissant)</option>
               <option value="date_desc">Date (décroissant)</option>
               <option value="level">Niveau</option>
               <option value="city">Ville</option>
             </select>
           </div>
-          <button type="submit" className="btn btn-secondary">
+          <button type="submit" className="btn btn-secondary w-full sm:w-auto">
             Filtrer
           </button>
         </form>
