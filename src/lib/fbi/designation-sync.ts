@@ -12,7 +12,10 @@ import type { FbiOfficiel } from "./detail";
  * si l'arbitre reconnu a déjà un autre match AlloArbitre qui chevauche
  * celui-ci, on n'importe pas cette désignation FBI (elle reste visible dans
  * le détail FBI déplié, mais n'entre pas dans AlloArbitre en doublon
- * d'agenda).
+ * d'agenda). Respecte aussi DesignationRemoval : si un admin a explicitement
+ * retiré cet arbitre de ce match dans AlloArbitre, on ne le réimporte pas
+ * juste parce que FBI (non modifié par ce retrait) l'a toujours - sinon la
+ * suppression semblerait ne jamais avoir d'effet.
  */
 export async function syncFbiOfficielsToDesignations(
   matchId: string,
@@ -26,6 +29,7 @@ export async function syncFbiOfficielsToDesignations(
     { data: match, error: matchError },
     { data: existingDesignations, error: desigError },
     { data: matchingReferees, error: refError },
+    { data: removals, error: removalError },
   ] = await Promise.all([
     supabaseAdmin.from("Match").select("date, durationMinutes").eq("id", matchId).single(),
     supabaseAdmin.from("Designation").select("position").eq("matchId", matchId),
@@ -36,14 +40,17 @@ export async function syncFbiOfficielsToDesignations(
         "nationalNumber",
         candidates.map((o) => o.licence)
       ),
+    supabaseAdmin.from("DesignationRemoval").select("refereeId").eq("matchId", matchId),
   ]);
   if (matchError) throw matchError;
   if (desigError) throw desigError;
   if (refError) throw refError;
+  if (removalError) throw removalError;
 
   const matchDate = new Date(match.date);
   const occupiedPositions = new Set((existingDesignations ?? []).map((d) => d.position));
   const refereeIdByNational = new Map((matchingReferees ?? []).map((r) => [r.nationalNumber as string, r.id as string]));
+  const removedRefereeIds = new Set((removals ?? []).map((r) => r.refereeId));
 
   let created = 0;
   for (const o of candidates) {
@@ -51,6 +58,7 @@ export async function syncFbiOfficielsToDesignations(
     if (occupiedPositions.has(position)) continue;
     const refereeId = refereeIdByNational.get(o.licence);
     if (!refereeId) continue;
+    if (removedRefereeIds.has(refereeId)) continue;
 
     const { data: otherDesignations, error: otherError } = await supabaseAdmin
       .from("Designation")

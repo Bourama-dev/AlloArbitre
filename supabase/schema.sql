@@ -135,6 +135,17 @@ create table "Unavailability" (
 );
 create index "Unavailability_refereeId_idx" on "Unavailability"("refereeId");
 
+-- Mémorise qu'un admin a explicitement retiré tel arbitre de tel match, pour
+-- que la reprise automatique des officiels FBI (designation-sync.ts) ne le
+-- réimporte pas silencieusement au prochain affichage du détail - FBI, lui,
+-- n'a pas été modifié.
+create table "DesignationRemoval" (
+  "matchId" text not null references "Match"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  "removedAt" timestamp(3) not null default now(),
+  primary key ("matchId", "refereeId")
+);
+
 -- Désignation d'un arbitre sur un match. Toujours créée après validation manuelle
 -- d'une suggestion - jamais d'auto-assignation silencieuse.
 -- position : 1 (arbitre 1) ou 2 (arbitre 2). Pas d'unicité imposée en base sur
