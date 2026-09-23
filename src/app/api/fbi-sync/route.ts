@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { FbiClient } from "@/lib/fbi/client";
+import { FbiClient, type FbiDump } from "@/lib/fbi/client";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { searchDesignations } from "@/lib/fbi/searchDesignations";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -43,8 +44,18 @@ export async function GET(request: Request) {
   const today = new Date();
   const in14Days = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
+  // ?debug=1 : chaque page renvoyée par FBI est stockée dans la table
+  // (temporaire) FbiDebugDump, lisible uniquement en service_role.
+  const debugRunId = new URL(request.url).searchParams.get("debug") === "1" ? crypto.randomUUID() : null;
+  const onDump = debugRunId
+    ? async (dump: FbiDump) => {
+        const { error } = await supabaseAdmin.from("FbiDebugDump").insert({ runId: debugRunId, ...dump });
+        if (error) console.error("[fbi-sync] dump failed:", error);
+      }
+    : undefined;
+
   try {
-    const client = new FbiClient();
+    const client = new FbiClient(onDump);
     await client.login(identifiant, motDePasse);
 
     const rows = await searchDesignations(client, {
@@ -55,6 +66,7 @@ export async function GET(request: Request) {
     const mismatches = await compareWithAlloArbitre(rows);
 
     return NextResponse.json({
+      ...(debugRunId ? { debugRunId } : {}),
       periode: { du: formatDateFr(today), au: formatDateFr(in14Days) },
       rencontresFbi: rows.length,
       ecarts: mismatches.length,
@@ -62,7 +74,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur inconnue" },
+      { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
       { status: 500 }
     );
   }

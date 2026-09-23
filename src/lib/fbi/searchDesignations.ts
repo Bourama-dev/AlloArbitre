@@ -16,7 +16,7 @@ export type FbiDesignationRow = {
 
 /**
  * ATTENTION : ce parseur n'a pas encore été validé contre le vrai HTML renvoyé
- * par FBI (à faire en local avec FBI_DEBUG_DIR, cf. client.ts). On sait (via capture d'écran) que le tableau affiche les colonnes
+ * par FBI (à faire via /api/fbi-sync?debug=1, cf. client.ts). On sait (via capture d'écran) que le tableau affiche les colonnes
  * Code / N° / Equipe 1 / Equipe 2 / Poule / Salle / Ville / Date / Heure /
  * Rem. / État, mais le fragment HTML réel (retourné par
  * rechercherDesignation.fbi?action=controleRecherche, injecté dans
@@ -52,7 +52,7 @@ export function parseDesignationRows(html: string): FbiDesignationRow[] {
   // "0 rencontre" à tort. (Une ligne unique type "Aucun résultat" reste tolérée.)
   if (rows.length === 0 && unparsedRows > 1) {
     throw new Error(
-      `FBI : ${unparsedRows} lignes de tableau non reconnues, le format de la page a dû changer (relancer en local avec FBI_DEBUG_DIR)`
+      `FBI : ${unparsedRows} lignes de tableau non reconnues, le format de la page a dû changer (relancer avec ?debug=1 pour inspecter le HTML)`
     );
   }
 

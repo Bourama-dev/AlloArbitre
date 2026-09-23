@@ -1,6 +1,3 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-
 const FBI_BASE_URL = "https://extranet.ffbb.com/fbi";
 
 /** Présence du formulaire de connexion dans une page = on n'est pas (ou plus) connecté. */
@@ -13,14 +10,17 @@ const LOGIN_FORM_MARKER = "identificationForm.identificationBean.identifiant";
  * fait toutes nos requêtes dans la même exécution (une cookie jar en mémoire,
  * le temps d'un run de sync).
  *
- * Debug local : si FBI_DEBUG_DIR est défini, chaque réponse brute est écrite
- * dans ce dossier (01-connexion.fbi.html, 02-identification.fbi.html...) pour
- * pouvoir caler le login et le parseur sur le vrai HTML. Ce dossier contient
- * des données personnelles (arbitres, clubs) : ne jamais le committer.
+ * Debug : si `onDump` est fourni, chaque réponse brute lui est transmise
+ * (cf. /api/fbi-sync?debug=1 qui les stocke dans la table FbiDebugDump) pour
+ * pouvoir caler le login et le parseur sur le vrai HTML.
  */
+export type FbiDump = { seq: number; path: string; status: number; location: string | null; body: string };
+
 export class FbiClient {
   private cookies = new Map<string, string>();
   private dumpCounter = 0;
+
+  constructor(private readonly onDump?: (dump: FbiDump) => Promise<void>) {}
 
   private cookieHeader(): string {
     return Array.from(this.cookies.entries())
@@ -42,14 +42,10 @@ export class FbiClient {
     }
   }
 
-  private dump(path: string, res: Response, body: string) {
-    const dir = process.env.FBI_DEBUG_DIR;
-    if (!dir) return;
+  private async dump(path: string, res: Response, body: string) {
+    if (!this.onDump) return;
     this.dumpCounter += 1;
-    const name = `${String(this.dumpCounter).padStart(2, "0")}-${path.replace(/[^a-zA-Z0-9.]+/g, "_")}.html`;
-    const meta = `<!-- HTTP ${res.status} location=${res.headers.get("location") ?? ""} -->\n`;
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, name), meta + body, "utf8");
+    await this.onDump({ seq: this.dumpCounter, path, status: res.status, location: res.headers.get("location"), body });
   }
 
   /**
@@ -73,14 +69,14 @@ export class FbiClient {
 
       const location = res.headers.get("location");
       if (res.status >= 300 && res.status < 400 && location) {
-        this.dump(url.slice(FBI_BASE_URL.length + 1), res, "");
+        await this.dump(url.slice(FBI_BASE_URL.length + 1), res, "");
         url = new URL(location, url).toString();
         currentInit = {}; // un 302 après un POST se rejoue en GET
         continue;
       }
 
       const body = await res.text();
-      this.dump(url.slice(FBI_BASE_URL.length + 1), res, body);
+      await this.dump(url.slice(FBI_BASE_URL.length + 1), res, body);
       return { res, body, finalPath: url };
     }
 

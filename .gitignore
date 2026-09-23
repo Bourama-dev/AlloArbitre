@@ -35,10 +35,6 @@ yarn-error.log*
 
 # vercel
 .vercel
-
-# dumps HTML FBI (FBI_DEBUG_DIR) : contiennent des données personnelles
-/.fbi-debug/
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
