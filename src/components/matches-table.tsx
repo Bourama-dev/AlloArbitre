@@ -3,6 +3,7 @@ import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { SubmitButton } from "@/components/submit-button";
+import { PushToFbiButton } from "@/components/push-to-fbi-button";
 import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 
 export function MatchesTable({
@@ -130,9 +131,12 @@ export function MatchesTable({
                   <StatusBadge status={status} />
                 </td>
                 <td className="text-right whitespace-nowrap">
-                  <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
-                    Détails
-                  </Link>
+                  <div className="inline-flex flex-col items-end gap-1">
+                    <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
+                      Détails
+                    </Link>
+                    {m.designations.length > 0 && <PushToFbiButton matchId={m.id} />}
+                  </div>
                 </td>
               </tr>
             );

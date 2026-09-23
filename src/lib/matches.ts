@@ -22,6 +22,7 @@ export type MatchWithRelations = {
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;
+  fbiIdRencontre: string | null;
   competitionLevel: { id: string; label: string };
   designations: {
     id: string;
@@ -39,7 +40,7 @@ export type MatchWithRelations = {
 };
 
 const MATCH_SELECT = `
-  id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId,
+  id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId, fbiIdRencontre,
   competitionLevel:CompetitionLevel(id, label),
   designations:Designation(id, refereeId, position, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber))
 `;
@@ -60,6 +61,7 @@ function mapMatch(row: {
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;
+  fbiIdRencontre: string | null;
   competitionLevel: { id: string; label: string };
   designations: MatchWithRelations["designations"] | null;
 }): MatchWithRelations {

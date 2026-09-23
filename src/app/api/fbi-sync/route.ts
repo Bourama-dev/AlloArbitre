@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import type { FbiDump } from "@/lib/fbi/client";
 import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInClient } from "@/lib/fbi/fetch";
 import { assignRefereeToFbiRencontre } from "@/lib/fbi/write";
+import { pushMatchToFbi } from "@/lib/fbi/push";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
+import { findMatches } from "@/lib/matches";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -69,6 +71,50 @@ export async function GET(request: Request) {
       const client = await loggedInClient(onDump);
       const result = await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational, dryRun });
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), ...result });
+    } catch (error) {
+      return NextResponse.json(
+        { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ?push=<matchId> : pousse toutes les désignations AlloArbitre d'un match
+  // vers FBI (une position à la fois, jamais d'écrasement d'une position déjà
+  // occupée par quelqu'un d'autre). ?pushAll=1 : idem pour tous les matchs à
+  // venir ayant au moins une désignation. Réservé aux admins.
+  const pushMatchId = new URL(request.url).searchParams.get("push");
+  const pushAll = new URL(request.url).searchParams.get("pushAll") === "1";
+  if (pushMatchId || pushAll) {
+    const adminUser = await getCurrentUser();
+    if (!adminUser || adminUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "unauthorized (admin requis pour écrire sur FBI)" }, { status: 401 });
+    }
+    try {
+      const client = await loggedInClient(onDump);
+      const now = new Date();
+      const matches = pushAll
+        ? (await findMatches({ from: now, status: "toutes" })).filter((m) => m.designations.length > 0)
+        : (await findMatches({ status: "toutes" })).filter((m) => m.id === pushMatchId);
+
+      if (!pushAll && matches.length === 0) {
+        return NextResponse.json({ error: `Match ${pushMatchId} introuvable` }, { status: 404 });
+      }
+
+      const results = [];
+      for (const m of matches) {
+        results.push(
+          await pushMatchToFbi(client, {
+            id: m.id,
+            date: m.date.toISOString(),
+            homeTeam: m.homeTeam,
+            awayTeam: m.awayTeam,
+            fbiIdRencontre: m.fbiIdRencontre,
+            designations: m.designations.map((d) => ({ position: d.position, referee: d.referee })),
+          })
+        );
+      }
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), results });
     } catch (error) {
       return NextResponse.json(
         { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },

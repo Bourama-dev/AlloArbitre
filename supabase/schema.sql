@@ -102,6 +102,9 @@ create table "Match" (
   "refereesRequired" integer not null default 2 check ("refereesRequired" >= 2),
   cancelled boolean not null default false,
   "competitionLevelId" text not null references "CompetitionLevel"(id),
+  -- Identifiant FBI (idRencontre) une fois résolu, pour éviter de rechercher
+  -- à nouveau la rencontre côté FBI à chaque push de désignation.
+  "fbiIdRencontre" text,
   "createdAt" timestamp(3) not null default current_timestamp,
   "updatedAt" timestamp(3) not null default now()
 );

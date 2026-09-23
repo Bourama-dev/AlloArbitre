@@ -18,7 +18,7 @@ type MatchRow = {
   designations: { id: string }[];
 };
 
-function parseFbiDateTime(dateStr: string, heureStr: string): Date | null {
+export function parseFbiDateTime(dateStr: string, heureStr: string): Date | null {
   const m = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   const h = heureStr.match(/^(\d{2}):(\d{2})$/);
   if (!m || !h) return null;
@@ -34,6 +34,31 @@ function normalize(s: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^A-Z0-9]+/g, " ")
     .trim();
+}
+
+/**
+ * Vrai si une ligne FBI et un match AlloArbitre désignent la même rencontre
+ * (même heure à 5 min près + noms d'équipes compatibles, en tolérant les
+ * troncatures FBI type "SAINT DENIS DE L'HOTEL..."). Utilisé dans les deux
+ * sens : FBI → AlloArbitre (comparaison en lecture) et AlloArbitre → FBI
+ * (résolution de l'idRencontre avant un push).
+ */
+export function matchesFbiRow(
+  fbiRow: FbiDesignationRow,
+  match: { date: string | Date; homeTeam: string; awayTeam: string }
+): boolean {
+  const fbiDate = parseFbiDateTime(fbiRow.date, fbiRow.heure);
+  if (!fbiDate) return false;
+  const sameTime = Math.abs(new Date(match.date).getTime() - fbiDate.getTime()) < 5 * 60 * 1000;
+  if (!sameTime) return false;
+
+  const home = normalize(fbiRow.equipe1.replace(/\.{3}$/, ""));
+  const away = normalize(fbiRow.equipe2.replace(/\.{3}$/, ""));
+  const mHome = normalize(match.homeTeam);
+  const mAway = normalize(match.awayTeam);
+  const homeMatches = mHome.startsWith(home) || home.startsWith(mHome);
+  const awayMatches = mAway.startsWith(away) || away.startsWith(mAway);
+  return homeMatches && awayMatches;
 }
 
 /**
@@ -67,18 +92,7 @@ export async function compareWithAlloArbitre(rows: FbiDesignationRow[]): Promise
     const fbiDate = parseFbiDateTime(row.date, row.heure);
     if (!fbiDate) continue;
 
-    const home = normalize(row.equipe1.replace(/\.{3}$/, ""));
-    const away = normalize(row.equipe2.replace(/\.{3}$/, ""));
-
-    const candidate = matches.find((m) => {
-      const sameTime = Math.abs(new Date(m.date).getTime() - fbiDate.getTime()) < 5 * 60 * 1000;
-      if (!sameTime) return false;
-      const mHome = normalize(m.homeTeam);
-      const mAway = normalize(m.awayTeam);
-      const homeMatches = mHome.startsWith(home) || home.startsWith(mHome);
-      const awayMatches = mAway.startsWith(away) || away.startsWith(mAway);
-      return homeMatches && awayMatches;
-    });
+    const candidate = matches.find((m) => matchesFbiRow(row, m));
 
     if (!candidate) {
       mismatches.push({

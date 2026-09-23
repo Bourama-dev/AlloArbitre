@@ -1,6 +1,9 @@
 import { fetchFbiRencontres } from "@/lib/fbi/fetch";
 import type { FbiDesignationRow } from "@/lib/fbi/searchDesignations";
 import { FbiRencontreRow } from "@/components/fbi-rencontre-row";
+import { findMatches } from "@/lib/matches";
+import { AutoDesignatePanel } from "@/components/auto-designate-panel";
+import { PushAllToFbiButton } from "@/components/push-all-to-fbi-button";
 
 export const dynamic = "force-dynamic";
 // Login FBI + recherche : quelques secondes, parfois plus quand FBI est lent.
@@ -90,6 +93,10 @@ export default async function FbiPage({
     error = err instanceof Error ? err.message : "Erreur inconnue";
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const incompleteMatches = await findMatches({ from: today, status: "incomplet", sort: "date_asc" });
+
   const inGroupe = (c: string) => !groupe || GROUPES[groupe].match(c);
   // La liste des divisions suit le groupe choisi.
   const codes = Array.from(new Set(rows.map((r) => r.code).filter(inGroupe))).sort();
@@ -176,6 +183,31 @@ export default async function FbiPage({
           </button>
         </form>
       </div>
+
+      <section className="space-y-2">
+        <div>
+          <h2 className="text-sm font-semibold">Auto-désignation AlloArbitre</h2>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Matchs incomplets à venir côté AlloArbitre (disponibilité, charge,
+            zone... comme partout ailleurs dans l&apos;appli). Une fois
+            désignés ici, poussez-les vers FBI depuis chaque ligne du tableau
+            ci-dessous.
+          </p>
+        </div>
+        <AutoDesignatePanel matches={incompleteMatches} />
+      </section>
+
+      <section className="space-y-2">
+        <div>
+          <h2 className="text-sm font-semibold">Envoi vers FBI</h2>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Pousse toutes les désignations AlloArbitre à venir vers FBI en une
+            fois. Ne touche jamais une position déjà occupée sur FBI par
+            quelqu&apos;un d&apos;autre.
+          </p>
+        </div>
+        <PushAllToFbiButton />
+      </section>
 
       {clamped && (
         <p className="text-xs text-[var(--warning)]">

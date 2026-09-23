@@ -50,7 +50,7 @@ export default async function MatchesPage({
     const refereeId = String(formData.get("refereeId"));
     const result = await designateReferee(matchId, refereeId, user.id);
     revalidatePath("/matchs");
-    revalidatePath("/matchs/incomplets");
+    revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
     if (!result.ok) {
       redirect(`/matchs?error=${encodeURIComponent(result.error)}`);
@@ -69,8 +69,8 @@ export default async function MatchesPage({
           <p className="text-xs text-[var(--muted)] mt-0.5">
             Vue par semaine, tous statuts confondus. Pour désigner en lot tous
             les matchs incomplets à venir (toutes semaines), voir{" "}
-            <Link href="/matchs/incomplets" className="text-[var(--accent)] hover:underline">
-              Matchs incomplets
+            <Link href="/fbi" className="text-[var(--accent)] hover:underline">
+              FBI
             </Link>
             . Pour le nombre d&apos;arbitres nécessaires par gymnase sur une
             journée, voir{" "}
