@@ -9,6 +9,18 @@ const MAX_DAYS = 31;
 const DEFAULT_DAYS = 14;
 const ETATS = ["Complète", "Incomplète", "Non débutée"] as const;
 
+/** Regroupements de divisions FBI (par code de compétition). */
+const GROUPES: Record<string, { label: string; match: (code: string) => boolean }> = {
+  departemental: {
+    label: "Départemental (DM2-DM4, PRF, PRM)",
+    match: (c) => ["DM2", "DM3", "DM4", "PRF", "PRM"].includes(c),
+  },
+  "region-jeunes": {
+    label: "Région jeunes (RFU/RMU 13 à 18)",
+    match: (c) => /^R[FM]U(13|15|18)$/.test(c),
+  },
+};
+
 /** Date du jour à Paris au format YYYY-MM-DD (valeur des <input type="date">). */
 function todayParis(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
@@ -53,7 +65,7 @@ function EtatBadge({ etat }: { etat: string }) {
 export default async function FbiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ du?: string; au?: string; code?: string; etat?: string; search?: string }>;
+  searchParams: Promise<{ du?: string; au?: string; groupe?: string; code?: string; etat?: string; search?: string }>;
 }) {
   const params = await searchParams;
 
@@ -64,6 +76,7 @@ export default async function FbiPage({
   const clamped = au > maxAu;
   if (clamped) au = maxAu;
 
+  const groupe = params.groupe && GROUPES[params.groupe] ? params.groupe : "";
   const code = params.code || "";
   const etat = params.etat || "";
   const search = (params.search || "").trim();
@@ -76,10 +89,13 @@ export default async function FbiPage({
     error = err instanceof Error ? err.message : "Erreur inconnue";
   }
 
-  const codes = Array.from(new Set(rows.map((r) => r.code))).sort();
+  const inGroupe = (c: string) => !groupe || GROUPES[groupe].match(c);
+  // La liste des divisions suit le groupe choisi.
+  const codes = Array.from(new Set(rows.map((r) => r.code).filter(inGroupe))).sort();
   const needle = search.toUpperCase();
   const filtered = rows.filter(
     (r) =>
+      inGroupe(r.code) &&
       (!code || r.code === code) &&
       (!etat || r.etat === etat) &&
       (!needle || r.equipe1.toUpperCase().includes(needle) || r.equipe2.toUpperCase().includes(needle))
@@ -110,6 +126,17 @@ export default async function FbiPage({
           <div>
             <label className="field-label">Au</label>
             <input type="date" name="au" defaultValue={toIsoDay(au)} className="input" />
+          </div>
+          <div>
+            <label className="field-label">Groupe</label>
+            <select name="groupe" defaultValue={groupe} className="input">
+              <option value="">Tous</option>
+              {Object.entries(GROUPES).map(([key, g]) => (
+                <option key={key} value={key}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="field-label">Division</label>
