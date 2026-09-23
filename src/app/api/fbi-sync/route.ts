@@ -30,13 +30,7 @@ export async function GET(request: Request) {
   if (!hasValidSecret) {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
-      // TODO(diagnostic temporaire) : retirer ce détail une fois le login
-      // admin validé en prod, ça ne doit pas rester en clair sur une route
-      // publique.
-      return NextResponse.json(
-        { error: "unauthorized", debug: { userFound: !!user, role: user?.role ?? null } },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
   }
 

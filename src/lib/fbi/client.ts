@@ -1,4 +1,10 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
 const FBI_BASE_URL = "https://extranet.ffbb.com/fbi";
+
+/** Présence du formulaire de connexion dans une page = on n'est pas (ou plus) connecté. */
+const LOGIN_FORM_MARKER = "identificationForm.identificationBean.identifiant";
 
 /**
  * Client HTTP "à la main" pour FBI (FranceBasket Informations) : ce n'est pas
@@ -6,9 +12,15 @@ const FBI_BASE_URL = "https://extranet.ffbb.com/fbi";
  * formulaires. Pas de client HTTP réutilisable côté FFBB : on se logue et on
  * fait toutes nos requêtes dans la même exécution (une cookie jar en mémoire,
  * le temps d'un run de sync).
+ *
+ * Debug local : si FBI_DEBUG_DIR est défini, chaque réponse brute est écrite
+ * dans ce dossier (01-connexion.fbi.html, 02-identification.fbi.html...) pour
+ * pouvoir caler le login et le parseur sur le vrai HTML. Ce dossier contient
+ * des données personnelles (arbitres, clubs) : ne jamais le committer.
  */
 export class FbiClient {
   private cookies = new Map<string, string>();
+  private dumpCounter = 0;
 
   private cookieHeader(): string {
     return Array.from(this.cookies.entries())
@@ -30,28 +42,63 @@ export class FbiClient {
     }
   }
 
-  private async request(path: string, init: RequestInit = {}): Promise<Response> {
-    const res = await fetch(`${FBI_BASE_URL}/${path}`, {
-      ...init,
-      redirect: "manual",
-      headers: {
-        ...(init.headers ?? {}),
-        Cookie: this.cookieHeader(),
-      },
-    });
-    this.storeCookies(res);
-    return res;
+  private dump(path: string, res: Response, body: string) {
+    const dir = process.env.FBI_DEBUG_DIR;
+    if (!dir) return;
+    this.dumpCounter += 1;
+    const name = `${String(this.dumpCounter).padStart(2, "0")}-${path.replace(/[^a-zA-Z0-9.]+/g, "_")}.html`;
+    const meta = `<!-- HTTP ${res.status} location=${res.headers.get("location") ?? ""} -->\n`;
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, name), meta + body, "utf8");
   }
 
   /**
-   * Se logue sur FBI. IMPORTANT : ce login n'a jamais été testé en conditions
-   * réelles (réseau sortant bloqué depuis l'environnement où ce code a été
-   * écrit) — les noms de champs viennent du HTML de connexion.fbi fourni par
-   * l'utilisateur, mais le champ caché `userName` (valeur fixe
+   * Requête brute, redirections suivies à la main (pour garder les cookies
+   * posés à chaque saut, ce que `redirect: "follow"` ne permet pas).
+   */
+  private async request(path: string, init: RequestInit = {}): Promise<{ res: Response; body: string; finalPath: string }> {
+    let url = `${FBI_BASE_URL}/${path}`;
+    let currentInit = init;
+
+    for (let hop = 0; hop < 5; hop++) {
+      const res = await fetch(url, {
+        ...currentInit,
+        redirect: "manual",
+        headers: {
+          ...(currentInit.headers ?? {}),
+          Cookie: this.cookieHeader(),
+        },
+      });
+      this.storeCookies(res);
+
+      const location = res.headers.get("location");
+      if (res.status >= 300 && res.status < 400 && location) {
+        this.dump(url.slice(FBI_BASE_URL.length + 1), res, "");
+        url = new URL(location, url).toString();
+        currentInit = {}; // un 302 après un POST se rejoue en GET
+        continue;
+      }
+
+      const body = await res.text();
+      this.dump(url.slice(FBI_BASE_URL.length + 1), res, body);
+      return { res, body, finalPath: url };
+    }
+
+    throw new Error(`FBI : trop de redirections en appelant ${path}`);
+  }
+
+  private assertLoggedIn(path: string, finalPath: string, body: string) {
+    if (finalPath.includes("connexion.fbi") || body.includes(LOGIN_FORM_MARKER)) {
+      throw new Error(`FBI : session non connectée en appelant ${path} (renvoyé vers la page de connexion)`);
+    }
+  }
+
+  /**
+   * Se logue sur FBI. Les noms de champs viennent du HTML de connexion.fbi
+   * fourni par l'utilisateur. Le champ caché `userName` (valeur fixe
    * "359770414357595" dans le JS observé) ressemble à un identifiant de
-   * device/fingerprint généré par un script tiers non fourni. Si le login
-   * échoue en prod, c'est le premier suspect : il faudra observer sa vraie
-   * valeur générée dynamiquement dans un vrai navigateur.
+   * device généré par un script tiers : s'il est requis, le login échouera
+   * avec le message ci-dessous et le dump de 02-identification.fbi le montrera.
    */
   async login(identifiant: string, motDePasse: string): Promise<void> {
     // Un premier GET pour récupérer les cookies de session initiaux
@@ -63,7 +110,7 @@ export class FbiClient {
       userName: "",
     });
 
-    const res = await this.request("identification.fbi", {
+    const { res, body: html, finalPath } = await this.request("identification.fbi", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
@@ -73,26 +120,26 @@ export class FbiClient {
       throw new Error(`FBI login failed: HTTP ${res.status}`);
     }
 
-    // Vérification a minima : une page encore connectee affiche l'email de
-    // l'utilisateur dans le bandeau. Sans accès pour tester, on reste
-    // prudent et on vérifie juste l'absence d'un retour vers connexion.fbi.
-    const location = res.headers.get("location");
-    if (location && location.includes("connexion.fbi")) {
-      throw new Error("FBI login failed: redirected back to connexion.fbi (identifiants refusés ?)");
+    // Une page qui affiche encore le formulaire de connexion = identifiants
+    // refusés (FBI répond en 200 avec un message d'erreur, pas en 401).
+    if (finalPath.includes("connexion.fbi") || html.includes(LOGIN_FORM_MARKER)) {
+      throw new Error("FBI login failed: la page de connexion est toujours affichée (identifiants refusés ?)");
     }
   }
 
   async post(path: string, params: Record<string, string>): Promise<string> {
-    const res = await this.request(path, {
+    const { body, finalPath } = await this.request(path, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(params).toString(),
     });
-    return res.text();
+    this.assertLoggedIn(path, finalPath, body);
+    return body;
   }
 
   async get(path: string): Promise<string> {
-    const res = await this.request(path);
-    return res.text();
+    const { body, finalPath } = await this.request(path);
+    this.assertLoggedIn(path, finalPath, body);
+    return body;
   }
 }

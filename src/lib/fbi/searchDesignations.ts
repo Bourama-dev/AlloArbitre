@@ -15,8 +15,8 @@ export type FbiDesignationRow = {
 };
 
 /**
- * ATTENTION : ce parseur n'a jamais été validé contre le vrai HTML renvoyé
- * par FBI. On sait (via capture d'écran) que le tableau affiche les colonnes
+ * ATTENTION : ce parseur n'a pas encore été validé contre le vrai HTML renvoyé
+ * par FBI (à faire en local avec FBI_DEBUG_DIR, cf. client.ts). On sait (via capture d'écran) que le tableau affiche les colonnes
  * Code / N° / Equipe 1 / Equipe 2 / Poule / Salle / Ville / Date / Heure /
  * Rem. / État, mais le fragment HTML réel (retourné par
  * rechercherDesignation.fbi?action=controleRecherche, injecté dans
@@ -27,18 +27,34 @@ export type FbiDesignationRow = {
 export function parseDesignationRows(html: string): FbiDesignationRow[] {
   const $ = cheerio.load(html);
   const rows: FbiDesignationRow[] = [];
+  let unparsedRows = 0;
 
-  $("table tbody tr").each((_, tr) => {
+  $("table tr").each((_, tr) => {
     const cells = $(tr)
       .find("td")
-      .map((__, td) => $(td).text().trim())
+      .map((__, td) => $(td).text().replace(/\s+/g, " ").trim())
       .get();
 
-    if (cells.length < 10) return;
+    if (cells.length === 0) return; // ligne d'en-tête (<th>)
+    // Une ligne de données a une date JJ/MM/AAAA en 8e colonne : tout le
+    // reste (pagination, "aucun résultat"...) est ignoré mais compté.
+    if (cells.length < 10 || !/^\d{2}\/\d{2}\/\d{4}$/.test(cells[7])) {
+      unparsedRows += 1;
+      return;
+    }
 
     const [code, numero, equipe1, equipe2, poule, salle, ville, date, heure, , etat] = cells;
     rows.push({ code, numero, equipe1, equipe2, poule, salle, ville, date, heure, etat: etat ?? cells[9] });
   });
+
+  // Des lignes <td> présentes mais aucune reconnue = le format du tableau ne
+  // correspond pas à nos hypothèses : mieux vaut échouer que renvoyer
+  // "0 rencontre" à tort. (Une ligne unique type "Aucun résultat" reste tolérée.)
+  if (rows.length === 0 && unparsedRows > 1) {
+    throw new Error(
+      `FBI : ${unparsedRows} lignes de tableau non reconnues, le format de la page a dû changer (relancer en local avec FBI_DEBUG_DIR)`
+    );
+  }
 
   return rows;
 }
@@ -68,7 +84,7 @@ export async function searchDesignations(
     "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.salleLibelle": "",
     "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.villeId": "",
     "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.villeLibelle": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.idSaison": params.idSaison ?? "1037",
+    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.idSaison": params.idSaison ?? process.env.FBI_ID_SAISON ?? "1037",
   });
 
   if (html.includes("<UL><LI>")) {
