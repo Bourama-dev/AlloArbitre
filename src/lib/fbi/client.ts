@@ -90,11 +90,9 @@ export class FbiClient {
   }
 
   /**
-   * Se logue sur FBI. Les noms de champs viennent du HTML de connexion.fbi
-   * fourni par l'utilisateur. Le champ caché `userName` (valeur fixe
-   * "359770414357595" dans le JS observé) ressemble à un identifiant de
-   * device généré par un script tiers : s'il est requis, le login échouera
-   * avec le message ci-dessous et le dump de 02-identification.fbi le montrera.
+   * Se logue sur FBI. Attention : FBI refuse la connexion par e-mail quand
+   * plusieurs comptes partagent cette adresse ("Veuillez utiliser votre
+   * login") — FBI_USERNAME doit alors être le login FBI, pas l'e-mail.
    */
   async login(identifiant: string, motDePasse: string): Promise<void> {
     // Un premier GET pour récupérer les cookies de session initiaux
@@ -103,7 +101,9 @@ export class FbiClient {
     const body = new URLSearchParams({
       "identificationForm.identificationBean.identifiant": identifiant,
       "identificationForm.identificationBean.mdp": motDePasse,
-      userName: "",
+      // Valeur fixe ajoutée par la fonction JS connexion() de la page FBI
+      // juste avant l'envoi du formulaire (vérifié sur le HTML réel).
+      userName: "359770414357595",
     });
 
     const { res, body: html, finalPath } = await this.request("identification.fbi", {
