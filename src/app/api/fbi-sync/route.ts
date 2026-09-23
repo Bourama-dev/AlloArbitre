@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { FbiDump } from "@/lib/fbi/client";
-import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr } from "@/lib/fbi/fetch";
+import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInClient } from "@/lib/fbi/fetch";
+import { assignRefereeToFbiRencontre } from "@/lib/fbi/write";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -44,6 +45,37 @@ export async function GET(request: Request) {
         if (error) console.error("[fbi-sync] dump failed:", error);
       }
     : undefined;
+
+  // ?assign=<idRencontre>:<position>:<numeroNational> : ÉCRITURE sur FBI (v1,
+  // mise au point). dryRun=1 par défaut (construit et renvoie le payload sans
+  // l'envoyer) ; dryRun=0 pour l'enregistrer réellement. Réservé aux admins,
+  // le CRON_SECRET (job automatique en lecture seule) ne suffit pas ici.
+  const assign = new URL(request.url).searchParams.get("assign");
+  if (assign) {
+    const adminUser = await getCurrentUser();
+    if (!adminUser || adminUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "unauthorized (admin requis pour écrire sur FBI)" }, { status: 401 });
+    }
+    const [idRencontre, positionStr, numeroNational] = assign.split(":");
+    const position = Number(positionStr);
+    if (!idRencontre || !Number.isInteger(position) || !numeroNational) {
+      return NextResponse.json(
+        { error: "Format attendu : ?assign=<idRencontre>:<position>:<numeroNational>" },
+        { status: 400 }
+      );
+    }
+    const dryRun = new URL(request.url).searchParams.get("dryRun") !== "0";
+    try {
+      const client = await loggedInClient(onDump);
+      const result = await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational, dryRun });
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), ...result });
+    } catch (error) {
+      return NextResponse.json(
+        { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+        { status: 500 }
+      );
+    }
+  }
 
   // ?detail=<idRencontre> : fiche détail brute parsée (mise au point de /fbi/[id]).
   const detailId = new URL(request.url).searchParams.get("detail");

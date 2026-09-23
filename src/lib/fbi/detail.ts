@@ -72,8 +72,17 @@ export function formDesignationFields(html: string): Record<string, string> {
   return fields;
 }
 
-/** Tableau des officiels (fragment 2), regroupé par index de ligne. */
-export function parseOfficiels(html: string): FbiOfficiel[] {
+/**
+ * Champs bruts de chaque ligne du tableau des officiels (fragment 2), un
+ * objet par ligne (index d'origine préservé dans `_index`). Contient tous
+ * les champs `repartitionDesignationOfficielBeans[i].*` tels qu'affichés par
+ * FBI (idOfficielRencontre, nom, prenom, idFonction, ordre, numeroNational,
+ * kilometres(Calcules), indemnites(Calculees), idPresence, blSaisieClub,
+ * polyline, distance...) - nécessaire pour ré-enregistrer une ligne sans
+ * altérer les autres (l'enregistrement FBI renvoie l'état complet du
+ * formulaire, pas seulement la ligne modifiée).
+ */
+export function parseOfficielRowsRaw(html: string): Record<string, string>[] {
   const $ = cheerio.load(html);
   const byIndex = new Map<number, Record<string, string>>();
   const field = (i: number) => {
@@ -106,7 +115,13 @@ export function parseOfficiels(html: string): FbiOfficiel[] {
 
   return Array.from(byIndex.entries())
     .sort(([a], [b]) => a - b)
-    .map(([, f]) => ({
+    .map(([i, f]) => ({ ...f, _index: String(i) }));
+}
+
+/** Tableau des officiels (fragment 2), regroupé par index de ligne. */
+export function parseOfficiels(html: string): FbiOfficiel[] {
+  return parseOfficielRowsRaw(html)
+    .map((f) => ({
       nom: f.nom ?? "",
       prenom: f.prenom ?? "",
       fonction: f.idFonction || f.fonction || "",

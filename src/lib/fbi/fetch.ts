@@ -28,7 +28,7 @@ export function fbiSortKey(row: Pick<FbiDesignationRow, "date" | "heure">): stri
   return `${yyyy}-${mm}-${dd} ${row.heure}`;
 }
 
-async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>): Promise<FbiClient> {
+export async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>): Promise<FbiClient> {
   const identifiant = cleanCredential(process.env.FBI_USERNAME);
   const motDePasse = cleanCredential(process.env.FBI_PASSWORD);
   if (!identifiant || !motDePasse) {
