@@ -14,49 +14,59 @@ export type FbiDesignationRow = {
   etat: "Complète" | "Incomplète" | "Non débutée" | string;
 };
 
+const PAGE_SIZE = 200;
+
 /**
- * ATTENTION : ce parseur n'a pas encore été validé contre le vrai HTML renvoyé
- * par FBI (à faire via /api/fbi-sync?debug=1, cf. client.ts). On sait (via capture d'écran) que le tableau affiche les colonnes
- * Code / N° / Equipe 1 / Equipe 2 / Poule / Salle / Ville / Date / Heure /
- * Rem. / État, mais le fragment HTML réel (retourné par
- * rechercherDesignation.fbi?action=controleRecherche, injecté dans
- * #getTableauDesignation) n'a pas été fourni — les sélecteurs ci-dessous sont
- * une meilleure estimation à partir d'un tableau <table> standard, à corriger
- * dès qu'on a un vrai exemple de réponse.
+ * Fonctionnement réel de la page FBI (vérifié via /api/fbi-sync?debug=1) :
+ * `controleRecherche` ne renvoie qu'un tableau vide (en-têtes + <tbody>
+ * vide) ; les lignes sont chargées ensuite par DataTables en mode
+ * "server side" (API legacy : sEcho / iDisplayStart / iDisplayLength) via
+ * `executeRecherche&<formulaire sérialisé>`, qui renvoie du JSON :
+ *   { iTotalDisplayRecords, aaData: [[col0 masquée, Code, N°, Equipe 1,
+ *     Equipe 2, Poule, Salle, Ville, Date, Heure, Rem., État], ...] }
+ * Chaque cellule peut contenir du HTML (liens, <div class="etat-C">...).
  */
-export function parseDesignationRows(html: string): FbiDesignationRow[] {
-  const $ = cheerio.load(html);
-  const rows: FbiDesignationRow[] = [];
-  let unparsedRows = 0;
+type DataTablesResponse = {
+  iTotalDisplayRecords?: number | string;
+  iTotalRecords?: number | string;
+  aaData?: unknown[];
+};
 
-  $("table tr").each((_, tr) => {
-    const cells = $(tr)
-      .find("td")
-      .map((__, td) => $(td).text().replace(/\s+/g, " ").trim())
-      .get();
+function cellText(cell: unknown): string {
+  if (cell === null || cell === undefined) return "";
+  return cheerio.load(`<div>${String(cell)}</div>`)("div").first().text().replace(/\s+/g, " ").trim();
+}
 
-    if (cells.length === 0) return; // ligne d'en-tête (<th>)
-    // Une ligne de données a une date JJ/MM/AAAA en 8e colonne : tout le
-    // reste (pagination, "aucun résultat"...) est ignoré mais compté.
-    if (cells.length < 10 || !/^\d{2}\/\d{2}\/\d{4}$/.test(cells[7])) {
-      unparsedRows += 1;
-      return;
+/** L'état est rendu par une classe CSS (etat-C / etat-I) plus qu'un texte fiable. */
+function parseEtat(cell: unknown): string {
+  const raw = String(cell ?? "");
+  if (/etat-C\b/.test(raw)) return "Complète";
+  if (/etat-I\b/.test(raw)) return "Incomplète";
+  const text = cellText(cell);
+  if (/^compl/i.test(text) || text === "C") return "Complète";
+  if (/^incompl/i.test(text) || text === "I") return "Incomplète";
+  return text;
+}
+
+export function parseDataTablesRows(aaData: unknown[]): FbiDesignationRow[] {
+  return aaData.map((row, i) => {
+    if (!Array.isArray(row) || row.length < 12) {
+      throw new Error(`FBI : ligne ${i} inattendue dans executeRecherche : ${JSON.stringify(row).slice(0, 300)}`);
     }
-
-    const [code, numero, equipe1, equipe2, poule, salle, ville, date, heure, , etat] = cells;
-    rows.push({ code, numero, equipe1, equipe2, poule, salle, ville, date, heure, etat: etat ?? cells[9] });
+    const [, code, numero, equipe1, equipe2, poule, salle, ville, date, heure, , etat] = row;
+    return {
+      code: cellText(code),
+      numero: cellText(numero),
+      equipe1: cellText(equipe1),
+      equipe2: cellText(equipe2),
+      poule: cellText(poule),
+      salle: cellText(salle),
+      ville: cellText(ville),
+      date: cellText(date),
+      heure: cellText(heure).replace("h", ":"),
+      etat: parseEtat(etat),
+    };
   });
-
-  // Des lignes <td> présentes mais aucune reconnue = le format du tableau ne
-  // correspond pas à nos hypothèses : mieux vaut échouer que renvoyer
-  // "0 rencontre" à tort. (Une ligne unique type "Aucun résultat" reste tolérée.)
-  if (rows.length === 0 && unparsedRows > 1) {
-    throw new Error(
-      `FBI : ${unparsedRows} lignes de tableau non reconnues, le format de la page a dû changer (relancer avec ?debug=1 pour inspecter le HTML)`
-    );
-  }
-
-  return rows;
 }
 
 export async function searchDesignations(
@@ -67,31 +77,64 @@ export async function searchDesignations(
     idSaison?: string;
   }
 ): Promise<FbiDesignationRow[]> {
+  const prefix = "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.";
+  const form: Record<string, string> = {
+    [`${prefix}idDivision`]: "",
+    [`${prefix}idPoule`]: "",
+    [`${prefix}numeroJournee`]: "",
+    [`${prefix}dateDebutPeriode`]: params.dateDebut,
+    [`${prefix}dateFinPeriode`]: params.dateFin,
+    [`${prefix}numeroRencontre`]: "",
+    [`${prefix}etat`]: "",
+    [`${prefix}idOrganisme`]: "",
+    [`${prefix}nomOrganisme`]: "",
+    [`${prefix}salleId`]: "",
+    [`${prefix}salleLibelle`]: "",
+    [`${prefix}villeId`]: "",
+    [`${prefix}villeLibelle`]: "",
+    [`${prefix}idSaison`]: params.idSaison ?? process.env.FBI_ID_SAISON ?? "1037",
+  };
+
   // Charge la page pour obtenir un cookie de session à jour avant l'action ajax.
   await client.get("rechercherDesignation.fbi");
 
-  const html = await client.post("rechercherDesignation.fbi?action=controleRecherche", {
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.idDivision": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.idPoule": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.numeroJournee": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.dateDebutPeriode": params.dateDebut,
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.dateFinPeriode": params.dateFin,
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.numeroRencontre": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.etat": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.idOrganisme": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.nomOrganisme": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.salleId": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.salleLibelle": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.villeId": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.villeLibelle": "",
-    "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.idSaison": params.idSaison ?? process.env.FBI_ID_SAISON ?? "1037",
-  });
-
+  // Valide les critères côté FBI (renvoie les erreurs de saisie éventuelles
+  // et le squelette du tableau, sans les lignes).
+  const html = await client.post("rechercherDesignation.fbi?action=controleRecherche", form);
   if (html.includes("<UL><LI>")) {
     const start = html.indexOf("<UL><LI>");
     const end = html.lastIndexOf("</LI></UL>") + "</LI></UL>".length;
     throw new Error(`FBI a renvoyé une erreur de recherche: ${html.slice(start, end)}`);
   }
 
-  return parseDesignationRows(html);
+  const rows: FbiDesignationRow[] = [];
+  for (let start = 0, echo = 1; ; start += PAGE_SIZE, echo++) {
+    const query = new URLSearchParams({
+      ...form,
+      sEcho: String(echo),
+      iColumns: "12",
+      iDisplayStart: String(start),
+      iDisplayLength: String(PAGE_SIZE),
+      sSearch: "",
+      iSortingCols: "0",
+    });
+    const body = await client.get(`rechercherDesignation.fbi?action=executeRecherche&${query.toString()}`);
+
+    let json: DataTablesResponse;
+    try {
+      json = JSON.parse(body);
+    } catch {
+      throw new Error(`FBI : réponse non JSON pour executeRecherche : ${body.slice(0, 300)}`);
+    }
+    if (!Array.isArray(json.aaData)) {
+      throw new Error(`FBI : pas de aaData dans executeRecherche : ${body.slice(0, 300)}`);
+    }
+
+    rows.push(...parseDataTablesRows(json.aaData));
+
+    const total = Number(json.iTotalDisplayRecords ?? json.iTotalRecords ?? rows.length);
+    if (json.aaData.length === 0 || rows.length >= total || json.aaData.length < PAGE_SIZE) break;
+  }
+
+  return rows;
 }
