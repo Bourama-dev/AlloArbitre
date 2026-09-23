@@ -16,9 +16,10 @@ export const maxDuration = 60;
  * premier temps). Pour consulter les rencontres FBI : page /fbi.
  *
  * Protégé par CRON_SECRET (header Authorization: Bearer <secret>), comme
- * recommandé par Vercel pour les cron jobs. Un admin déjà connecté dans le
- * navigateur peut aussi appeler cette route directement (pratique pour
- * tester sans avoir à manipuler le secret), la session Supabase suffit.
+ * recommandé par Vercel pour les cron jobs. Tout utilisateur déjà connecté
+ * dans le navigateur peut aussi appeler cette route (même accès que la page
+ * /fbi elle-même, qui appelle `?detail=` pour la fiche dépliée sous chaque
+ * rencontre), la session Supabase suffit - pas besoin d'être admin.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
 
   if (!hasValidSecret) {
     const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
+    if (!user) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
   }

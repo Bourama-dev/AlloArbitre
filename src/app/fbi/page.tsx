@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { fetchFbiRencontres } from "@/lib/fbi/fetch";
 import type { FbiDesignationRow } from "@/lib/fbi/searchDesignations";
+import { FbiRencontreRow } from "@/components/fbi-rencontre-row";
 
 export const dynamic = "force-dynamic";
 // Login FBI + recherche : quelques secondes, parfois plus quand FBI est lent.
@@ -103,21 +103,6 @@ export default async function FbiPage({
   );
 
   const counts = Object.fromEntries(ETATS.map((e) => [e, filtered.filter((r) => r.etat === e).length]));
-
-  // URL de la liste avec les filtres courants, pour le lien retour de la fiche.
-  const listQuery = new URLSearchParams(
-    Object.entries({ du: toIsoDay(du), au: toIsoDay(au), groupe, code, etat, search }).filter(([, v]) => v)
-  );
-  const detailHref = (r: FbiDesignationRow) =>
-    `/fbi/${r.idRencontre}?${new URLSearchParams({
-      code: r.code,
-      eq1: r.equipe1,
-      eq2: r.equipe2,
-      date: r.date,
-      heure: r.heure,
-      etat: r.etat,
-      retour: `/fbi?${listQuery.toString()}`,
-    }).toString()}`;
 
   const byDay = new Map<string, FbiDesignationRow[]>();
   for (const r of filtered) {
@@ -237,32 +222,7 @@ export default async function FbiPage({
                   </thead>
                   <tbody>
                     {dayRows.map((r) => (
-                      <tr key={`${r.code}-${r.poule}-${r.numero}`}>
-                        <td className="whitespace-nowrap">
-                          {r.heure === "00:00" ? <span className="text-[var(--muted)]">À fixer</span> : r.heure}
-                        </td>
-                        <td className="whitespace-nowrap text-[var(--muted)]">
-                          {r.code}
-                          {r.poule ? ` · ${r.poule}` : ""}
-                        </td>
-                        <td className="text-right text-[var(--muted)]">{r.numero}</td>
-                        <td className="font-medium whitespace-nowrap">{r.equipe1}</td>
-                        <td className="font-medium whitespace-nowrap">{r.equipe2}</td>
-                        <td className="whitespace-nowrap text-[var(--muted)]">
-                          {r.salle}
-                          {r.ville ? ` - ${r.ville}` : ""}
-                        </td>
-                        <td>
-                          <EtatBadge etat={r.etat} />
-                        </td>
-                        <td className="whitespace-nowrap">
-                          {r.idRencontre && (
-                            <Link href={detailHref(r)} className="text-[var(--accent)] hover:underline text-xs">
-                              Détail →
-                            </Link>
-                          )}
-                        </td>
-                      </tr>
+                      <FbiRencontreRow key={`${r.code}-${r.poule}-${r.numero}`} r={r} />
                     ))}
                   </tbody>
                 </table>
