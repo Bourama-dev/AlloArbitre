@@ -119,7 +119,15 @@ export class FbiClient {
     // Une page qui affiche encore le formulaire de connexion = identifiants
     // refusés (FBI répond en 200 avec un message d'erreur, pas en 401).
     if (finalPath.includes("connexion.fbi") || html.includes(LOGIN_FORM_MARKER)) {
-      throw new Error("FBI login failed: la page de connexion est toujours affichée (identifiants refusés ?)");
+      // FBI liste ses erreurs dans <ul class="errorMessage"><li><span>...</span></li></ul>
+      // (dupliqué dans la page, d'où le Set) : on les remonte telles quelles.
+      const messages = new Set(
+        Array.from(html.matchAll(/<ul class="errorMessage">([\s\S]*?)<\/ul>/g))
+          .flatMap((ul) => Array.from(ul[1].matchAll(/<span>([\s\S]*?)<\/span>/g), (s) => s[1].trim()))
+          .filter(Boolean)
+      );
+      const detail = messages.size > 0 ? Array.from(messages).join(" / ") : "identifiants refusés ?";
+      throw new Error(`FBI login failed: ${detail}`);
     }
   }
 
