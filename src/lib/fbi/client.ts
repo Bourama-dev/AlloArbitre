@@ -1,7 +1,11 @@
 const FBI_BASE_URL = "https://extranet.ffbb.com/fbi";
 
-/** Présence du formulaire de connexion dans une page = on n'est pas (ou plus) connecté. */
-const LOGIN_FORM_MARKER = "identificationForm.identificationBean.identifiant";
+/**
+ * Présence du champ mot de passe = page de connexion = on n'est pas (ou plus)
+ * connecté. Pas le champ `identifiant` : il existe aussi, caché, dans le
+ * formulaire d'en-tête `identificationEntete` de toutes les pages connectées.
+ */
+const LOGIN_FORM_MARKER = "identificationForm.identificationBean.mdp";
 
 /**
  * Client HTTP "à la main" pour FBI (FranceBasket Informations) : ce n'est pas
