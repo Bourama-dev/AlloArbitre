@@ -80,14 +80,14 @@ export default async function MatchesPage({
             .
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center flex-wrap gap-2 text-sm">
           <Link href="/matchs/nouveau" className="btn btn-primary">
             + Nouveau match
           </Link>
           <Link href={`/matchs?week=${weekOffset - 1}`} className="btn btn-secondary">
             ← Préc.
           </Link>
-          <span className="text-[var(--muted)] px-1 font-medium">
+          <span className="text-[var(--muted)] px-1 font-medium whitespace-nowrap">
             {formatDateFr(start)} → {formatDateFr(weekEnd)}
           </span>
           <Link href={`/matchs?week=${weekOffset + 1}`} className="btn btn-secondary">

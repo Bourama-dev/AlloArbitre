@@ -38,7 +38,7 @@ export default async function RefereesPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-semibold tracking-tight">Arbitres</h1>
         <Link
           href="/arbitres/nouveau"
