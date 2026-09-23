@@ -118,23 +118,33 @@ export async function assignRefereeToFbiRencontre(
     prenom,
     fonction: LABEL_ARBITRE,
     idFonction: ID_FONCTION_ARBITRE,
+    idFonctionValue: ID_FONCTION_ARBITRE,
     numeroNational,
     kilometres: kilometres ?? "",
     kilometresCalcules: kilometres ?? "",
     indemnites: indemnites ?? "",
     indemnitesCalculees: indemnites ?? "",
-    idPresence: targetRow.idPresence || PRESENCE_PREVUE,
+    idPresence: targetRow.idPresenceValue || PRESENCE_PREVUE,
+    idPresenceValue: targetRow.idPresenceValue || PRESENCE_PREVUE,
     polyline: polyline ?? "",
     distance: distance ?? "",
   };
 
   const finalRows = rows.map((r) => (r._index === targetRow._index ? updatedRow : r));
 
+  // idFonction / idPresence / blSaisieClub sont rendus par des <select> côté
+  // FBI : le champ "brut" porte le libellé affiché (ex. "Arbitre",
+  // "Présent", "Non club"), le code technique attendu par l'enregistrement
+  // (-2, P, 0...) est dans "<champ>Value". Sans ça, FBI reçoit le libellé
+  // au lieu du code et la ligne (y compris une ligne déjà validée qu'on ne
+  // voulait pas toucher) part corrompue.
+  const resolve = (row: Record<string, string>, key: string) => row[`${key}Value`] ?? row[key] ?? "";
+
   const body = new URLSearchParams();
   for (const [name, value] of Object.entries(ficheFields)) body.append(name, value);
   finalRows.forEach((row, i) => {
     for (const key of OFFICIEL_FIELD_ORDER) {
-      body.append(`repartitionDesignationForm.repartitionDesignationOfficielBeans[${i}].${key}`, row[key] ?? "");
+      body.append(`repartitionDesignationForm.repartitionDesignationOfficielBeans[${i}].${key}`, resolve(row, key));
     }
   });
 
