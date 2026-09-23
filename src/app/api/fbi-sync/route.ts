@@ -4,6 +4,7 @@ import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInCl
 import { assignRefereeToFbiRencontre } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
 import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
+import { syncFbiOfficielsToDesignations } from "@/lib/fbi/designation-sync";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -130,12 +131,32 @@ export async function GET(request: Request) {
     }
   }
 
-  // ?detail=<idRencontre> : fiche détail brute parsée (mise au point de /fbi/[id]).
+  // ?detail=<idRencontre> : fiche détail brute parsée (mise au point de /fbi/[id]
+  // et détail déplié de /fbi). Reprend au passage dans AlloArbitre les
+  // officiels déjà désignés sur FBI (saisis directement là-bas) pour un
+  // arbitre déjà connu, sans jamais écraser une désignation existante.
   const detailId = new URL(request.url).searchParams.get("detail");
   if (detailId) {
     try {
       const detail = await fetchFbiDesignationDetail(detailId, onDump);
-      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), idRencontre: detailId, ...detail });
+      let designationsSynced = 0;
+      if (currentUser) {
+        const { data: match } = await supabaseAdmin
+          .from("Match")
+          .select("id")
+          .eq("fbiIdRencontre", detailId)
+          .maybeSingle();
+        if (match) {
+          const { created } = await syncFbiOfficielsToDesignations(match.id, detail.officiels, currentUser.id);
+          designationsSynced = created;
+        }
+      }
+      return NextResponse.json({
+        ...(debugRunId ? { debugRunId } : {}),
+        idRencontre: detailId,
+        ...detail,
+        designationsSynced,
+      });
     } catch (error) {
       return NextResponse.json(
         { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },

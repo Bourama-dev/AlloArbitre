@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
@@ -38,6 +39,7 @@ export function FbiMatchRow({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const status = matchStatus(m);
+  const router = useRouter();
 
   function toggle() {
     setOpen((v) => !v);
@@ -48,6 +50,7 @@ export function FbiMatchRow({
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Erreur inconnue");
         setDetail(data);
+        if (data.designationsSynced > 0) router.refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erreur inconnue");
       }
