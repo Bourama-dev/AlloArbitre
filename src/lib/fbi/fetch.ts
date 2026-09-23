@@ -1,6 +1,11 @@
 import { FbiClient, type FbiDump } from "./client";
 import { searchDesignations, type FbiDesignationRow } from "./searchDesignations";
-import { parseFbiDetail, type FbiDetailSection } from "./detail";
+import {
+  formDesignationFields,
+  parseOfficiels,
+  parseRencontreInfos,
+  type FbiRencontreDetail,
+} from "./detail";
 
 /**
  * Espaces / retours à la ligne ou guillemets englobants collés par erreur
@@ -23,11 +28,6 @@ export function fbiSortKey(row: Pick<FbiDesignationRow, "date" | "heure">): stri
   return `${yyyy}-${mm}-${dd} ${row.heure}`;
 }
 
-/**
- * Se connecte à FBI avec FBI_USERNAME / FBI_PASSWORD et renvoie les
- * rencontres de la période, triées par date/heure. Appel en direct à chaque
- * fois : rien n'est enregistré côté AlloArbitre.
- */
 async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>): Promise<FbiClient> {
   const identifiant = cleanCredential(process.env.FBI_USERNAME);
   const motDePasse = cleanCredential(process.env.FBI_PASSWORD);
@@ -40,21 +40,30 @@ async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>): Promis
 }
 
 /**
- * Fiche détail d'une rencontre (arbitres désignés, etc.), en direct : même
- * requête que FBI quand on clique une ligne du tableau de recherche.
+ * Fiche détail d'une rencontre (infos + officiels désignés), en direct :
+ * mêmes requêtes que FBI quand on clique une ligne du tableau de recherche.
  */
 export async function fetchFbiDesignationDetail(
   idRencontre: string,
   onDump?: (dump: FbiDump) => Promise<void>
-): Promise<FbiDetailSection[]> {
+): Promise<FbiRencontreDetail> {
   if (!/^\d+$/.test(idRencontre)) throw new Error("Identifiant de rencontre FBI invalide");
   const client = await loggedInClient(onDump);
   // La fiche est servie dans le contexte de la page de recherche : on la charge d'abord.
   await client.get("rechercherDesignation.fbi");
-  const html = await client.post(`afficherRepartitionDesignationAjax.fbi?idRencontre=${idRencontre}`, {});
-  return parseFbiDetail(html);
+  const ficheHtml = await client.post(`afficherRepartitionDesignationAjax.fbi?idRencontre=${idRencontre}`, {});
+  const officielsHtml = await client.post(
+    `afficherRepartitionDesignationOfficielAjax.fbi?idRencontre=${idRencontre}`,
+    formDesignationFields(ficheHtml)
+  );
+  return { infos: parseRencontreInfos(ficheHtml), officiels: parseOfficiels(officielsHtml) };
 }
 
+/**
+ * Se connecte à FBI avec FBI_USERNAME / FBI_PASSWORD et renvoie les
+ * rencontres de la période, triées par date/heure. Appel en direct à chaque
+ * fois : rien n'est enregistré côté AlloArbitre.
+ */
 export async function fetchFbiRencontres(
   periode: { du: Date; au: Date },
   onDump?: (dump: FbiDump) => Promise<void>

@@ -1,93 +1,118 @@
 import * as cheerio from "cheerio";
-import type { AnyNode } from "domhandler";
 
 /**
- * Fiche détail d'une rencontre FBI : fragment HTML renvoyé par
- * afficherRepartitionDesignationAjax.fbi?idRencontre=<id> (le même que FBI
- * affiche sous le tableau quand on clique une rencontre). C'est un
- * formulaire d'édition des désignations : les valeurs utiles (arbitres,
- * rôles...) peuvent être dans du texte, des <input> ou des <select>.
- *
- * Format pas encore validé sur une vraie fiche : on en extrait donc une vue
- * générique (sections -> lignes -> cellules de texte) plutôt que des champs
- * nommés. Jamais de HTML FBI injecté tel quel dans la page.
+ * Fiche détail d'une rencontre FBI, en deux fragments HTML (vérifié via
+ * /api/fbi-sync?detail=<id>&debug=1) :
+ *  1. afficherRepartitionDesignationAjax.fbi?idRencontre=<id> : infos de la
+ *     rencontre dans des <input disabled> étiquetés par <label for=...>
+ *     (division en clair, catégorie, noms d'équipes complets...) + des
+ *     champs cachés que la page renvoie ensuite (formDesignation) ;
+ *  2. afficherRepartitionDesignationOfficielAjax.fbi?idRencontre=<id> : le
+ *     tableau des officiels désignés, un champ
+ *     `repartitionDesignationOfficielBeans[i].<champ>` par valeur.
+ * Lecture seule : on n'appelle jamais les actions d'enregistrement,
+ * suppression ou envoi de convocation de cette page FBI.
  */
-export type FbiDetailSection = { title: string | null; rows: string[][] };
+export type FbiRencontreInfo = { label: string; value: string };
 
-function clean(s: string): string {
-  return s.replace(/ /g, " ").replace(/\s+/g, " ").trim();
+export type FbiOfficiel = {
+  nom: string;
+  prenom: string;
+  fonction: string;
+  licence: string;
+  presence: string;
+  ordre: string;
+};
+
+export type FbiRencontreDetail = {
+  infos: FbiRencontreInfo[];
+  officiels: FbiOfficiel[];
+};
+
+function clean(s: string | undefined): string {
+  return (s ?? "").replace(/ /g, " ").replace(/\s+/g, " ").trim();
 }
 
-/** Texte visible d'une cellule + valeurs saisies (inputs visibles, options sélectionnées). */
-function cellValue($: cheerio.CheerioAPI, el: AnyNode): string {
-  const $el = $(el);
-  const parts: string[] = [];
-
-  const clone = $el.clone();
-  clone.find("script, style, select, option, input, button, textarea").remove();
-  const text = clean(clone.text());
-  if (text) parts.push(text);
-
-  $el.find("input").each((_, input) => {
-    const $i = $(input);
-    const type = ($i.attr("type") ?? "text").toLowerCase();
-    if (type === "hidden" || type === "button" || type === "submit") return;
-    if (type === "checkbox" || type === "radio") {
-      if ($i.is("[checked]")) parts.push("☑");
-      return;
-    }
-    const v = clean($i.attr("value") ?? "");
-    if (v) parts.push(v);
-  });
-  $el.find("textarea").each((_, t) => {
-    const v = clean($(t).text());
-    if (v) parts.push(v);
-  });
-  $el.find("select").each((_, s) => {
-    const selected = $(s).find("option[selected]").first();
-    const v = clean(selected.text());
-    if (v) parts.push(v);
-  });
-
-  return parts.join(" ");
-}
-
-export function parseFbiDetail(html: string): FbiDetailSection[] {
+/** Infos de la rencontre (fragment 1) : chaque <input disabled> + son <label for>. */
+export function parseRencontreInfos(html: string): FbiRencontreInfo[] {
   const $ = cheerio.load(html);
-  $("script, style").remove();
-  const sections: FbiDetailSection[] = [];
+  const infos: FbiRencontreInfo[] = [];
+  const seen = new Set<string>();
+  $("input[disabled][id]").each((_, input) => {
+    const $i = $(input);
+    const id = $i.attr("id")!;
+    const label = clean($(`label[for="${id}"]`).first().text());
+    const value = clean($i.attr("value"));
+    if (!label || !value || seen.has(label)) return;
+    seen.add(label);
+    infos.push({ label, value });
+  });
+  return infos;
+}
 
-  // Tables les plus internes seulement (évite de dupliquer le contenu des tables imbriquées).
-  $("table")
-    .filter((_, t) => $(t).find("table").length === 0)
-    .each((_, table) => {
-      const $t = $(table);
-      const title =
-        clean($t.find("caption").first().text()) ||
-        clean($t.closest("fieldset").find("legend").first().text()) ||
-        clean($t.prevAll("h1,h2,h3,h4,h5,legend,.titreCadre,.card-header").first().text()) ||
-        null;
+/**
+ * Champs que la page FBI envoie avec ses appels ajax (sérialisation de
+ * #formDesignation) : champs cachés + valeur par défaut des <select>.
+ */
+export function formDesignationFields(html: string): Record<string, string> {
+  const $ = cheerio.load(html);
+  const fields: Record<string, string> = {};
+  $("input[name]").each((_, input) => {
+    const $i = $(input);
+    if ($i.is("[disabled]")) return;
+    const type = ($i.attr("type") ?? "text").toLowerCase();
+    if ((type === "checkbox" || type === "radio") && !$i.is("[checked]")) return;
+    fields[$i.attr("name")!] = $i.attr("value") ?? "";
+  });
+  $("select[name]").each((_, select) => {
+    const $s = $(select);
+    const opt = $s.find("option[selected]").first().length ? $s.find("option[selected]").first() : $s.find("option").first();
+    fields[$s.attr("name")!] = opt.attr("value") ?? "";
+  });
+  return fields;
+}
 
-      const rows: string[][] = [];
-      $t.find("tr").each((__, tr) => {
-        const cells = $(tr)
-          .children("th,td")
-          .map((___, c) => cellValue($, c))
-          .get();
-        if (cells.some((c) => c !== "")) rows.push(cells);
-      });
-      if (rows.length > 0) sections.push({ title, rows });
-    });
+/** Tableau des officiels (fragment 2), regroupé par index de ligne. */
+export function parseOfficiels(html: string): FbiOfficiel[] {
+  const $ = cheerio.load(html);
+  const byIndex = new Map<number, Record<string, string>>();
+  const field = (i: number) => {
+    if (!byIndex.has(i)) byIndex.set(i, {});
+    return byIndex.get(i)!;
+  };
 
-  // Fiche sans tableau : on garde au moins le texte brut, ligne par ligne.
-  if (sections.length === 0) {
-    const lines = $.root()
-      .text()
-      .split(/\n+/)
-      .map(clean)
-      .filter(Boolean);
-    if (lines.length > 0) sections.push({ title: null, rows: lines.map((l) => [l]) });
+  $("[name*='repartitionDesignationOfficielBeans[']").each((_, el) => {
+    const $el = $(el);
+    const m = ($el.attr("name") ?? "").match(/repartitionDesignationOfficielBeans\[(\d+)\]\.(\w+)/);
+    if (!m) return;
+    const i = Number(m[1]);
+    const key = m[2];
+    if ($el.is("select")) {
+      const opt = $el.find("option[selected]").first();
+      field(i)[key] = clean(opt.text());
+      field(i)[`${key}Value`] = opt.attr("value") ?? "";
+    } else if ($el.is("[type=checkbox]")) {
+      field(i)[key] = $el.is("[checked]") ? "oui" : "";
+    } else {
+      field(i)[key] = clean($el.attr("value"));
+    }
+  });
+
+  // Nom / prénom sont aussi affichés en texte (td#tdNom<i>) : secours si le champ caché est vide.
+  for (const [i, f] of byIndex) {
+    f.nom ||= clean($(`#tdNom${i}`).text());
+    f.prenom ||= clean($(`#tdPrenom${i}`).text());
   }
 
-  return sections;
+  return Array.from(byIndex.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([, f]) => ({
+      nom: f.nom ?? "",
+      prenom: f.prenom ?? "",
+      fonction: f.idFonction || f.fonction || "",
+      licence: f.numeroNational ?? "",
+      presence: f.idPresence ?? "",
+      ordre: f.ordre ?? "",
+    }))
+    .filter((o) => o.nom || o.prenom || o.licence);
 }

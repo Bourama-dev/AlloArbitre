@@ -48,8 +48,8 @@ export async function GET(request: Request) {
   const detailId = new URL(request.url).searchParams.get("detail");
   if (detailId) {
     try {
-      const sections = await fetchFbiDesignationDetail(detailId, onDump);
-      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), idRencontre: detailId, sections });
+      const detail = await fetchFbiDesignationDetail(detailId, onDump);
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), idRencontre: detailId, ...detail });
     } catch (error) {
       return NextResponse.json(
         { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
