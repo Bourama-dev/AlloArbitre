@@ -1,5 +1,9 @@
 import { FbiClient } from "./client";
 import { formDesignationFields, parseOfficielRowsRaw } from "./detail";
+import { searchDesignations } from "./searchDesignations";
+import { parseFbiDateTime } from "./sync";
+import { overlaps } from "@/lib/dates";
+import { matchDurationMinutes } from "@/lib/import-matches";
 
 const OFFICIEL_FIELD_ORDER = [
   "idOfficielRencontre",
@@ -51,6 +55,41 @@ async function loadFicheState(client: FbiClient, idRencontre: string) {
 }
 
 /**
+ * Cherche si cet arbitre (numéro national) est déjà désigné sur FBI, ce
+ * jour-là, sur une autre rencontre dont l'horaire chevauche celle ciblée -
+ * un conflit qui peut exister côté FBI (désigné directement là-bas, sur une
+ * division qu'AlloArbitre n'a peut-être pas encore importée) sans qu'aucune
+ * désignation AlloArbitre ne le révèle. Une seule recherche FBI du jour
+ * (léger), puis un détail par rencontre candidate dont l'horaire chevauche
+ * réellement - jamais toutes les rencontres du jour.
+ */
+async function findFbiScheduleConflict(
+  client: FbiClient,
+  idRencontre: string,
+  dateFr: string,
+  numeroNational: string
+): Promise<{ idRencontre: string; equipe1: string; equipe2: string; heure: string } | null> {
+  const dayRows = await searchDesignations(client, { dateDebut: dateFr, dateFin: dateFr });
+  const target = dayRows.find((r) => r.idRencontre === idRencontre);
+  const targetStart = target ? parseFbiDateTime(target.date, target.heure) : null;
+  if (!target || !targetStart) return null;
+  const targetDuration = matchDurationMinutes(target.code);
+
+  for (const row of dayRows) {
+    if (!row.idRencontre || row.idRencontre === idRencontre) continue;
+    const rowStart = parseFbiDateTime(row.date, row.heure);
+    if (!rowStart) continue;
+    if (!overlaps(targetStart, targetDuration, rowStart, matchDurationMinutes(row.code))) continue;
+
+    const { rows: officielRows } = await loadFicheState(client, row.idRencontre);
+    if (officielRows.some((o) => o.numeroNational === numeroNational)) {
+      return { idRencontre: row.idRencontre, equipe1: row.equipe1, equipe2: row.equipe2, heure: row.heure };
+    }
+  }
+  return null;
+}
+
+/**
  * Désigne un arbitre (par son numéro national FFBB) à une position donnée
  * (1 ou 2, "Ordre" côté FBI) sur une rencontre FBI. Ne touche qu'à la ligne
  * ciblée : FBI attend l'état complet du formulaire à chaque enregistrement,
@@ -89,6 +128,15 @@ export async function assignRefereeToFbiRencontre(
   }
 
   const dateRencontre = ficheFields["repartitionDesignationForm.repartitionDesignationRencontreBean.date"] ?? "";
+
+  if (dateRencontre) {
+    const conflict = await findFbiScheduleConflict(client, idRencontre, dateRencontre, numeroNational);
+    if (conflict) {
+      throw new Error(
+        `Conflit d'horaire sur FBI : cet arbitre est déjà désigné à ${conflict.heure} sur ${conflict.equipe1} - ${conflict.equipe2} (rencontre ${conflict.idRencontre})`
+      );
+    }
+  }
 
   // Résout nom/prénom depuis le numéro national (comme FBI le fait quand on
   // saisit la licence à la main). Réponse: "0;NOM;PRENOM;licence;...".
