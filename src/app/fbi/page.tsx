@@ -1,19 +1,20 @@
-import { fetchFbiRencontres } from "@/lib/fbi/fetch";
-import type { FbiDesignationRow } from "@/lib/fbi/searchDesignations";
-import { FbiRencontreRow } from "@/components/fbi-rencontre-row";
-import { findMatches } from "@/lib/matches";
-import { AutoDesignatePanel } from "@/components/auto-designate-panel";
+import { findMatches, listActiveReferees } from "@/lib/matches";
+import { matchStatus } from "@/lib/match-status";
+import type { MatchSort, MatchStatus } from "@/lib/matches";
 import { PushAllToFbiButton, ImportFbiMatchesButton } from "@/components/push-all-to-fbi-button";
+import { FbiMatchesPanel } from "@/components/fbi-matches-panel";
+import { getCurrentUser } from "@/lib/current-user";
+import { designateReferee } from "@/lib/suggestions";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-// Login FBI + recherche : quelques secondes, parfois plus quand FBI est lent.
 export const maxDuration = 60;
 
 const MAX_DAYS = 31;
 const DEFAULT_DAYS = 14;
-const ETATS = ["Complète", "Incomplète", "Non débutée"] as const;
 
-/** Regroupements de divisions FBI (par code de compétition). */
+/** Regroupements de divisions (par code de compétition, identique au label CompetitionLevel). */
 const GROUPES: Record<string, { label: string; match: (code: string) => boolean }> = {
   departemental: {
     label: "Départemental (DM2-DM4, PRF, PRM)",
@@ -32,38 +33,12 @@ function todayParis(): string {
 
 function parseIsoDay(value: string | undefined): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  // Midi UTC : aucun risque de basculer sur la veille/le lendemain à Paris.
   const d = new Date(`${value}T12:00:00Z`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function toIsoDay(d: Date): string {
   return d.toISOString().slice(0, 10);
-}
-
-function dayLabel(dateFr: string): string {
-  const [dd, mm, yyyy] = dateFr.split("/").map(Number);
-  const label = new Date(Date.UTC(yyyy, mm - 1, dd)).toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-const etatStyles: Record<string, string> = {
-  "Complète": "text-[var(--success)] bg-[var(--success-bg)]",
-  "Incomplète": "text-[var(--warning)] bg-[var(--warning-bg)]",
-};
-
-function EtatBadge({ etat }: { etat: string }) {
-  return (
-    <span className={`badge ${etatStyles[etat] ?? "text-[var(--muted)] bg-[var(--neutral-bg)]"}`}>
-      {etat || "-"}
-    </span>
-  );
 }
 
 export default async function FbiPage({
@@ -79,51 +54,63 @@ export default async function FbiPage({
   const maxAu = new Date(du.getTime() + (MAX_DAYS - 1) * 86_400_000);
   const clamped = au > maxAu;
   if (clamped) au = maxAu;
+  const auExclusive = new Date(au.getTime() + 86_400_000);
 
   const groupe = params.groupe && GROUPES[params.groupe] ? params.groupe : "";
   const code = params.code || "";
-  const etat = params.etat || "";
+  const status = (params.etat as MatchStatus | "toutes" | undefined) ?? "toutes";
   const search = (params.search || "").trim();
 
-  let rows: FbiDesignationRow[] = [];
-  let error: string | null = null;
-  try {
-    rows = await fetchFbiRencontres({ du, au });
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Erreur inconnue";
-  }
+  const [referees, matchesRaw] = await Promise.all([
+    listActiveReferees(),
+    findMatches({ from: du, to: auExclusive, status: "toutes", search: search || undefined, sort: "date_asc" as MatchSort }),
+  ]);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const incompleteMatches = await findMatches({ from: today, status: "incomplet", sort: "date_asc" });
+  const inGroupe = (label: string) => !groupe || GROUPES[groupe].match(label);
+  const codes = Array.from(new Set(matchesRaw.map((m) => m.competitionLevel.label).filter(inGroupe))).sort();
 
-  const inGroupe = (c: string) => !groupe || GROUPES[groupe].match(c);
-  // La liste des divisions suit le groupe choisi.
-  const codes = Array.from(new Set(rows.map((r) => r.code).filter(inGroupe))).sort();
-  const needle = search.toUpperCase();
-  const filtered = rows.filter(
-    (r) =>
-      inGroupe(r.code) &&
-      (!code || r.code === code) &&
-      (!etat || r.etat === etat) &&
-      (!needle || r.equipe1.toUpperCase().includes(needle) || r.equipe2.toUpperCase().includes(needle))
+  const filtered = matchesRaw.filter(
+    (m) =>
+      inGroupe(m.competitionLevel.label) &&
+      (!code || m.competitionLevel.label === code) &&
+      (status === "toutes" || matchStatus(m) === status)
   );
 
-  const counts = Object.fromEntries(ETATS.map((e) => [e, filtered.filter((r) => r.etat === e).length]));
+  const counts = {
+    complet: filtered.filter((m) => matchStatus(m) === "complet").length,
+    incomplet: filtered.filter((m) => matchStatus(m) === "incomplet").length,
+    annule: filtered.filter((m) => matchStatus(m) === "annule").length,
+  };
 
-  const byDay = new Map<string, FbiDesignationRow[]>();
-  for (const r of filtered) {
-    byDay.set(r.date, [...(byDay.get(r.date) ?? []), r]);
+  const byDayMap = new Map<string, typeof filtered>();
+  for (const m of filtered) {
+    const key = m.date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
+    byDayMap.set(key, [...(byDayMap.get(key) ?? []), m]);
+  }
+  const byDay = Array.from(byDayMap.entries());
+
+  async function designate(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (!user) redirect("/login");
+    const matchId = String(formData.get("matchId"));
+    const refereeId = String(formData.get("refereeId"));
+    const result = await designateReferee(matchId, refereeId, user.id);
+    revalidatePath("/fbi");
+    revalidatePath(`/matchs/${matchId}`);
+    if (!result.ok) {
+      redirect(`/fbi?error=${encodeURIComponent(result.error)}`);
+    }
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Rencontres FBI</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Rencontres</h1>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Désignations lues en direct sur FBI (FFBB) à chaque affichage - rien
-            n&apos;est enregistré dans AlloArbitre. Période limitée à {MAX_DAYS} jours.
+            Matchs AlloArbitre sur la période, avec l&apos;état de la désignation FBI en un clic sur une ligne.
+            Période limitée à {MAX_DAYS} jours.
           </p>
         </div>
         <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 items-end card p-3 w-full lg:w-auto">
@@ -158,25 +145,17 @@ export default async function FbiPage({
             </select>
           </div>
           <div>
-            <label className="field-label">État</label>
-            <select name="etat" defaultValue={etat} className="input w-full">
-              <option value="">Tous</option>
-              {ETATS.map((e) => (
-                <option key={e} value={e}>
-                  {e}
-                </option>
-              ))}
+            <label className="field-label">Statut</label>
+            <select name="etat" defaultValue={status} className="input w-full">
+              <option value="toutes">Tous</option>
+              <option value="incomplet">Incomplet</option>
+              <option value="complet">Complet</option>
+              <option value="annule">Annulé</option>
             </select>
           </div>
           <div className="col-span-2 sm:col-span-1">
             <label className="field-label">Équipe</label>
-            <input
-              type="text"
-              name="search"
-              defaultValue={search}
-              placeholder="Domicile ou extérieur"
-              className="input w-full"
-            />
+            <input type="text" name="search" defaultValue={search} placeholder="Domicile ou extérieur" className="input w-full" />
           </div>
           <button type="submit" className="btn btn-secondary w-full sm:w-auto">
             Afficher
@@ -188,9 +167,8 @@ export default async function FbiPage({
         <div>
           <h2 className="text-sm font-semibold">Calendrier AlloArbitre</h2>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Importé automatiquement chaque matin depuis FBI (cron). En cas de
-            besoin immédiat (nouvelle rencontre FBI pas encore reprise ici),
-            relancez l&apos;import maintenant.
+            Importé automatiquement chaque matin depuis FBI (cron). En cas de besoin immédiat (nouvelle rencontre FBI pas
+            encore reprise ici), relancez l&apos;import maintenant.
           </p>
         </div>
         <ImportFbiMatchesButton />
@@ -198,24 +176,10 @@ export default async function FbiPage({
 
       <section className="space-y-2">
         <div>
-          <h2 className="text-sm font-semibold">Auto-désignation AlloArbitre</h2>
-          <p className="text-xs text-[var(--muted)] mt-0.5">
-            Matchs incomplets à venir côté AlloArbitre (disponibilité, charge,
-            zone... comme partout ailleurs dans l&apos;appli). Une fois
-            désignés ici, poussez-les vers FBI depuis chaque ligne du tableau
-            ci-dessous.
-          </p>
-        </div>
-        <AutoDesignatePanel matches={incompleteMatches} />
-      </section>
-
-      <section className="space-y-2">
-        <div>
           <h2 className="text-sm font-semibold">Envoi vers FBI</h2>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Pousse toutes les désignations AlloArbitre à venir vers FBI en une
-            fois. Ne touche jamais une position déjà occupée sur FBI par
-            quelqu&apos;un d&apos;autre.
+            Pousse toutes les désignations AlloArbitre à venir vers FBI en une fois. Ne touche jamais une position déjà
+            occupée sur FBI par quelqu&apos;un d&apos;autre.
           </p>
         </div>
         <PushAllToFbiButton />
@@ -227,58 +191,31 @@ export default async function FbiPage({
         </p>
       )}
 
-      {error ? (
-        <div className="card p-4 text-sm">
-          <p className="font-medium text-[var(--danger)]">Impossible de lire FBI</p>
-          <p className="text-[var(--muted)] mt-1">{error}</p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-[var(--muted)] py-10 text-center card">
-          Aucune rencontre FBI ne correspond à ces filtres.
-        </p>
+      {filtered.length === 0 ? (
+        <p className="text-sm text-[var(--muted)] py-10 text-center card">Aucun match ne correspond à ces filtres.</p>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-medium">
-              {filtered.length} rencontre{filtered.length > 1 ? "s" : ""}
+              {filtered.length} match{filtered.length > 1 ? "s" : ""}
             </span>
-            {ETATS.map((e) => (
-              <span key={e} className="inline-flex items-center gap-1">
-                <EtatBadge etat={e} />
-                <span className="text-[var(--muted)]">{counts[e]}</span>
+            <span className="inline-flex items-center gap-1">
+              <span className="badge text-[var(--success)] bg-[var(--success-bg)]">Complet</span>
+              <span className="text-[var(--muted)]">{counts.complet}</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="badge text-[var(--warning)] bg-[var(--warning-bg)]">Incomplet</span>
+              <span className="text-[var(--muted)]">{counts.incomplet}</span>
+            </span>
+            {counts.annule > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <span className="badge text-[var(--muted)] bg-[var(--neutral-bg)]">Annulé</span>
+                <span className="text-[var(--muted)]">{counts.annule}</span>
               </span>
-            ))}
+            )}
           </div>
 
-          {Array.from(byDay.entries()).map(([date, dayRows]) => (
-            <section key={date} className="space-y-2">
-              <h2 className="text-sm font-semibold">
-                {dayLabel(date)}{" "}
-                <span className="font-normal text-[var(--muted)]">({dayRows.length})</span>
-              </h2>
-              <div className="table-shell overflow-x-auto">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Heure</th>
-                      <th>Division</th>
-                      <th>N°</th>
-                      <th>Domicile</th>
-                      <th>Extérieur</th>
-                      <th>Salle</th>
-                      <th>État</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dayRows.map((r) => (
-                      <FbiRencontreRow key={`${r.code}-${r.poule}-${r.numero}`} r={r} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          ))}
+          <FbiMatchesPanel byDay={byDay} referees={referees} designateAction={designate} />
         </>
       )}
     </div>

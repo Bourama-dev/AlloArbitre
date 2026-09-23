@@ -2,14 +2,30 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MatchesTable } from "@/components/matches-table";
+import { matchStatus } from "@/lib/match-status";
+import { FbiMatchRow } from "@/components/fbi-match-row";
 import { previewAutoDesignation, applyAutoDesignation } from "@/lib/actions/auto-designate-actions";
 import type { PlanItem, AutoDesignateSummary } from "@/lib/actions/auto-designate-actions";
-import type { MatchWithRelations } from "@/lib/matches";
+import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 
-export function AutoDesignatePanel({ matches }: { matches: MatchWithRelations[] }) {
+/**
+ * Tableau unique des matchs AlloArbitre de la période filtrée (un seul
+ * tableau, pas un doublon FBI à côté) : désignation directe, détail FBI
+ * dépliable par ligne, et sélection multiple pour l'auto-désignation en lot.
+ */
+export function FbiMatchesPanel({
+  byDay,
+  referees,
+  designateAction,
+}: {
+  byDay: [string, MatchWithRelations[]][];
+  referees: ActiveReferee[];
+  designateAction: (formData: FormData) => void | Promise<void>;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  const hasIncomplete = byDay.some(([, matches]) => matches.some((m) => matchStatus(m) === "incomplet"));
 
   const [plan, setPlan] = useState<PlanItem[] | null>(null);
   const [planError, setPlanError] = useState<string | null>(null);
@@ -49,34 +65,66 @@ export function AutoDesignatePanel({ matches }: { matches: MatchWithRelations[] 
   return (
     <div className="space-y-3">
       <form ref={formRef}>
-        {matches.length > 0 && (
-          <button
-            type="button"
-            onClick={handlePreview}
-            disabled={isPreviewing}
-            className="btn btn-primary inline-flex items-center gap-2"
-          >
-            {isPreviewing && <span className="spinner" aria-hidden />}
-            {isPreviewing ? "Calcul en cours…" : "Auto-désignation des matchs sélectionnés"}
-          </button>
+        {hasIncomplete && (
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              type="button"
+              onClick={handlePreview}
+              disabled={isPreviewing}
+              className="btn btn-primary inline-flex items-center gap-2"
+            >
+              {isPreviewing && <span className="spinner" aria-hidden />}
+              {isPreviewing ? "Calcul en cours…" : "Auto-désignation des matchs sélectionnés"}
+            </button>
+          </div>
         )}
-        <div className="mt-3">
-          <MatchesTable matches={matches} selectable />
-        </div>
+
+        {byDay.map(([day, matches]) => (
+          <section key={day} className="space-y-2 mb-4">
+            <h2 className="text-sm font-semibold">
+              {day.charAt(0).toUpperCase() + day.slice(1)}{" "}
+              <span className="font-normal text-[var(--muted)]">({matches.length})</span>
+            </h2>
+            <div className="table-shell overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    {hasIncomplete && <th className="w-8" />}
+                    <th>Date</th>
+                    <th>Niveau</th>
+                    <th>Domicile</th>
+                    <th>Extérieur</th>
+                    <th>Lieu</th>
+                    <th>Arbitres</th>
+                    <th>Statut</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.map((m) => (
+                    <FbiMatchRow
+                      key={m.id}
+                      m={m}
+                      referees={referees}
+                      designateAction={designateAction}
+                      selectable={hasIncomplete}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ))}
       </form>
 
       {planError && (
-        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">
-          {planError}
-        </p>
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">{planError}</p>
       )}
 
       {result && (
         <div className="text-sm rounded-lg bg-[var(--success-bg)] text-[var(--success)] px-3 py-2 space-y-1">
           <p>{result.assigned} désignation(s) créée(s).</p>
-          {result.errors.length > 0 && (
-            <p className="text-[var(--danger)]">{result.errors.join(" | ")}</p>
-          )}
+          {result.errors.length > 0 && <p className="text-[var(--danger)]">{result.errors.join(" | ")}</p>}
         </div>
       )}
 
@@ -86,8 +134,7 @@ export function AutoDesignatePanel({ matches }: { matches: MatchWithRelations[] 
             <div>
               <h2 className="font-semibold text-lg">Récapitulatif de l&apos;auto-désignation</h2>
               <p className="text-xs text-[var(--muted)] mt-1">
-                Vérifiez les désignations proposées avant de les appliquer. Rien n&apos;est
-                encore enregistré.
+                Vérifiez les désignations proposées avant de les appliquer. Rien n&apos;est encore enregistré.
               </p>
             </div>
             <ul className="divide-y divide-[var(--border)]">
@@ -95,19 +142,13 @@ export function AutoDesignatePanel({ matches }: { matches: MatchWithRelations[] 
                 <li key={i} className="py-2 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium">{item.matchLabel}</span>
-                    <span
-                      className={
-                        item.refereeId ? "text-[var(--success)]" : "text-[var(--danger)]"
-                      }
-                    >
+                    <span className={item.refereeId ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                       {item.refereeName ?? "Aucun arbitre disponible"}
                     </span>
                   </div>
                   {item.refereeId && (
                     <details className="mt-1">
-                      <summary className="text-xs text-[var(--accent)] cursor-pointer">
-                        Pourquoi cet arbitre ?
-                      </summary>
+                      <summary className="text-xs text-[var(--accent)] cursor-pointer">Pourquoi cet arbitre ?</summary>
                       <p className="text-xs text-[var(--muted)] mt-1">{item.reason}</p>
                     </details>
                   )}
@@ -115,12 +156,7 @@ export function AutoDesignatePanel({ matches }: { matches: MatchWithRelations[] 
               ))}
             </ul>
             <div className="flex justify-end gap-2 pt-2 border-t border-[var(--border)]">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setPlan(null)}
-                disabled={isApplying}
-              >
+              <button type="button" className="btn btn-secondary" onClick={() => setPlan(null)} disabled={isApplying}>
                 Annuler
               </button>
               <button
