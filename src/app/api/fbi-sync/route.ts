@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { FbiClient, type FbiDump } from "@/lib/fbi/client";
+import type { FbiDump } from "@/lib/fbi/client";
+import { fetchFbiRencontres, formatDateFr } from "@/lib/fbi/fetch";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { searchDesignations } from "@/lib/fbi/searchDesignations";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
 
@@ -9,26 +9,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Espaces / retours à la ligne ou guillemets englobants collés par erreur
- * dans les settings Vercel font échouer le login FBI. On ne retire les
- * guillemets que s'ils entourent toute la valeur (un mot de passe peut
- * légitimement commencer ou finir par un guillemet).
- */
-function cleanCredential(value: string | undefined): string {
-  const v = (value ?? "").trim();
-  return /^(['"])[\s\S]*\1$/.test(v) && v.length >= 2 ? v.slice(1, -1) : v;
-}
-
-function formatDateFr(d: Date): string {
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-/**
- * Cron (à déclarer dans vercel.json, ex. tous les jours à 7h) : se logue sur
- * FBI, récupère l'état des désignations pour les 14 prochains jours, et
- * compare avec AlloArbitre. Renvoie les écarts, n'écrit rien nulle part pour
+ * Cron (déclaré dans vercel.json, tous les jours à 7h) : se logue sur FBI,
+ * récupère l'état des désignations pour les 14 prochains jours, et compare
+ * avec AlloArbitre. Renvoie les écarts, n'écrit rien nulle part pour
  * l'instant (lecture seule, cf. décision de ne pas écrire sur FBI dans un
- * premier temps).
+ * premier temps). Pour consulter les rencontres FBI : page /fbi.
  *
  * Protégé par CRON_SECRET (header Authorization: Bearer <secret>), comme
  * recommandé par Vercel pour les cron jobs. Un admin déjà connecté dans le
@@ -46,12 +31,6 @@ export async function GET(request: Request) {
     }
   }
 
-  const identifiant = cleanCredential(process.env.FBI_USERNAME);
-  const motDePasse = cleanCredential(process.env.FBI_PASSWORD);
-  if (!identifiant || !motDePasse) {
-    return NextResponse.json({ error: "FBI_USERNAME / FBI_PASSWORD non configurés" }, { status: 500 });
-  }
-
   const today = new Date();
   const in14Days = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
@@ -66,14 +45,7 @@ export async function GET(request: Request) {
     : undefined;
 
   try {
-    const client = new FbiClient(onDump);
-    await client.login(identifiant, motDePasse);
-
-    const rows = await searchDesignations(client, {
-      dateDebut: formatDateFr(today),
-      dateFin: formatDateFr(in14Days),
-    });
-
+    const rows = await fetchFbiRencontres({ du: today, au: in14Days }, onDump);
     const mismatches = await compareWithAlloArbitre(rows);
 
     return NextResponse.json({
