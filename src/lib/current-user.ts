@@ -27,7 +27,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
     return profile as CurrentUser;
   } catch (err) {
-    console.error("[getCurrentUser] failed:", err);
+    // Bruit attendu : pendant `next build`, Next.js sonde certaines routes
+    // pour un pré-rendu statique avant de les basculer en dynamique à cause
+    // de `cookies()` — ce n'est pas une vraie erreur, on ne le log donc pas.
+    const digest = err instanceof Error ? (err as Error & { digest?: string }).digest : undefined;
+    if (digest !== "DYNAMIC_SERVER_USAGE") {
+      console.error("[getCurrentUser] failed:", err);
+    }
     return null;
   }
 }

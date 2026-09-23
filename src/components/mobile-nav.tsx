@@ -77,6 +77,17 @@ export function MobileNav({
               ))}
             </>
           )}
+          <Link
+            href="/compte"
+            onClick={() => setOpen(false)}
+            className={`block px-3 py-2 rounded-md text-sm font-medium mt-2 ${
+              pathname.startsWith("/compte")
+                ? "bg-[var(--brand-tint)] text-[var(--brand)]"
+                : "text-[var(--foreground)] hover:bg-[var(--neutral-bg)]"
+            }`}
+          >
+            Mon compte
+          </Link>
           <div className="pt-3 mt-2 border-t border-[var(--border)] flex items-center justify-between gap-2">
             <span className="text-sm text-[var(--muted)] truncate">{userLabel}</span>
             <form action={logoutAction}>
