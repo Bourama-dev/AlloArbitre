@@ -2,6 +2,8 @@ import * as cheerio from "cheerio";
 import { FbiClient } from "./client";
 
 export type FbiDesignationRow = {
+  /** Identifiant FBI de la rencontre (afficherDesignation(<id>) dans le tableau), pour la fiche détail. */
+  idRencontre: string | null;
   code: string;
   numero: string;
   equipe1: string;
@@ -54,7 +56,9 @@ export function parseDataTablesRows(aaData: unknown[]): FbiDesignationRow[] {
       throw new Error(`FBI : ligne ${i} inattendue dans executeRecherche : ${JSON.stringify(row).slice(0, 300)}`);
     }
     const [, code, numero, equipe1, equipe2, poule, salle, ville, date, heure, , etat] = row;
+    const idMatch = row.map(String).join(" ").match(/afficherDesignation\((\d+)\)/);
     return {
+      idRencontre: idMatch ? idMatch[1] : null,
       code: cellText(code),
       numero: cellText(numero),
       equipe1: cellText(equipe1),

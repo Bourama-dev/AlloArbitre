@@ -1,5 +1,6 @@
 import { FbiClient, type FbiDump } from "./client";
 import { searchDesignations, type FbiDesignationRow } from "./searchDesignations";
+import { parseFbiDetail, type FbiDetailSection } from "./detail";
 
 /**
  * Espaces / retours à la ligne ou guillemets englobants collés par erreur
@@ -27,18 +28,38 @@ export function fbiSortKey(row: Pick<FbiDesignationRow, "date" | "heure">): stri
  * rencontres de la période, triées par date/heure. Appel en direct à chaque
  * fois : rien n'est enregistré côté AlloArbitre.
  */
-export async function fetchFbiRencontres(
-  periode: { du: Date; au: Date },
-  onDump?: (dump: FbiDump) => Promise<void>
-): Promise<FbiDesignationRow[]> {
+async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>): Promise<FbiClient> {
   const identifiant = cleanCredential(process.env.FBI_USERNAME);
   const motDePasse = cleanCredential(process.env.FBI_PASSWORD);
   if (!identifiant || !motDePasse) {
     throw new Error("FBI_USERNAME / FBI_PASSWORD non configurés");
   }
-
   const client = new FbiClient(onDump);
   await client.login(identifiant, motDePasse);
+  return client;
+}
+
+/**
+ * Fiche détail d'une rencontre (arbitres désignés, etc.), en direct : même
+ * requête que FBI quand on clique une ligne du tableau de recherche.
+ */
+export async function fetchFbiDesignationDetail(
+  idRencontre: string,
+  onDump?: (dump: FbiDump) => Promise<void>
+): Promise<FbiDetailSection[]> {
+  if (!/^\d+$/.test(idRencontre)) throw new Error("Identifiant de rencontre FBI invalide");
+  const client = await loggedInClient(onDump);
+  // La fiche est servie dans le contexte de la page de recherche : on la charge d'abord.
+  await client.get("rechercherDesignation.fbi");
+  const html = await client.post(`afficherRepartitionDesignationAjax.fbi?idRencontre=${idRencontre}`, {});
+  return parseFbiDetail(html);
+}
+
+export async function fetchFbiRencontres(
+  periode: { du: Date; au: Date },
+  onDump?: (dump: FbiDump) => Promise<void>
+): Promise<FbiDesignationRow[]> {
+  const client = await loggedInClient(onDump);
 
   const rows = await searchDesignations(client, {
     dateDebut: formatDateFr(periode.du),

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { fetchFbiRencontres } from "@/lib/fbi/fetch";
 import type { FbiDesignationRow } from "@/lib/fbi/searchDesignations";
 
@@ -102,6 +103,21 @@ export default async function FbiPage({
   );
 
   const counts = Object.fromEntries(ETATS.map((e) => [e, filtered.filter((r) => r.etat === e).length]));
+
+  // URL de la liste avec les filtres courants, pour le lien retour de la fiche.
+  const listQuery = new URLSearchParams(
+    Object.entries({ du: toIsoDay(du), au: toIsoDay(au), groupe, code, etat, search }).filter(([, v]) => v)
+  );
+  const detailHref = (r: FbiDesignationRow) =>
+    `/fbi/${r.idRencontre}?${new URLSearchParams({
+      code: r.code,
+      eq1: r.equipe1,
+      eq2: r.equipe2,
+      date: r.date,
+      heure: r.heure,
+      etat: r.etat,
+      retour: `/fbi?${listQuery.toString()}`,
+    }).toString()}`;
 
   const byDay = new Map<string, FbiDesignationRow[]>();
   for (const r of filtered) {
@@ -216,6 +232,7 @@ export default async function FbiPage({
                       <th>Extérieur</th>
                       <th>Salle</th>
                       <th>État</th>
+                      <th />
                     </tr>
                   </thead>
                   <tbody>
@@ -237,6 +254,13 @@ export default async function FbiPage({
                         </td>
                         <td>
                           <EtatBadge etat={r.etat} />
+                        </td>
+                        <td className="whitespace-nowrap">
+                          {r.idRencontre && (
+                            <Link href={detailHref(r)} className="text-[var(--accent)] hover:underline text-xs">
+                              Détail →
+                            </Link>
+                          )}
                         </td>
                       </tr>
                     ))}

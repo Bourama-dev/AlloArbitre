@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { FbiDump } from "@/lib/fbi/client";
-import { fetchFbiRencontres, formatDateFr } from "@/lib/fbi/fetch";
+import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr } from "@/lib/fbi/fetch";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -43,6 +43,20 @@ export async function GET(request: Request) {
         if (error) console.error("[fbi-sync] dump failed:", error);
       }
     : undefined;
+
+  // ?detail=<idRencontre> : fiche détail brute parsée (mise au point de /fbi/[id]).
+  const detailId = new URL(request.url).searchParams.get("detail");
+  if (detailId) {
+    try {
+      const sections = await fetchFbiDesignationDetail(detailId, onDump);
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), idRencontre: detailId, sections });
+    } catch (error) {
+      return NextResponse.json(
+        { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+        { status: 500 }
+      );
+    }
+  }
 
   try {
     const rows = await fetchFbiRencontres({ du: today, au: in14Days }, onDump);
