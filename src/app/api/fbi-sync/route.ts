@@ -8,6 +8,17 @@ import { getCurrentUser } from "@/lib/current-user";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+/**
+ * Espaces / retours à la ligne ou guillemets englobants collés par erreur
+ * dans les settings Vercel font échouer le login FBI. On ne retire les
+ * guillemets que s'ils entourent toute la valeur (un mot de passe peut
+ * légitimement commencer ou finir par un guillemet).
+ */
+function cleanCredential(value: string | undefined): string {
+  const v = (value ?? "").trim();
+  return /^(['"])[\s\S]*\1$/.test(v) && v.length >= 2 ? v.slice(1, -1) : v;
+}
+
 function formatDateFr(d: Date): string {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
@@ -35,8 +46,8 @@ export async function GET(request: Request) {
     }
   }
 
-  const identifiant = process.env.FBI_USERNAME;
-  const motDePasse = process.env.FBI_PASSWORD;
+  const identifiant = cleanCredential(process.env.FBI_USERNAME);
+  const motDePasse = cleanCredential(process.env.FBI_PASSWORD);
   if (!identifiant || !motDePasse) {
     return NextResponse.json({ error: "FBI_USERNAME / FBI_PASSWORD non configurés" }, { status: 500 });
   }
