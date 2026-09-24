@@ -5,6 +5,12 @@ import { parseFbiDateTime } from "./sync";
 import { overlaps } from "@/lib/dates";
 import { matchDurationMinutes } from "@/lib/import-matches";
 
+// FBI ne donne pas les coordonnées des salles (juste leur nom) : pas de
+// calcul de trajet précis possible ici, contrairement à hasSchedulingConflict
+// côté AlloArbitre. Un tampon fixe prudent s'applique dès que la salle
+// diffère, plutôt que de ne considérer que le chevauchement strict.
+const FBI_UNKNOWN_VENUE_BUFFER_MINUTES = 45;
+
 const OFFICIEL_FIELD_ORDER = [
   "idOfficielRencontre",
   "nom",
@@ -56,12 +62,13 @@ async function loadFicheState(client: FbiClient, idRencontre: string) {
 
 /**
  * Cherche si cet arbitre (numéro national) est déjà désigné sur FBI, ce
- * jour-là, sur une autre rencontre dont l'horaire chevauche celle ciblée -
- * un conflit qui peut exister côté FBI (désigné directement là-bas, sur une
- * division qu'AlloArbitre n'a peut-être pas encore importée) sans qu'aucune
- * désignation AlloArbitre ne le révèle. Une seule recherche FBI du jour
- * (léger), puis un détail par rencontre candidate dont l'horaire chevauche
- * réellement - jamais toutes les rencontres du jour.
+ * jour-là, sur une autre rencontre incompatible avec l'horaire ciblé - soit
+ * un chevauchement direct, soit (salle différente) un écart trop court pour
+ * s'y rendre - un conflit qui peut exister côté FBI (désigné directement
+ * là-bas, sur une division qu'AlloArbitre n'a peut-être pas encore importée)
+ * sans qu'aucune désignation AlloArbitre ne le révèle. Une seule recherche
+ * FBI du jour (léger), puis un détail par rencontre candidate réellement
+ * incompatible - jamais toutes les rencontres du jour.
  */
 async function findFbiScheduleConflict(
   client: FbiClient,
@@ -74,12 +81,22 @@ async function findFbiScheduleConflict(
   const targetStart = target ? parseFbiDateTime(target.date, target.heure) : null;
   if (!target || !targetStart) return null;
   const targetDuration = matchDurationMinutes(target.code);
+  const targetEnd = targetStart.getTime() + targetDuration * 60_000;
 
   for (const row of dayRows) {
     if (!row.idRencontre || row.idRencontre === idRencontre) continue;
     const rowStart = parseFbiDateTime(row.date, row.heure);
     if (!rowStart) continue;
-    if (!overlaps(targetStart, targetDuration, rowStart, matchDurationMinutes(row.code))) continue;
+    const rowDuration = matchDurationMinutes(row.code);
+    const rowEnd = rowStart.getTime() + rowDuration * 60_000;
+
+    const isConflict = overlaps(targetStart, targetDuration, rowStart, rowDuration)
+      ? true
+      : target.salle && row.salle && target.salle.trim().toLowerCase() === row.salle.trim().toLowerCase()
+        ? false // même salle, dos à dos : pas de trajet à prévoir
+        : Math.max(targetStart.getTime() - rowEnd, rowStart.getTime() - targetEnd) / 60_000 <
+          FBI_UNKNOWN_VENUE_BUFFER_MINUTES;
+    if (!isConflict) continue;
 
     const { rows: officielRows } = await loadFicheState(client, row.idRencontre);
     if (officielRows.some((o) => o.numeroNational === numeroNational)) {

@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { overlaps } from "@/lib/dates";
+import { hasSchedulingConflict } from "@/lib/dates";
 import type { FbiOfficiel } from "./detail";
 
 /**
@@ -31,7 +31,7 @@ export async function syncFbiOfficielsToDesignations(
     { data: matchingReferees, error: refError },
     { data: removals, error: removalError },
   ] = await Promise.all([
-    supabaseAdmin.from("Match").select("date, durationMinutes").eq("id", matchId).single(),
+    supabaseAdmin.from("Match").select("date, durationMinutes, venue, lat, lng").eq("id", matchId).single(),
     supabaseAdmin.from("Designation").select("position").eq("matchId", matchId),
     supabaseAdmin
       .from("Referee")
@@ -62,14 +62,29 @@ export async function syncFbiOfficielsToDesignations(
 
     const { data: otherDesignations, error: otherError } = await supabaseAdmin
       .from("Designation")
-      .select("match:Match!inner(date, durationMinutes, cancelled)")
+      .select("match:Match!inner(date, durationMinutes, cancelled, venue, lat, lng)")
       .eq("refereeId", refereeId)
       .neq("matchId", matchId);
     if (otherError) throw otherError;
 
-    const hasConflict = ((otherDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number; cancelled: boolean } }[])
+    const hasConflict = (
+      (otherDesignations ?? []) as unknown as {
+        match: { date: string; durationMinutes: number; cancelled: boolean; venue: string | null; lat: number | null; lng: number | null };
+      }[]
+    )
       .filter((d) => !d.match.cancelled)
-      .some((d) => overlaps(matchDate, match.durationMinutes, new Date(d.match.date), d.match.durationMinutes));
+      .some((d) =>
+        hasSchedulingConflict(
+          { date: matchDate, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
+          {
+            date: new Date(d.match.date),
+            durationMinutes: d.match.durationMinutes,
+            venue: d.match.venue,
+            lat: d.match.lat,
+            lng: d.match.lng,
+          }
+        )
+      );
     if (hasConflict) continue;
 
     const { error } = await supabaseAdmin

@@ -89,7 +89,7 @@ create table "LevelMapping" (
 create table "Match" (
   id text primary key default gen_random_uuid()::text,
   date timestamp(3) not null,
-  "durationMinutes" integer not null default 100,
+  "durationMinutes" integer not null default 120,
   "homeTeam" text not null,
   "awayTeam" text not null,
   venue text,

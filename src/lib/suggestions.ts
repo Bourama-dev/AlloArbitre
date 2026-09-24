@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { overlaps } from "@/lib/dates";
+import { hasSchedulingConflict } from "@/lib/dates";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
 
@@ -30,6 +30,7 @@ type RawMatchForSuggestion = {
   refereesRequired: number;
   cancelled: boolean;
   competitionLevelId: string;
+  venue: string | null;
   lat: number | null;
   lng: number | null;
   competitionLevel: {
@@ -61,7 +62,7 @@ export async function getMatchForSuggestion(matchId: string) {
   const { data, error } = await supabaseAdmin
     .from("Match")
     .select(
-      `id, date, durationMinutes, homeTeam, awayTeam, refereesRequired, cancelled, competitionLevelId, lat, lng,
+      `id, date, durationMinutes, homeTeam, awayTeam, refereesRequired, cancelled, competitionLevelId, venue, lat, lng,
        competitionLevel:CompetitionLevel(id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label, rank))),
        designations:Designation(id, refereeId)`
     )
@@ -116,7 +117,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
     .select(
       `id, firstName, lastName, zone, phone, lat, lng,
        level:RefereeLevel(id, label, rank),
-       designations:Designation(id, match:Match(date, durationMinutes, cancelled)),
+       designations:Designation(id, match:Match(date, durationMinutes, cancelled, venue, lat, lng)),
        unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
     )
     .eq("active", true);
@@ -137,7 +138,17 @@ export async function getMatchCandidates(matchId: string): Promise<{
     lat: number | null;
     lng: number | null;
     level: { id: string; label: string; rank: number };
-    designations: { id: string; match: { date: string; durationMinutes: number; cancelled: boolean } }[];
+    designations: {
+      id: string;
+      match: {
+        date: string;
+        durationMinutes: number;
+        cancelled: boolean;
+        venue: string | null;
+        lat: number | null;
+        lng: number | null;
+      };
+    }[];
     unavailability: {
       recurring: boolean;
       startDate: string | null;
@@ -170,7 +181,13 @@ export async function getMatchCandidates(matchId: string): Promise<{
   const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => {
     const activeDesignations = c.designations
       .filter((d) => !d.match.cancelled)
-      .map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes }));
+      .map((d) => ({
+        date: new Date(d.match.date),
+        durationMinutes: d.match.durationMinutes,
+        venue: d.match.venue,
+        lat: d.match.lat,
+        lng: d.match.lng,
+      }));
 
     const reasons: string[] = [];
     if (NON_DESIGNABLE_LEVELS.includes(c.level.label)) {
@@ -181,10 +198,13 @@ export async function getMatchCandidates(matchId: string): Promise<{
     }
     if (
       activeDesignations.some((d) =>
-        overlaps(match.date, match.durationMinutes, d.date, d.durationMinutes)
+        hasSchedulingConflict(
+          { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
+          d
+        )
       )
     ) {
-      reasons.push("Conflit d'horaire");
+      reasons.push("Conflit d'horaire (ou trajet insuffisant entre les deux gymnases)");
     }
     if (c.unavailability.some(isUnavailable)) {
       reasons.push("Indisponible");
@@ -274,7 +294,7 @@ export async function designateReferee(
   const { data: match, error: matchError } = await supabaseAdmin
     .from("Match")
     .select(
-      "id, date, durationMinutes, cancelled, refereesRequired, designations:Designation(id, refereeId), competitionLevel:CompetitionLevel(label)"
+      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, designations:Designation(id, refereeId), competitionLevel:CompetitionLevel(label)"
     )
     .eq("id", matchId)
     .maybeSingle();
@@ -316,20 +336,31 @@ export async function designateReferee(
 
   const { data: existingDesignations, error: conflictError } = await supabaseAdmin
     .from("Designation")
-    .select("id, match:Match!inner(date, durationMinutes, cancelled)")
+    .select("id, match:Match!inner(date, durationMinutes, cancelled, venue, lat, lng)")
     .eq("refereeId", refereeId)
     .eq("match.cancelled", false);
   if (conflictError) throw conflictError;
 
   const existingMatches = (
-    (existingDesignations ?? []) as unknown as { match: { date: string; durationMinutes: number } }[]
-  ).map((d) => ({ date: new Date(d.match.date), durationMinutes: d.match.durationMinutes }));
+    (existingDesignations ?? []) as unknown as {
+      match: { date: string; durationMinutes: number; venue: string | null; lat: number | null; lng: number | null };
+    }[]
+  ).map((d) => ({
+    date: new Date(d.match.date),
+    durationMinutes: d.match.durationMinutes,
+    venue: d.match.venue,
+    lat: d.match.lat,
+    lng: d.match.lng,
+  }));
 
   const hasConflict = existingMatches.some((d) =>
-    overlaps(matchDate, match.durationMinutes, d.date, d.durationMinutes)
+    hasSchedulingConflict(
+      { date: matchDate, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
+      d
+    )
   );
   if (hasConflict) {
-    return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau." };
+    return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau (ou pas assez de temps pour rejoindre l'autre gymnase)." };
   }
 
   const quotaViolations = checkQuotaRules(
