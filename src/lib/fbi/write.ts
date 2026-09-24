@@ -444,16 +444,20 @@ export async function assignRefereeToFbiRencontre(
   if (!dryRun) {
     const saveResponse = await client.post(`enregistrerRepartitionDesignation.fbi?avecHistorisation=true`, Object.fromEntries(body));
     invalidateDayCache(client);
-    const saveError = fbiErrorText(saveResponse);
-    if (saveError) throw new Error(`FBI a refusé l'enregistrement : ${saveError}`);
-    // FBI peut accepter l'envoi sans retenir l'officiel (vu après sa
-    // maintenance) : on relit la fiche pour ne jamais annoncer "Désigné" à tort.
+    // La réponse de l'enregistrement contient un bloc d'erreur générique même
+    // quand tout s'est bien passé ("Une erreur s'est produite lors du
+    // chargement de la page") : seule la relecture de la fiche fait foi.
+    // FBI peut aussi accepter l'envoi sans retenir l'officiel (vu après sa
+    // maintenance) : on ne doit jamais annoncer "Désigné" à tort.
     const { rows: after } = await loadFicheState(client, idRencontre);
     const saved = after.some(
       (r) => isArbitreRow(r) && `${normName(r.nom ?? "")}|${normName(r.prenom ?? "")}` === `${normName(nom)}|${normName(prenom)}`
     );
     if (!saved) {
-      throw new Error(`Enregistrement envoyé mais ${prenom} ${nom} n'apparaît pas sur la fiche FBI - à vérifier sur FBI`);
+      const saveError = fbiErrorText(saveResponse);
+      throw new Error(
+        `Enregistrement envoyé mais ${prenom} ${nom} n'apparaît pas sur la fiche FBI${saveError ? ` (FBI : ${saveError})` : ""} - à vérifier sur FBI`
+      );
     }
   }
 
