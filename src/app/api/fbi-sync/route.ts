@@ -9,6 +9,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
 import { findMatches } from "@/lib/matches";
+import { fetchDesignationsExport } from "@/lib/fbi/searchDesignations";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -152,6 +153,22 @@ export async function GET(request: Request) {
   // et détail déplié de /fbi). Reprend au passage dans AlloArbitre les
   // officiels déjà désignés sur FBI (saisis directement là-bas) pour un
   // arbitre déjà connu, sans jamais écraser une désignation existante.
+  // ?export=JJ/MM/AAAA (admin, lecture seule) : réponse brute de l'export
+  // "Excel" FBI de la journée, pour vérifier s'il liste les officiels.
+  const exportDate = new URL(request.url).searchParams.get("export");
+  if (exportDate) {
+    if (currentUser?.role !== "ADMIN") {
+      return NextResponse.json({ error: "unauthorized (admin requis)" }, { status: 401 });
+    }
+    try {
+      const client = await loggedInClient(onDump);
+      const raw = await fetchDesignationsExport(client, { dateDebut: exportDate, dateFin: exportDate });
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), length: raw.length, apercu: raw.slice(0, 6000) });
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
+    }
+  }
+
   const detailId = new URL(request.url).searchParams.get("detail");
   if (detailId) {
     try {

@@ -73,16 +73,15 @@ export function parseDataTablesRows(aaData: unknown[]): FbiDesignationRow[] {
   });
 }
 
-export async function searchDesignations(
-  client: FbiClient,
-  params: {
-    dateDebut: string; // DD/MM/YYYY
-    dateFin: string; // DD/MM/YYYY
-    idSaison?: string;
-  }
-): Promise<FbiDesignationRow[]> {
+type SearchParams = {
+  dateDebut: string; // DD/MM/YYYY
+  dateFin: string; // DD/MM/YYYY
+  idSaison?: string;
+};
+
+function searchForm(params: SearchParams): Record<string, string> {
   const prefix = "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.";
-  const form: Record<string, string> = {
+  return {
     [`${prefix}idDivision`]: "",
     [`${prefix}idPoule`]: "",
     [`${prefix}numeroJournee`]: "",
@@ -98,6 +97,24 @@ export async function searchDesignations(
     [`${prefix}villeLibelle`]: "",
     [`${prefix}idSaison`]: params.idSaison ?? process.env.FBI_ID_SAISON ?? "1037",
   };
+}
+
+/**
+ * Export "Excel" de la recherche de désignations (bouton de la page FBI,
+ * action=executeCsv). Sonde de mise au point : si l'export liste les
+ * officiels de chaque rencontre, il permet de connaître toutes les
+ * désignations d'une journée en une seule requête au lieu d'ouvrir chaque
+ * fiche. Renvoie la réponse brute.
+ */
+export async function fetchDesignationsExport(client: FbiClient, params: SearchParams): Promise<string> {
+  const form = searchForm(params);
+  await client.get("rechercherDesignation.fbi");
+  await client.post("rechercherDesignation.fbi?action=controleRecherche", form);
+  return client.get(`rechercherDesignation.fbi?action=executeCsv&${new URLSearchParams(form).toString()}`);
+}
+
+export async function searchDesignations(client: FbiClient, params: SearchParams): Promise<FbiDesignationRow[]> {
+  const form = searchForm(params);
 
   // Charge la page pour obtenir un cookie de session à jour avant l'action ajax.
   await client.get("rechercherDesignation.fbi");
