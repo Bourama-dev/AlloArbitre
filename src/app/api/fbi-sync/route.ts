@@ -9,7 +9,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
 import { findMatches } from "@/lib/matches";
-import { fetchDesignationsExport } from "@/lib/fbi/searchDesignations";
+import { fetchDesignationsExport, fetchDesignationsExportRows } from "@/lib/fbi/searchDesignations";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -162,7 +162,13 @@ export async function GET(request: Request) {
     }
     try {
       const client = await loggedInClient(onDump);
-      const rows = await fetchDesignationsExport(client, { dateDebut: exportDate, dateFin: exportDate });
+      const params = { dateDebut: exportDate, dateFin: exportDate };
+      // &full=1 : toutes les rencontres, parsées (officiels compris).
+      if (new URL(request.url).searchParams.get("full") === "1") {
+        const rencontres = await fetchDesignationsExportRows(client, params);
+        return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), total: rencontres.length, rencontres });
+      }
+      const rows = await fetchDesignationsExport(client, params);
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), lignes: rows.length, apercu: rows.slice(0, 12) });
     } catch (error) {
       return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
