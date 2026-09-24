@@ -7,6 +7,25 @@ const FBI_BASE_URL = "https://extranet.ffbb.com/fbi";
  */
 const LOGIN_FORM_MARKER = "identificationForm.identificationBean.mdp";
 
+// FBI coupe par moments une connexion au milieu d'un envoi groupé ("fetch
+// failed", aucune réponse reçue) alors que la requête suivante passe : un
+// seul raté faisait échouer tout un match. On retente les erreurs réseau
+// (jamais une réponse HTTP reçue, même en erreur). Sans risque pour
+// l'enregistrement d'une désignation : il renvoie l'état complet de la fiche.
+const NETWORK_RETRIES = 3;
+const REQUEST_TIMEOUT_MS = 15_000;
+
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    } catch (error) {
+      if (attempt >= NETWORK_RETRIES - 1) throw error;
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+}
+
 /**
  * Client HTTP "à la main" pour FBI (FranceBasket Informations) : ce n'est pas
  * une API publique, juste le site de la fédération dont on rejoue les
@@ -65,7 +84,7 @@ export class FbiClient {
     let currentInit = init;
 
     for (let hop = 0; hop < 5; hop++) {
-      const res = await fetch(url, {
+      const res = await fetchWithRetry(url, {
         ...currentInit,
         redirect: "manual",
         headers: {

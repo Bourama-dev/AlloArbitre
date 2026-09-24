@@ -83,7 +83,8 @@ export async function withFbiSession<T>(
       return await fn(session.client);
     } catch (error) {
       // Session expirée côté FBI (ou état incertain) : la prochaine opération se reconnecte.
-      if (error instanceof Error && /session non connectée/i.test(error.message)) shared = null;
+      // Idem après une coupure réseau persistante (connexion peut-être morte).
+      if (error instanceof Error && /session non connectée|fetch failed|timeout|aborted/i.test(error.message)) shared = null;
       throw error;
     } finally {
       if (shared === session) session.lastUsedAt = Date.now();
