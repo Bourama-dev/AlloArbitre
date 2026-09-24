@@ -241,10 +241,12 @@ export async function assignRefereeToFbiRencontre(
 
   // Calcule kilomètres / indemnité comme le fait le bouton "CALCULER".
   // Réponse: "0;kilometres;indemnites;licence;polyline;distance".
-  // 2e match du jour dans la même salle : 0 km (règle CD45), FBI recalcule
-  // alors l'indemnité sans frais de déplacement.
+  // 2e match du jour dans la même salle : 0 km (règle CD45). here=true fait
+  // recalculer l'itinéraire par FBI (qui ignore alors kilometre=0 : vérifié,
+  // indemnité rendue avec le trajet) ; here=false = saisie manuelle des km,
+  // comme quand on modifie le champ Kms sur la page FBI.
   const recalc = await client.post(
-    `recalculerIndemniteDesignationAjax.fbi?idLicence=${encodeURIComponent(numeroNational)}&idFonction=${ID_FONCTION_ARBITRE}&kilometre=${previousMatchSameSalle ? "0" : ""}&couple=false&idRencontre=${idRencontre}&here=true&idOfficielRencontre=${targetRow.idOfficielRencontre}`,
+    `recalculerIndemniteDesignationAjax.fbi?idLicence=${encodeURIComponent(numeroNational)}&idFonction=${ID_FONCTION_ARBITRE}&kilometre=${previousMatchSameSalle ? "0" : ""}&couple=false&idRencontre=${idRencontre}&here=${previousMatchSameSalle ? "false" : "true"}&idOfficielRencontre=${targetRow.idOfficielRencontre}`,
     {}
   );
   const [recalcStatus, kilometres, indemnites, , polyline, distance] = recalc.split(";");
