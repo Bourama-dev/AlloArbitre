@@ -2,9 +2,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { parseMatchesWorkbook, importMatches } from "@/lib/import-matches";
+import { backfillMissingCoordinates } from "@/lib/geocoding-backfill";
 import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 async function submit(formData: FormData) {
   "use server";
@@ -38,6 +40,31 @@ async function submit(formData: FormData) {
   redirect(`/admin/import?${params.toString()}`);
 }
 
+async function geocode() {
+  "use server";
+  const user = await getCurrentUser();
+  if (user?.role !== "ADMIN") {
+    redirect("/matchs");
+  }
+
+  let params: URLSearchParams;
+  try {
+    const summary = await backfillMissingCoordinates();
+    params = new URLSearchParams({
+      geoReferees: String(summary.refereesGeocoded),
+      geoMatches: String(summary.matchesGeocoded),
+      geoFailed: summary.failed.join(" | "),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/admin/import?error=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath("/matchs");
+  revalidatePath("/arbitres");
+  redirect(`/admin/import?${params.toString()}`);
+}
+
 export default async function ImportMatchsPage({
   searchParams,
 }: {
@@ -47,6 +74,9 @@ export default async function ImportMatchsPage({
     levels?: string;
     errors?: string;
     error?: string;
+    geoReferees?: string;
+    geoMatches?: string;
+    geoFailed?: string;
   }>;
 }) {
   const user = await getCurrentUser();
@@ -98,6 +128,31 @@ export default async function ImportMatchsPage({
         <input type="file" name="file" accept=".xlsx" required className="block w-full text-sm" />
         <SubmitButton pendingLabel="Import en cours…">Importer</SubmitButton>
       </form>
+
+      <div className="space-y-2">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Géocodage des adresses manquantes</h2>
+          <p className="text-sm text-[var(--muted)]">
+            Calcule les coordonnées (lat/lng) des arbitres et matchs dont l&apos;adresse est connue mais pas encore
+            géocodée - nécessaire pour le tri par proximité, le calcul de rémunération estimée, et la prise en compte
+            du temps de trajet entre deux gymnases lors d&apos;une désignation. À relancer après un import en masse
+            (Excel, FBI) ou l&apos;ajout de <code>GOOGLE_MAPS_API_KEY</code>.
+          </p>
+        </div>
+        {(params.geoReferees !== undefined || params.geoMatches !== undefined) && !params.error && (
+          <div className="rounded-lg bg-[var(--success-bg)] text-[var(--success)] text-sm px-3 py-2 space-y-1">
+            <p>
+              {params.geoReferees} arbitre(s) et {params.geoMatches} match(s) géocodé(s).
+            </p>
+            {params.geoFailed && <p className="text-[var(--danger)]">Non géocodables : {params.geoFailed}</p>}
+          </div>
+        )}
+        <form action={geocode}>
+          <SubmitButton className="btn btn-secondary" pendingLabel="Géocodage en cours…">
+            Géocoder les adresses manquantes
+          </SubmitButton>
+        </form>
+      </div>
     </div>
   );
 }

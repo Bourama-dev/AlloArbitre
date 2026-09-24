@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchDurationMinutes } from "@/lib/import-matches";
+import { geocodeAddress } from "@/lib/geocoding";
 import type { FbiDesignationRow } from "./searchDesignations";
 import { parseFbiDateTime, teamNamesMatch } from "./sync";
 
@@ -34,6 +35,17 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
     summary.competitionLevelsCreated.push(code);
   }
 
+  // Un même gymnase revient sur beaucoup de rencontres du même import : ne le
+  // géocode qu'une fois par exécution plutôt qu'une fois par rencontre.
+  const geocodeCache = new Map<string, { lat: number; lng: number } | null>();
+  async function resolveVenueCoords(venue: string | null, ville: string | null) {
+    const address = [venue, ville].filter(Boolean).join(", ");
+    if (!address || !process.env.GOOGLE_MAPS_API_KEY) return null;
+    const key = address.trim().toLowerCase();
+    if (!geocodeCache.has(key)) geocodeCache.set(key, await geocodeAddress(address));
+    return geocodeCache.get(key) ?? null;
+  }
+
   for (const row of rows) {
     try {
       if (!row.equipe1 || !row.equipe2 || !row.code) continue;
@@ -57,7 +69,7 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
 
       const { data: candidates, error: findError } = await supabaseAdmin
         .from("Match")
-        .select("id, homeTeam, awayTeam")
+        .select("id, homeTeam, awayTeam, lat, lng")
         .gte("date", dayStart.toISOString())
         .lt("date", dayEnd.toISOString())
         .eq("competitionLevelId", competitionLevelId);
@@ -68,6 +80,10 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
       );
 
       const durationMinutes = matchDurationMinutes(row.code);
+      // Un match déjà géocodé n'est pas re-résolu à chaque import (le
+      // gymnase ne change pas d'une exécution à l'autre) ; sinon un échec de
+      // géocodage ne doit jamais effacer des coordonnées déjà connues.
+      const coords = existing?.lat != null ? null : await resolveVenueCoords(row.salle, row.ville);
 
       if (existing) {
         const { error } = await supabaseAdmin
@@ -79,6 +95,7 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
             poule: row.poule || null,
             durationMinutes,
             fbiIdRencontre: row.idRencontre,
+            ...(coords ? { lat: coords.lat, lng: coords.lng } : {}),
           })
           .eq("id", existing.id);
         if (error) throw error;
@@ -95,6 +112,8 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
           competitionLevelId,
           durationMinutes,
           fbiIdRencontre: row.idRencontre,
+          lat: coords?.lat ?? null,
+          lng: coords?.lng ?? null,
         });
         if (error) throw error;
         summary.created++;

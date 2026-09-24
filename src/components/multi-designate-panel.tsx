@@ -15,7 +15,7 @@ export function MultiDesignatePanel({
   refereeId: string;
   matches: MatchWithRelations[];
 }) {
-  const formRef = useRef<HTMLFormElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +25,12 @@ export function MultiDesignatePanel({
   function handleSubmit() {
     setError(null);
     setResult(null);
-    if (!formRef.current) return;
-    const formData = new FormData(formRef.current);
-    const matchIds = formData.getAll("matchIds").map(String);
+    if (!containerRef.current) return;
+    // Pas de <form> englobant : MatchesTable contient déjà ses propres <form>
+    // par ligne (retrait de désignation, désignation directe), qu'un <form>
+    // parent imbriquerait invalidement (le navigateur les ignorerait).
+    const checked = containerRef.current.querySelectorAll<HTMLInputElement>('input[name="matchIds"]:checked');
+    const matchIds = Array.from(checked).map((el) => el.value);
     if (matchIds.length === 0) {
       setError("Sélectionnez au moins un match.");
       return;
@@ -41,7 +44,7 @@ export function MultiDesignatePanel({
 
   return (
     <div className="space-y-3">
-      <form ref={formRef}>
+      <div ref={containerRef}>
         {matches.length > 0 && (
           <button
             type="button"
@@ -56,7 +59,7 @@ export function MultiDesignatePanel({
         <div className="mt-3">
           <MatchesTable matches={matches} selectable />
         </div>
-      </form>
+      </div>
 
       {error && (
         <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">{error}</p>

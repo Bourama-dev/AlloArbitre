@@ -22,7 +22,7 @@ export function FbiMatchesPanel({
   referees: ActiveReferee[];
   designateAction: (formData: FormData) => void | Promise<void>;
 }) {
-  const formRef = useRef<HTMLFormElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const hasIncomplete = byDay.some(([, matches]) => matches.some((m) => matchStatus(m) === "incomplet"));
@@ -36,9 +36,13 @@ export function FbiMatchesPanel({
   function handlePreview() {
     setPlanError(null);
     setResult(null);
-    if (!formRef.current) return;
-    const formData = new FormData(formRef.current);
-    const matchIds = formData.getAll("matchIds").map(String);
+    if (!containerRef.current) return;
+    // Un <form> englobant tout le tableau imbriquerait les <form> de retrait
+    // de désignation et de désignation directe de chaque ligne (invalides en
+    // HTML, le navigateur les ignorerait silencieusement) : on lit les cases
+    // cochées directement dans le DOM plutôt que via FormData d'un <form>.
+    const checked = containerRef.current.querySelectorAll<HTMLInputElement>('input[name="matchIds"]:checked');
+    const matchIds = Array.from(checked).map((el) => el.value);
     if (matchIds.length === 0) {
       setPlanError("Sélectionnez au moins un match.");
       return;
@@ -64,7 +68,7 @@ export function FbiMatchesPanel({
 
   return (
     <div className="space-y-3">
-      <form ref={formRef}>
+      <div ref={containerRef}>
         {hasIncomplete && (
           <div className="flex items-center gap-2 mb-2">
             <button
@@ -115,7 +119,7 @@ export function FbiMatchesPanel({
             </div>
           </section>
         ))}
-      </form>
+      </div>
 
       {planError && (
         <p className="text-sm text-[var(--danger)] bg-[var(--danger-bg)] rounded-lg p-3">{planError}</p>
