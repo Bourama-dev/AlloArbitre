@@ -125,7 +125,7 @@ export function PushAllToFbiButton() {
       {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
       {results && (
         <div className="card p-3 text-sm space-y-2 max-h-72 overflow-y-auto">
-          {results.length === 0 && <p className="text-[var(--muted)]">Aucun match à pousser.</p>}
+          {results.length === 0 && !error && <p className="text-[var(--muted)]">Aucun match à pousser.</p>}
           {results.map((r) => (
             <div key={r.matchId} className="border-b border-[var(--border)] last:border-0 pb-2 last:pb-0">
               <p className="font-medium">{r.matchLabel}</p>

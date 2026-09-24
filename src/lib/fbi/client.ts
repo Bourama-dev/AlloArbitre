@@ -126,6 +126,9 @@ export class FbiClient {
       body: body.toString(),
     });
 
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      throw new Error(`FBI est momentanément indisponible (HTTP ${res.status}) - réessayez dans quelques minutes.`);
+    }
     if (res.status >= 400) {
       throw new Error(`FBI login failed: HTTP ${res.status}`);
     }
