@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchStatus } from "@/lib/match-status";
 import type { MatchStatus } from "@/lib/match-status";
 import { MAX_PER_DAY } from "@/lib/designation-rules";
+import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { formatDateTimeFr, hasSchedulingConflict, isLaterMatchSameVenueSameDay, type MatchSlot } from "@/lib/dates";
 
 export type { MatchStatus } from "@/lib/match-status";
@@ -36,6 +37,7 @@ export type MatchWithRelations = {
       lat: number | null;
       lng: number | null;
       nationalNumber: string | null;
+      zone: string | null;
     };
     /**
      * Désignation déjà enregistrée mais incompatible avec un autre match du
@@ -51,7 +53,7 @@ export type MatchWithRelations = {
 const MATCH_SELECT = `
   id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId, fbiIdRencontre,
   competitionLevel:CompetitionLevel(id, label),
-  designations:Designation(id, refereeId, position, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber))
+  designations:Designation(id, refereeId, position, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber, zone))
 `;
 
 function mapMatch(row: {
@@ -120,7 +122,10 @@ async function annotateDesignationConflicts(matches: MatchWithRelations[]): Prom
       const others = (byReferee.get(d.refereeId) ?? []).filter((o) => o.id !== m.id);
       d.sameVenueEarlier = isLaterMatchSameVenueSameDay(slot, others);
       const other = others.find((o) => hasSchedulingConflict(slot, o));
-      d.conflict = other
+      const ownTeam = refereeOwnClubTeam(d.referee?.zone, m.homeTeam, m.awayTeam);
+      d.conflict = ownTeam
+        ? ownClubMessage(ownTeam)
+        : other
         ? `Incompatible avec son autre match du ${formatDateTimeFr(other.date)} (${[other.venue, other.city].filter(Boolean).join(" - ") || "lieu inconnu"}) : chevauchement, ou pas le temps de faire le trajet et d'être présent 30 min avant.`
         : null;
     }

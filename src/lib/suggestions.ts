@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { hasSchedulingConflict, isLaterMatchSameVenueSameDay } from "@/lib/dates";
+import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
 
@@ -215,6 +216,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
     if (minRank !== undefined && c.level.rank > minRank) {
       reasons.push("Niveau insuffisant");
     }
+    const ownTeam = refereeOwnClubTeam(c.zone, match.homeTeam, match.awayTeam);
+    if (ownTeam) reasons.push(ownClubMessage(ownTeam));
     if (
       activeDesignations.some((d) =>
         hasSchedulingConflict(
@@ -321,7 +324,7 @@ export async function designateReferee(
   const { data: match, error: matchError } = await supabaseAdmin
     .from("Match")
     .select(
-      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, designations:Designation(id, refereeId, position), competitionLevel:CompetitionLevel(label)"
+      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, homeTeam, awayTeam, designations:Designation(id, refereeId, position), competitionLevel:CompetitionLevel(label)"
     )
     .eq("id", matchId)
     .maybeSingle();
@@ -331,7 +334,7 @@ export async function designateReferee(
 
   const { data: referee, error: refereeError } = await supabaseAdmin
     .from("Referee")
-    .select("level:RefereeLevel(label)")
+    .select("zone, level:RefereeLevel(label)")
     .eq("id", refereeId)
     .maybeSingle();
   if (refereeError) throw refereeError;
@@ -343,6 +346,9 @@ export async function designateReferee(
   if (refereeLevel?.label && NON_DESIGNABLE_LEVELS.includes(refereeLevel.label)) {
     return { ok: false, error: `Niveau ${refereeLevel.label} : non désignable sur un match.` };
   }
+
+  const ownTeam = refereeOwnClubTeam(referee?.zone as string | null, match.homeTeam, match.awayTeam);
+  if (ownTeam) return { ok: false, error: ownClubMessage(ownTeam) };
 
   const rawLevel = match.competitionLevel as unknown;
   const competitionLevel = (Array.isArray(rawLevel) ? rawLevel[0] : rawLevel) as
