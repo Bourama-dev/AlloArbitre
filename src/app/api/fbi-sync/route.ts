@@ -162,8 +162,8 @@ export async function GET(request: Request) {
     }
     try {
       const client = await loggedInClient(onDump);
-      const raw = await fetchDesignationsExport(client, { dateDebut: exportDate, dateFin: exportDate });
-      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), length: raw.length, apercu: raw.slice(0, 6000) });
+      const rows = await fetchDesignationsExport(client, { dateDebut: exportDate, dateFin: exportDate });
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), lignes: rows.length, apercu: rows.slice(0, 12) });
     } catch (error) {
       return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
     }

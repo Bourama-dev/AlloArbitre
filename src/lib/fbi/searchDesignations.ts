@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import ExcelJS from "exceljs";
 import { FbiClient } from "./client";
 
 export type FbiDesignationRow = {
@@ -106,11 +107,22 @@ function searchForm(params: SearchParams): Record<string, string> {
  * désignations d'une journée en une seule requête au lieu d'ouvrir chaque
  * fiche. Renvoie la réponse brute.
  */
-export async function fetchDesignationsExport(client: FbiClient, params: SearchParams): Promise<string> {
+export async function fetchDesignationsExport(client: FbiClient, params: SearchParams): Promise<unknown[][]> {
   const form = searchForm(params);
   await client.get("rechercherDesignation.fbi");
   await client.post("rechercherDesignation.fbi?action=controleRecherche", form);
-  return client.get(`rechercherDesignation.fbi?action=executeCsv&${new URLSearchParams(form).toString()}`);
+  const buffer = await client.getBuffer(`rechercherDesignation.fbi?action=executeCsv&${new URLSearchParams(form).toString()}`);
+
+  // Malgré son nom (executeCsv), FBI renvoie un classeur .xlsx.
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+  const sheet = workbook.worksheets[0];
+  const rows: unknown[][] = [];
+  sheet?.eachRow({ includeEmpty: false }, (row) => {
+    const values = Array.isArray(row.values) ? row.values.slice(1) : [];
+    rows.push(values.map((v) => (v && typeof v === "object" && "text" in v ? (v as { text: unknown }).text : v)));
+  });
+  return rows;
 }
 
 export async function searchDesignations(client: FbiClient, params: SearchParams): Promise<FbiDesignationRow[]> {

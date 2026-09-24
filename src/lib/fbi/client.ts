@@ -56,7 +56,11 @@ export class FbiClient {
    * Requête brute, redirections suivies à la main (pour garder les cookies
    * posés à chaque saut, ce que `redirect: "follow"` ne permet pas).
    */
-  private async request(path: string, init: RequestInit = {}): Promise<{ res: Response; body: string; finalPath: string }> {
+  private async request(
+    path: string,
+    init: RequestInit = {},
+    binary = false
+  ): Promise<{ res: Response; body: string; buffer?: ArrayBuffer; finalPath: string }> {
     let url = `${FBI_BASE_URL}/${path}`;
     let currentInit = init;
 
@@ -77,6 +81,12 @@ export class FbiClient {
         url = new URL(location, url).toString();
         currentInit = {}; // un 302 après un POST se rejoue en GET
         continue;
+      }
+
+      if (binary) {
+        const buffer = await res.arrayBuffer();
+        await this.dump(url.slice(FBI_BASE_URL.length + 1), res, `[binaire, ${buffer.byteLength} octets]`);
+        return { res, body: "", buffer, finalPath: url };
       }
 
       const body = await res.text();
@@ -143,6 +153,15 @@ export class FbiClient {
     });
     this.assertLoggedIn(path, finalPath, body);
     return body;
+  }
+
+  /** Téléchargement binaire (ex. export Excel) ; une redirection vers la connexion = session perdue. */
+  async getBuffer(path: string): Promise<ArrayBuffer> {
+    const { finalPath, buffer } = await this.request(path, {}, true);
+    if (finalPath.includes("connexion.fbi")) {
+      throw new Error(`FBI : session non connectée en appelant ${path} (renvoyé vers la page de connexion)`);
+    }
+    return buffer ?? new ArrayBuffer(0);
   }
 
   async get(path: string): Promise<string> {
