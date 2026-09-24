@@ -21,6 +21,20 @@ export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
 // désignés sur aucun match (règle CD45) tant qu'ils ne sont pas validés.
 const NON_DESIGNABLE_LEVELS = ["DEP-STG"];
 
+/** Mineur au sens de la règle CD45 (jamais deux mineurs ensemble, toujours accompagné d'un majeur). */
+function isMinorAt(birthDate: string | null, at: Date): boolean {
+  if (!birthDate) return false;
+  const b = new Date(birthDate);
+  const age =
+    at.getUTCFullYear() -
+    b.getUTCFullYear() -
+    (at.getUTCMonth() < b.getUTCMonth() ||
+    (at.getUTCMonth() === b.getUTCMonth() && at.getUTCDate() < b.getUTCDate())
+      ? 1
+      : 0);
+  return age < 18;
+}
+
 type RawMatchForSuggestion = {
   id: string;
   date: string;
@@ -114,7 +128,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
   let query = supabaseAdmin
     .from("Referee")
     .select(
-      `id, firstName, lastName, zone, phone, lat, lng,
+      `id, firstName, lastName, zone, phone, lat, lng, "birthDate",
        level:RefereeLevel(id, label, rank),
        designations:Designation(id, match:Match(date, durationMinutes, cancelled)),
        unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
@@ -125,8 +139,21 @@ export async function getMatchCandidates(matchId: string): Promise<{
     query = query.not("id", "in", `(${alreadyAssignedIds.join(",")})`);
   }
 
-  const { data, error } = await query;
+  const [{ data, error }, { data: assignedReferees, error: assignedError }] = await Promise.all([
+    query,
+    alreadyAssignedIds.length > 0
+      ? supabaseAdmin.from("Referee").select(`id, "birthDate"`).in("id", alreadyAssignedIds)
+      : Promise.resolve({ data: [] as { id: string; birthDate: string | null }[], error: null }),
+  ]);
   if (error) throw error;
+  if (assignedError) throw assignedError;
+
+  // Un mineur doit toujours être accompagné d'un majeur, jamais d'un autre
+  // mineur : si un mineur est déjà désigné sur ce match, tout autre mineur
+  // devient inéligible pour le(s) créneau(x) restant(s).
+  const matchAlreadyHasMinor = (assignedReferees ?? []).some((r) =>
+    isMinorAt(r.birthDate, match.date)
+  );
 
   type RawCandidate = {
     id: string;
@@ -136,6 +163,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
     phone: string | null;
     lat: number | null;
     lng: number | null;
+    birthDate: string | null;
     level: { id: string; label: string; rank: number };
     designations: { id: string; match: { date: string; durationMinutes: number; cancelled: boolean } }[];
     unavailability: {
@@ -156,12 +184,19 @@ export async function getMatchCandidates(matchId: string): Promise<{
     .toISOString()
     .slice(11, 16);
 
+  // Horaire "00:00" = créneau pas encore confirmé par FBI : on ne peut pas
+  // comparer un créneau d'indisponibilité précis à une heure qu'on ne connaît
+  // pas encore, donc par prudence on ne désigne pas un arbitre dont la
+  // disponibilité ce jour-là dépend justement de l'heure.
+  const matchTimeUnknown = match.date.getUTCHours() === 0 && match.date.getUTCMinutes() === 0;
+
   const isUnavailable = (u: RawCandidate["unavailability"][number]) => {
     if (!u.recurring) {
       return !!u.startDate && !!u.endDate && u.startDate <= matchDay && matchDay <= u.endDate;
     }
     if (u.dayOfWeek !== matchWeekday) return false;
     if (!u.startTime || !u.endTime) return true; // journée entière bloquée
+    if (matchTimeUnknown) return true; // horaire à confirmer : trop risqué de compter sur un créneau libre précis
     return u.startTime < matchEnd && matchStart < u.endTime;
   };
 
@@ -188,6 +223,9 @@ export async function getMatchCandidates(matchId: string): Promise<{
     }
     if (c.unavailability.some(isUnavailable)) {
       reasons.push("Indisponible");
+    }
+    if (matchAlreadyHasMinor && isMinorAt(c.birthDate, match.date)) {
+      reasons.push("Mineur : un autre mineur est déjà désigné sur ce match");
     }
     const quotaViolations = checkQuotaRules(
       match.date,
@@ -284,7 +322,7 @@ export async function designateReferee(
 
   const { data: referee, error: refereeError } = await supabaseAdmin
     .from("Referee")
-    .select("level:RefereeLevel(label)")
+    .select(`"birthDate", level:RefereeLevel(label)`)
     .eq("id", refereeId)
     .maybeSingle();
   if (refereeError) throw refereeError;
@@ -313,6 +351,20 @@ export async function designateReferee(
   }
 
   const matchDate = new Date(match.date);
+
+  if (isMinorAt(referee?.birthDate ?? null, matchDate) && designations.length > 0) {
+    const { data: partners, error: partnersError } = await supabaseAdmin
+      .from("Referee")
+      .select(`id, "birthDate"`)
+      .in(
+        "id",
+        designations.map((d) => d.refereeId)
+      );
+    if (partnersError) throw partnersError;
+    if ((partners ?? []).some((p) => isMinorAt(p.birthDate, matchDate))) {
+      return { ok: false, error: "Un arbitre mineur ne peut pas être associé à un autre mineur." };
+    }
+  }
 
   const { data: existingDesignations, error: conflictError } = await supabaseAdmin
     .from("Designation")

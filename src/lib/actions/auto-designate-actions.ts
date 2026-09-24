@@ -1,13 +1,27 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { overlaps, formatDateTimeFr } from "@/lib/dates";
+import { hasSchedulingConflict, formatDateTimeFr, type MatchSlot } from "@/lib/dates";
 import {
   getMatchForSuggestion,
   suggestReferees,
   designateReferee,
   explainSuggestion,
 } from "@/lib/suggestions";
+
+/**
+ * Ordre de priorité des niveaux de compétition (règle CD45) : les créneaux
+ * les plus exigeants doivent être pourvus en premier pour ne pas épuiser sur
+ * des matchs de niveau inférieur les arbitres qualifiés qui se font rares.
+ * Comparaison sur le libellé (ex. "PRF", "PNM", "DM2 - A"...) : premier motif
+ * qui matche, sinon priorité la plus basse.
+ */
+const LEVEL_PRIORITY = ["PRF", "PNM", "DM2", "DM3", "DM4"];
+function levelPriorityRank(label: string): number {
+  const upper = label.toUpperCase();
+  const idx = LEVEL_PRIORITY.findIndex((p) => upper.includes(p));
+  return idx === -1 ? LEVEL_PRIORITY.length : idx;
+}
 
 export type PlanItem = {
   matchId: string;
@@ -31,13 +45,24 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   if (!user) throw new Error("Non authentifié.");
 
   const plan: PlanItem[] = [];
-  const pendingByReferee = new Map<string, { date: Date; durationMinutes: number }[]>();
+  const pendingByReferee = new Map<string, MatchSlot[]>();
 
-  for (const matchId of matchIds) {
-    const match = await getMatchForSuggestion(matchId);
-    if (!match) continue;
+  const matches = (
+    await Promise.all(matchIds.map((id) => getMatchForSuggestion(id)))
+  ).filter((m): m is NonNullable<typeof m> => !!m && !m.cancelled && m.refereesRequired > m.designations.length);
+
+  // Les matchs de niveau prioritaire (PRF/PNM en tête) sont pourvus avant les
+  // autres, pour que les arbitres qualifiés disponibles en nombre limité leur
+  // soient affectés en priorité plutôt qu'à des matchs de niveau inférieur.
+  matches.sort(
+    (a, b) =>
+      levelPriorityRank(a.competitionLevel.label) - levelPriorityRank(b.competitionLevel.label) ||
+      a.date.getTime() - b.date.getTime()
+  );
+
+  for (const match of matches) {
+    const matchId = match.id;
     const slotsToFill = match.refereesRequired - match.designations.length;
-    if (match.cancelled || slotsToFill <= 0) continue;
 
     const matchLabel = `${match.homeTeam} vs ${match.awayTeam} · ${formatDateTimeFr(match.date)}`;
 
@@ -46,7 +71,10 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       const pickIndex = suggestions.findIndex((s) => {
         const pending = pendingByReferee.get(s.id) ?? [];
         return !pending.some((p) =>
-          overlaps(match.date, match.durationMinutes, p.date, p.durationMinutes)
+          hasSchedulingConflict(
+            { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
+            p
+          )
         );
       });
 
@@ -71,7 +99,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       });
 
       const list = pendingByReferee.get(pick.id) ?? [];
-      list.push({ date: match.date, durationMinutes: match.durationMinutes });
+      list.push({ date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng });
       pendingByReferee.set(pick.id, list);
     }
   }
