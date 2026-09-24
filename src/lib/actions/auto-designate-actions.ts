@@ -40,6 +40,19 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
     if (match.cancelled || slotsToFill <= 0) continue;
 
     const matchLabel = `${match.homeTeam} vs ${match.awayTeam} · ${formatDateTimeFr(match.date)}`;
+
+    // Divisions que le CD45 ne désigne pas (seniors hors PRF/PRM) : jamais
+    // remplies automatiquement, uniquement à la main (club demandeur).
+    if (match.competitionLevel.autoDesignation === false) {
+      plan.push({
+        matchId,
+        matchLabel,
+        refereeId: null,
+        refereeName: null,
+        reason: `${match.competitionLevel.label} : division non désignée par le CD45 (seniors : PRF/PRM uniquement). À désigner à la main si le club l'a demandé.`,
+      });
+      continue;
+    }
     const slot: MatchSlot = {
       date: match.date,
       durationMinutes: match.durationMinutes,

@@ -189,6 +189,9 @@ export async function checkFbiOfficielEligibility(
     {}
   );
   const refusal = fbiErrorText(lookup);
+  // "L'officiel X a déjà été désigné sur ce match" : il est déjà sur FBI à
+  // cette rencontre, rien à pousser - ce n'est pas un refus.
+  if (refusal && /déjà été désigné sur ce match/i.test(refusal)) return { ok: true, message: "Déjà désigné sur FBI" };
   if (refusal) return { ok: false, message: refusal };
   const [status, nom] = lookup.split(";");
   if (status !== "0" || !nom) return { ok: false, message: `Numéro national non reconnu par FBI (${lookup.slice(0, 120)})` };

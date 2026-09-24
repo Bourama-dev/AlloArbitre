@@ -36,6 +36,8 @@ type RawMatchForSuggestion = {
   competitionLevel: {
     id: string;
     label: string;
+    /** false = division non désignée par le CD45 : pas d'auto-désignation (cf. /admin/niveaux). */
+    autoDesignation: boolean;
     mapping: { minRefereeLevel: { id: string; label: string; rank: number } } | null;
   };
   designations: { id: string; refereeId: string }[];
@@ -93,7 +95,7 @@ export async function getMatchForSuggestion(matchId: string) {
     .from("Match")
     .select(
       `id, date, durationMinutes, homeTeam, awayTeam, refereesRequired, cancelled, competitionLevelId, venue, lat, lng,
-       competitionLevel:CompetitionLevel(id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label, rank))),
+       competitionLevel:CompetitionLevel(id, label, autoDesignation, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label, rank))),
        designations:Designation(id, refereeId)`
     )
     .eq("id", matchId)

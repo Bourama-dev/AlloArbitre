@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 type CompetitionLevelRow = {
   id: string;
   label: string;
+  autoDesignation: boolean;
   mapping: { minRefereeLevel: { id: string; label: string } } | null;
 };
 
@@ -42,7 +43,7 @@ export default async function LevelMappingAdminPage({
     await Promise.all([
       supabaseAdmin
         .from("CompetitionLevel")
-        .select("id, label, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label))")
+        .select("id, label, autoDesignation, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label))")
         .order("label", { ascending: true }),
       supabaseAdmin.from("RefereeLevel").select("id, label, rank").order("rank", { ascending: true }),
     ]);
@@ -50,8 +51,21 @@ export default async function LevelMappingAdminPage({
   if (rlError) throw rlError;
 
   const competitionLevelRows: CompetitionLevelRow[] = (
-    (competitionLevels ?? []) as unknown as { id: string; label: string; mapping: unknown }[]
-  ).map((c) => ({ id: c.id, label: c.label, mapping: normalizeMapping(c.mapping) }));
+    (competitionLevels ?? []) as unknown as { id: string; label: string; autoDesignation: boolean; mapping: unknown }[]
+  ).map((c) => ({ id: c.id, label: c.label, autoDesignation: c.autoDesignation, mapping: normalizeMapping(c.mapping) }));
+
+  // Divisions désignées par le CD45 (auto-désignation). Seniors : PRF/PRM
+  // seulement ; DM2-DM4 à la main pour les clubs demandeurs.
+  async function toggleAutoDesignation(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+    const id = String(formData.get("competitionLevelId"));
+    const value = formData.get("autoDesignation") === "true";
+    const { error } = await supabaseAdmin.from("CompetitionLevel").update({ autoDesignation: value }).eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/niveaux");
+  }
 
   async function saveMapping(formData: FormData) {
     "use server";
@@ -192,7 +206,9 @@ export default async function LevelMappingAdminPage({
               <tr>
                 <th className="px-3 py-2 font-medium">Niveau de compétition</th>
                 <th className="px-3 py-2 font-medium">Niveau d&apos;arbitre minimum</th>
-                <th className="px-3 py-2" />
+                <th className="px-3 py-2 font-medium" title="Inclus dans l'auto-désignation. Sinon : désignation manuelle uniquement (ex. club qui en fait la demande).">
+                  Désigné par le CD45
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -221,6 +237,18 @@ export default async function LevelMappingAdminPage({
                         className="btn btn-primary text-xs"
                       >
                         Enregistrer
+                      </button>
+                    </form>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <form action={toggleAutoDesignation} className="flex items-center gap-2">
+                      <input type="hidden" name="competitionLevelId" value={c.id} />
+                      <input type="hidden" name="autoDesignation" value={String(!c.autoDesignation)} />
+                      <span className={c.autoDesignation ? "text-[var(--success)]" : "text-[var(--muted)]"}>
+                        {c.autoDesignation ? "Oui (auto)" : "Non - à la main"}
+                      </span>
+                      <button type="submit" className="btn btn-secondary text-xs">
+                        {c.autoDesignation ? "Exclure" : "Inclure"}
                       </button>
                     </form>
                   </td>
