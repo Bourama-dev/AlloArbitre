@@ -67,25 +67,35 @@ async function loadFicheState(client: FbiClient, idRencontre: string) {
   return { ficheFields, rows };
 }
 
-// Données FBI d'une journée (recherche + export), chargées une seule fois par
-// client FBI - donc par appel de la route : les deux positions d'un match,
-// puis tous les matchs du même jour d'un "Tout pousser", les réutilisent.
+// Données FBI d'une journée (recherche + export), mises en cache par client
+// FBI : les deux positions d'un match, puis tous les matchs du même jour d'un
+// "Tout pousser", les réutilisent. La session FBI étant désormais partagée
+// entre appels (withFbiSession), le cache expire vite (DAY_CACHE_MS) et est
+// vidé après chaque écriture/suppression sur FBI, pour ne jamais contrôler
+// un conflit sur un état FBI périmé.
 type DayData = { rows: FbiDesignationRow[]; exportRows: FbiExportRow[] };
-const dayCache = new WeakMap<FbiClient, Map<string, Promise<DayData>>>();
+const DAY_CACHE_MS = 60_000;
+const dayCache = new WeakMap<FbiClient, Map<string, { at: number; data: Promise<DayData> }>>();
 
 function loadDay(client: FbiClient, dateFr: string): Promise<DayData> {
   let byDate = dayCache.get(client);
   if (!byDate) dayCache.set(client, (byDate = new Map()));
-  let day = byDate.get(dateFr);
-  if (!day) {
-    const params = { dateDebut: dateFr, dateFin: dateFr };
-    day = (async () => ({
-      rows: await searchDesignations(client, params),
-      exportRows: await fetchDesignationsExportRows(client, params),
-    }))();
-    byDate.set(dateFr, day);
-  }
-  return day;
+  const cached = byDate.get(dateFr);
+  if (cached && Date.now() - cached.at < DAY_CACHE_MS) return cached.data;
+  const params = { dateDebut: dateFr, dateFin: dateFr };
+  const data = (async () => ({
+    rows: await searchDesignations(client, params),
+    exportRows: await fetchDesignationsExportRows(client, params),
+  }))();
+  byDate.set(dateFr, { at: Date.now(), data });
+  // Un échec ne doit pas rester en cache.
+  data.catch(() => byDate!.delete(dateFr));
+  return data;
+}
+
+/** À appeler après toute écriture sur FBI : l'état du jour a changé. */
+function invalidateDayCache(client: FbiClient) {
+  dayCache.delete(client);
 }
 
 function normName(s: string): string {
@@ -218,6 +228,7 @@ export async function removeArbitresFromFbiRencontre(
     }
   }
 
+  invalidateDayCache(client);
   const { rows: after } = await loadFicheState(client, idRencontre);
   result.restants = after.filter(isArbitre).map((r) => `${r.prenom} ${r.nom}`);
   return result;
@@ -377,6 +388,7 @@ export async function assignRefereeToFbiRencontre(
 
   if (!dryRun) {
     await client.post(`enregistrerRepartitionDesignation.fbi?avecHistorisation=true`, Object.fromEntries(body));
+    invalidateDayCache(client);
   }
 
   return {

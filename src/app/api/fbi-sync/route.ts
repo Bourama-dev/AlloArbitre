@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { FbiDump } from "@/lib/fbi/client";
-import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInClient } from "@/lib/fbi/fetch";
+import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, withFbiSession } from "@/lib/fbi/fetch";
 import { assignRefereeToFbiRencontre, checkFbiOfficielEligibility, removeArbitresFromFbiRencontre } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
 import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
@@ -77,8 +77,10 @@ export async function GET(request: Request) {
     }
     const dryRun = new URL(request.url).searchParams.get("dryRun") !== "0";
     try {
-      const client = await loggedInClient(onDump);
-      const result = await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational, dryRun });
+      const result = await withFbiSession(
+        (client) => assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational, dryRun }),
+        onDump
+      );
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), ...result });
     } catch (error) {
       return NextResponse.json(
@@ -109,9 +111,11 @@ export async function GET(request: Request) {
     const ids = retirer.split(",").map((s) => s.trim()).filter((s) => /^\d+$/.test(s));
     const dryRun = new URL(request.url).searchParams.get("dryRun") !== "0";
     try {
-      const client = await loggedInClient(onDump);
-      const results = [];
-      for (const id of ids) results.push(await removeArbitresFromFbiRencontre(client, id, dryRun));
+      const results = await withFbiSession(async (client) => {
+        const out = [];
+        for (const id of ids) out.push(await removeArbitresFromFbiRencontre(client, id, dryRun));
+        return out;
+      }, onDump);
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), dryRun, results });
     } catch (error) {
       return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
@@ -134,30 +138,32 @@ export async function GET(request: Request) {
         .filter((x) => x.fbiIdRencontre && (codes.length === 0 || codes.includes(x.competitionLevel.label)));
       const items = matches.flatMap((x) => x.designations.map((d) => ({ match: x, d })));
 
-      const client = await loggedInClient(onDump);
-      await client.get("rechercherDesignation.fbi");
-      const startedAt = Date.now();
-      const results = [];
-      let i = offset;
-      for (; i < items.length; i++) {
-        if (i > offset && Date.now() - startedAt > 40_000) break;
-        const { match, d } = items[i];
-        const base = {
-          matchId: match.id,
-          designationId: d.id,
-          niveau: match.competitionLevel.label,
-          match: `${match.homeTeam} - ${match.awayTeam}`,
-          position: d.position,
-          arbitre: `${d.referee.firstName} ${d.referee.lastName}`,
-        };
-        if (!d.referee.nationalNumber) {
-          results.push({ ...base, ok: false, message: "Numéro national manquant dans AlloArbitre" });
-          continue;
+      const { results, next } = await withFbiSession(async (client) => {
+        await client.get("rechercherDesignation.fbi");
+        const startedAt = Date.now();
+        const out = [];
+        let i = offset;
+        for (; i < items.length; i++) {
+          if (i > offset && Date.now() - startedAt > 40_000) break;
+          const { match, d } = items[i];
+          const base = {
+            matchId: match.id,
+            designationId: d.id,
+            niveau: match.competitionLevel.label,
+            match: `${match.homeTeam} - ${match.awayTeam}`,
+            position: d.position,
+            arbitre: `${d.referee.firstName} ${d.referee.lastName}`,
+          };
+          if (!d.referee.nationalNumber) {
+            out.push({ ...base, ok: false, message: "Numéro national manquant dans AlloArbitre" });
+            continue;
+          }
+          const check = await checkFbiOfficielEligibility(client, match.fbiIdRencontre!, verifierDate, d.referee.nationalNumber);
+          out.push({ ...base, ...check });
         }
-        const check = await checkFbiOfficielEligibility(client, match.fbiIdRencontre!, verifierDate, d.referee.nationalNumber);
-        results.push({ ...base, ...check });
-      }
-      return NextResponse.json({ total: items.length, nextOffset: i < items.length ? i : null, results });
+        return { results: out, next: i };
+      }, onDump);
+      return NextResponse.json({ total: items.length, nextOffset: next < items.length ? next : null, results });
     } catch (error) {
       return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
     }
@@ -171,7 +177,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "unauthorized (admin requis pour écrire sur FBI)" }, { status: 401 });
     }
     try {
-      const client = await loggedInClient(onDump);
       const now = new Date();
       const matches = pushAll
         ? (await findMatches({ from: now, status: "toutes" })).filter((m) => m.designations.length > 0)
@@ -190,22 +195,25 @@ export async function GET(request: Request) {
       const startedAt = Date.now();
       const offset = pushAll ? Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0) : 0;
 
-      const results = [];
-      let index = offset;
-      for (; index < matches.length; index++) {
-        if (pushAll && index > offset && Date.now() - startedAt > TIME_BUDGET_MS) break;
-        const m = matches[index];
-        results.push(
-          await pushMatchToFbi(client, {
-            id: m.id,
-            date: m.date.toISOString(),
-            homeTeam: m.homeTeam,
-            awayTeam: m.awayTeam,
-            fbiIdRencontre: m.fbiIdRencontre,
-            designations: m.designations.map((d) => ({ position: d.position, referee: d.referee, conflict: d.conflict })),
-          })
-        );
-      }
+      const { results, index } = await withFbiSession(async (client) => {
+        const out = [];
+        let i = offset;
+        for (; i < matches.length; i++) {
+          if (pushAll && i > offset && Date.now() - startedAt > TIME_BUDGET_MS) break;
+          const m = matches[i];
+          out.push(
+            await pushMatchToFbi(client, {
+              id: m.id,
+              date: m.date.toISOString(),
+              homeTeam: m.homeTeam,
+              awayTeam: m.awayTeam,
+              fbiIdRencontre: m.fbiIdRencontre,
+              designations: m.designations.map((d) => ({ position: d.position, referee: d.referee, conflict: d.conflict })),
+            })
+          );
+        }
+        return { results: out, index: i };
+      }, onDump);
       return NextResponse.json({
         ...(debugRunId ? { debugRunId } : {}),
         results,
@@ -232,14 +240,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "unauthorized (admin requis)" }, { status: 401 });
     }
     try {
-      const client = await loggedInClient(onDump);
       const params = { dateDebut: exportDate, dateFin: exportDate };
       // &full=1 : toutes les rencontres, parsées (officiels compris).
       if (new URL(request.url).searchParams.get("full") === "1") {
-        const rencontres = await fetchDesignationsExportRows(client, params);
+        const rencontres = await withFbiSession((client) => fetchDesignationsExportRows(client, params), onDump);
         return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), total: rencontres.length, rencontres });
       }
-      const rows = await fetchDesignationsExport(client, params);
+      const rows = await withFbiSession((client) => fetchDesignationsExport(client, params), onDump);
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), lignes: rows.length, apercu: rows.slice(0, 12) });
     } catch (error) {
       return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
