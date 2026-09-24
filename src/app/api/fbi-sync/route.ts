@@ -12,7 +12,10 @@ import { findMatches } from "@/lib/matches";
 import { fetchDesignationsExport, fetchDesignationsExportRows } from "@/lib/fbi/searchDesignations";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// FBI peut mettre 15-25 s par page aux heures chargées : une minute ne
+// suffisait plus pour un seul match (lecture, contrôles, retrait, enregistrement,
+// vérification). 300 s = maximum du plan avec Fluid Compute.
+export const maxDuration = 300;
 
 /**
  * Cron (déclaré dans vercel.json, tous les jours à 7h) : se logue sur FBI,
@@ -205,7 +208,7 @@ export async function GET(request: Request) {
       // par lots bornés dans le temps, le client rappelle avec ?offset=
       // (nextOffset) jusqu'à la fin. L'ordre (date croissante) est stable
       // d'un appel à l'autre : pousser ne change pas la liste des matchs.
-      const TIME_BUDGET_MS = 20_000; // un match peut prendre 20-30 s : 40 s + 1 match dépassait la minute (504)
+      const TIME_BUDGET_MS = 150_000; // un match peut prendre 1 min quand FBI est lent : marge sous les 300 s
       const startedAt = Date.now();
       const offset = batched ? Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0) : 0;
 

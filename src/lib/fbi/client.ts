@@ -12,15 +12,18 @@ const LOGIN_FORM_MARKER = "identificationForm.identificationBean.mdp";
 // seul raté faisait échouer tout un match. On retente les erreurs réseau
 // (jamais une réponse HTTP reçue, même en erreur). Sans risque pour
 // l'enregistrement d'une désignation : il renvoie l'état complet de la fiche.
+// Une page FBI simplement lente (15-25 s aux heures chargées) n'est PAS
+// retentée : l'abandonner puis la relancer ne faisait que doubler l'attente.
 const NETWORK_RETRIES = 3;
-const REQUEST_TIMEOUT_MS = 15_000;
+const REQUEST_TIMEOUT_MS = 45_000;
 
 async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     } catch (error) {
-      if (attempt >= NETWORK_RETRIES - 1) throw error;
+      const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+      if (timedOut || attempt >= NETWORK_RETRIES - 1) throw error;
       await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
     }
   }
