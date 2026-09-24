@@ -184,11 +184,11 @@ export default async function FbiPage({
         <div>
           <h2 className="text-sm font-semibold">Envoi vers FBI</h2>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Pousse toutes les désignations AlloArbitre à venir vers FBI en une fois. Ne touche jamais une position déjà
-            occupée sur FBI par quelqu&apos;un d&apos;autre.
+            Pousse vers FBI les désignations des matchs affichés ci-dessous (filtres appliqués), et seulement eux. Ne
+            touche jamais une position déjà occupée sur FBI par quelqu&apos;un d&apos;autre.
           </p>
         </div>
-        <PushAllToFbiButton />
+        <PushAllToFbiButton matchIds={filtered.filter((m) => m.designations.length > 0).map((m) => m.id)} />
       </section>
 
       {clamped && (

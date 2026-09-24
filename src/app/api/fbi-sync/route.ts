@@ -176,20 +176,27 @@ export async function GET(request: Request) {
     }
   }
 
+  // ?pushIds=<id,id,...> : uniquement ces matchs (ceux affichés sur /fbi,
+  // filtres appliqués), par lots comme pushAll.
   const pushMatchId = new URL(request.url).searchParams.get("push");
   const pushAll = new URL(request.url).searchParams.get("pushAll") === "1";
-  if (pushMatchId || pushAll) {
+  const pushIds = (new URL(request.url).searchParams.get("pushIds") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const batched = pushAll || pushIds.length > 0;
+  if (pushMatchId || batched) {
     const adminUser = await getCurrentUser();
     if (!adminUser || adminUser.role !== "ADMIN") {
       return NextResponse.json({ error: "unauthorized (admin requis pour écrire sur FBI)" }, { status: 401 });
     }
     try {
       const now = new Date();
+      const wanted = new Set(pushIds);
       const matches = pushAll
         ? (await findMatches({ from: now, status: "toutes" })).filter((m) => m.designations.length > 0)
-        : (await findMatches({ status: "toutes" })).filter((m) => m.id === pushMatchId);
+        : pushIds.length > 0
+          ? (await findMatches({ status: "toutes" })).filter((m) => wanted.has(m.id) && m.designations.length > 0)
+          : (await findMatches({ status: "toutes" })).filter((m) => m.id === pushMatchId);
 
-      if (!pushAll && matches.length === 0) {
+      if (!batched && matches.length === 0) {
         return NextResponse.json({ error: `Match ${pushMatchId} introuvable` }, { status: 404 });
       }
 
@@ -200,13 +207,13 @@ export async function GET(request: Request) {
       // d'un appel à l'autre : pousser ne change pas la liste des matchs.
       const TIME_BUDGET_MS = 20_000; // un match peut prendre 20-30 s : 40 s + 1 match dépassait la minute (504)
       const startedAt = Date.now();
-      const offset = pushAll ? Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0) : 0;
+      const offset = batched ? Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0) : 0;
 
       const { results, index } = await withFbiSession(async (client) => {
         const out = [];
         let i = offset;
         for (; i < matches.length; i++) {
-          if (pushAll && i > offset && Date.now() - startedAt > TIME_BUDGET_MS) break;
+          if (batched && i > offset && Date.now() - startedAt > TIME_BUDGET_MS) break;
           const m = matches[i];
           out.push(
             await pushMatchToFbi(client, {

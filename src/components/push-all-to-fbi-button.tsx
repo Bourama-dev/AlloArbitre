@@ -70,7 +70,11 @@ export function ImportFbiMatchesButton() {
   );
 }
 
-export function PushAllToFbiButton() {
+/**
+ * Pousse vers FBI uniquement les matchs affichés sur la page (filtres
+ * appliqués) : `matchIds` = matchs visibles ayant au moins une désignation.
+ */
+export function PushAllToFbiButton({ matchIds }: { matchIds: string[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [results, setResults] = useState<FbiPushMatchResult[] | null>(null);
@@ -83,6 +87,11 @@ export function PushAllToFbiButton() {
     setResults(null);
     setError(null);
     setProgress(null);
+    if (matchIds.length === 0) {
+      setResults([]);
+      return;
+    }
+    const ids = encodeURIComponent(matchIds.join(","));
     startTransition(async () => {
       const all: FbiPushMatchResult[] = [];
       try {
@@ -90,7 +99,7 @@ export function PushAllToFbiButton() {
         let retries = 0;
         while (offset !== null) {
           const { ok, data }: { ok: boolean; data: Record<string, unknown> } = await fetchJson(
-            `/api/fbi-sync?pushAll=1&offset=${offset}`
+            `/api/fbi-sync?pushIds=${ids}&offset=${offset}`
           );
           if (!ok) {
             // Lot interrompu (délai dépassé, FBI lent) : on rejoue le même lot.
@@ -129,12 +138,14 @@ export function PushAllToFbiButton() {
         {isPending && <span className="spinner" aria-hidden />}
         {isPending
           ? `Envoi en cours…${progress ? ` (${progress.done}/${progress.total})` : ""}`
-          : "Tout pousser vers FBI"}
+          : `Pousser vers FBI les ${matchIds.length} match${matchIds.length > 1 ? "s" : ""} affiché${matchIds.length > 1 ? "s" : ""}`}
       </button>
       {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
       {results && (
         <div className="card p-3 text-sm space-y-2 max-h-72 overflow-y-auto">
-          {results.length === 0 && !error && <p className="text-[var(--muted)]">Aucun match à pousser.</p>}
+          {results.length === 0 && !error && (
+            <p className="text-[var(--muted)]">Aucun match affiché avec des désignations à pousser.</p>
+          )}
           {results.map((r) => (
             <div key={r.matchId} className="border-b border-[var(--border)] last:border-0 pb-2 last:pb-0">
               <p className="font-medium">{r.matchLabel}</p>
