@@ -54,7 +54,12 @@ export default async function FbiPage({
   const maxAu = new Date(du.getTime() + (MAX_DAYS - 1) * 86_400_000);
   const clamped = au > maxAu;
   if (clamped) au = maxAu;
-  const auExclusive = new Date(au.getTime() + 86_400_000);
+  // du/au sont à midi UTC (cf. parseIsoDay) : la requête doit partir de
+  // minuit du premier jour et s'arrêter à minuit après le dernier, sinon les
+  // matchs du matin du premier jour disparaissent (et ceux du lendemain matin
+  // du dernier jour s'invitent).
+  const duStart = new Date(`${toIsoDay(du)}T00:00:00Z`);
+  const auExclusive = new Date(new Date(`${toIsoDay(au)}T00:00:00Z`).getTime() + 86_400_000);
 
   const groupe = params.groupe && GROUPES[params.groupe] ? params.groupe : "";
   const code = params.code || "";
@@ -63,7 +68,7 @@ export default async function FbiPage({
 
   const [referees, matchesRaw] = await Promise.all([
     listActiveReferees(),
-    findMatches({ from: du, to: auExclusive, status: "toutes", search: search || undefined, sort: "date_asc" as MatchSort }),
+    findMatches({ from: duStart, to: auExclusive, status: "toutes", search: search || undefined, sort: "date_asc" as MatchSort }),
   ]);
 
   const inGroupe = (label: string) => !groupe || GROUPES[groupe].match(label);

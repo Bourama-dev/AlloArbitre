@@ -58,6 +58,36 @@ function normalizeMapping(
   return raw as { minRefereeLevel: { id: string; label: string; rank: number } };
 }
 
+type UnavailabilitySlot = {
+  recurring: boolean;
+  startDate: string | null;
+  endDate: string | null;
+  dayOfWeek: number | null;
+  startTime: string | null;
+  endTime: string | null;
+};
+
+/**
+ * Une indisponibilité empêche-t-elle l'arbitre de siffler ce match ? Un
+ * créneau horaire (startTime/endTime), ponctuel ou récurrent, ne bloque que
+ * les matchs qui le chevauchent ; sans créneau, toute la journée est
+ * bloquée. Pour une indisponibilité ponctuelle sur plusieurs jours, le
+ * créneau s'applique à chacun de ces jours. Dates de match à l'heure du
+ * gymnase, stockées sans fuseau (d'où les lectures en UTC).
+ */
+function unavailabilityBlocksMatch(u: UnavailabilitySlot, matchDate: Date, durationMinutes: number): boolean {
+  const matchDay = matchDate.toISOString().slice(0, 10);
+  const matchStart = matchDate.toISOString().slice(11, 16);
+  const matchEnd = new Date(matchDate.getTime() + durationMinutes * 60000).toISOString().slice(11, 16);
+  const overlapsSlot = !u.startTime || !u.endTime || (u.startTime < matchEnd && matchStart < u.endTime);
+
+  if (!u.recurring) {
+    const inRange = !!u.startDate && !!u.endDate && u.startDate <= matchDay && matchDay <= u.endDate;
+    return inRange && overlapsSlot;
+  }
+  return u.dayOfWeek === matchDate.getUTCDay() && overlapsSlot;
+}
+
 export async function getMatchForSuggestion(matchId: string) {
   const { data, error } = await supabaseAdmin
     .from("Match")
@@ -160,28 +190,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
   };
 
   const now = new Date();
-  const matchDay = match.date.toISOString().slice(0, 10);
-  const matchWeekday = match.date.getUTCDay();
-  const matchStart = match.date.toISOString().slice(11, 16);
-  const matchEnd = new Date(match.date.getTime() + match.durationMinutes * 60000)
-    .toISOString()
-    .slice(11, 16);
-
-  // Un créneau horaire (startTime/endTime), ponctuel ou récurrent, ne bloque
-  // que les matchs qui le chevauchent ; sans créneau, toute la journée est
-  // bloquée. Pour une indisponibilité ponctuelle sur plusieurs jours, le
-  // créneau s'applique à chacun de ces jours.
-  const overlapsSlot = (u: RawCandidate["unavailability"][number]) =>
-    !u.startTime || !u.endTime || (u.startTime < matchEnd && matchStart < u.endTime);
-
-  const isUnavailable = (u: RawCandidate["unavailability"][number]) => {
-    if (!u.recurring) {
-      const inRange = !!u.startDate && !!u.endDate && u.startDate <= matchDay && matchDay <= u.endDate;
-      return inRange && overlapsSlot(u);
-    }
-    if (u.dayOfWeek !== matchWeekday) return false;
-    return overlapsSlot(u);
-  };
+  const isUnavailable = (u: RawCandidate["unavailability"][number]) =>
+    unavailabilityBlocksMatch(u, match.date, match.durationMinutes);
 
   const hasMatchCoords = match.lat != null && match.lng != null;
 
@@ -301,7 +311,7 @@ export async function designateReferee(
   const { data: match, error: matchError } = await supabaseAdmin
     .from("Match")
     .select(
-      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, designations:Designation(id, refereeId), competitionLevel:CompetitionLevel(label)"
+      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, designations:Designation(id, refereeId, position), competitionLevel:CompetitionLevel(label)"
     )
     .eq("id", matchId)
     .maybeSingle();
@@ -331,7 +341,7 @@ export async function designateReferee(
     | undefined;
   const isTqr = (competitionLevel?.label ?? "").trim().toUpperCase().startsWith("TQR");
 
-  const designations = (match.designations ?? []) as { id: string; refereeId: string }[];
+  const designations = (match.designations ?? []) as { id: string; refereeId: string; position: number }[];
   if (designations.length >= match.refereesRequired) {
     return { ok: false, error: "Ce match a déjà tous ses arbitres désignés." };
   }
@@ -340,6 +350,24 @@ export async function designateReferee(
   }
 
   const matchDate = new Date(match.date);
+
+  // Même règle que les suggestions : la désignation directe ("Désigner…")
+  // ne vérifiait pas les indisponibilités et laissait passer un arbitre
+  // indisponible.
+  const { data: unavailability, error: unavailabilityError } = await supabaseAdmin
+    .from("Unavailability")
+    .select("recurring, startDate, endDate, dayOfWeek, startTime, endTime, note")
+    .eq("refereeId", refereeId);
+  if (unavailabilityError) throw unavailabilityError;
+  const blocking = ((unavailability ?? []) as (UnavailabilitySlot & { note: string | null })[]).find((u) =>
+    unavailabilityBlocksMatch(u, matchDate, match.durationMinutes)
+  );
+  if (blocking) {
+    return {
+      ok: false,
+      error: `Cet arbitre est indisponible sur ce créneau${blocking.note ? ` (${blocking.note})` : ""}.`,
+    };
+  }
 
   const { data: existingDesignations, error: conflictError } = await supabaseAdmin
     .from("Designation")
@@ -380,7 +408,11 @@ export async function designateReferee(
     return { ok: false, error: quotaViolations.map((v) => v.message).join(" ") };
   }
 
-  let position = designations.length + 1;
+  // Première position libre (A1, A2...) : "nombre de désignés + 1" créait
+  // des doublons (deux A2) quand A1 avait été retiré et A2 conservé.
+  const taken = new Set(designations.map((d) => d.position));
+  let position = 1;
+  while (taken.has(position)) position++;
 
   // Rotation "arbitre 1 / arbitre 2" : quand un même binôme enchaîne deux
   // matchs dos à dos (fin du précédent = début de celui-ci), celui qui était
