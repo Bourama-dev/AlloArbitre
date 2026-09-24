@@ -29,9 +29,24 @@ export function cleanPlaceName(s: string | null | undefined): string {
   return (s ?? "")
     .replace(/\s*\([^)]*$/, "")
     .replace(/\.{2,}\s*$/, "")
-    .replace(/[\s,-]+$/, "")
+    .replace(/[\s,'’-]+$/, "")
     .trim();
 }
+
+/**
+ * Zone privilégiée (Loiret et alentours, comité CD45) : simple biais, pas
+ * une restriction - une adresse d'arbitre ailleurs en France reste bien
+ * géocodée, mais un "SALLE PAUL BERT" sans ville part à Gien plutôt qu'à Angers.
+ */
+const PREFERRED_BOUNDS = "47.2,1.2|48.5,3.3";
+
+/**
+ * Résultats trop vagues pour situer un gymnase ou une adresse : Google
+ * renvoie le pays ou la région entière quand il ne comprend pas l'adresse
+ * (ex. ville tronquée par FBI "SAINT-DENIS-DE-L'..." -> centre de la France).
+ * Traités comme introuvables plutôt qu'enregistrés à tort.
+ */
+const TOO_VAGUE_TYPES = new Set(["country", "administrative_area_level_1", "administrative_area_level_2", "political"]);
 
 export async function geocodeAddressDetailed(address: string): Promise<GeocodeResult> {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -42,7 +57,7 @@ export async function geocodeAddressDetailed(address: string): Promise<GeocodeRe
   // "GYMNASE MUNICIPAL, SANDILLON" parte à l'étranger.
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
-  )}&region=fr&components=country:FR&language=fr&key=${apiKey}`;
+  )}&region=fr&components=country:FR&bounds=${encodeURIComponent(PREFERRED_BOUNDS)}&language=fr&key=${apiKey}`;
 
   const res = await fetch(url);
   if (!res.ok) return { coords: null, status: `HTTP_${res.status}` };
@@ -50,7 +65,7 @@ export async function geocodeAddressDetailed(address: string): Promise<GeocodeRe
   const data = (await res.json()) as {
     status: string;
     error_message?: string;
-    results: { geometry: { location: { lat: number; lng: number } } }[];
+    results: { types: string[]; geometry: { location: { lat: number; lng: number } } }[];
   };
   if (data.status !== "OK" || data.results.length === 0) {
     if (data.status !== "ZERO_RESULTS") {
@@ -59,7 +74,12 @@ export async function geocodeAddressDetailed(address: string): Promise<GeocodeRe
     return { coords: null, status: data.status, errorMessage: data.error_message };
   }
 
-  const { lat, lng } = data.results[0].geometry.location;
+  const best = data.results[0];
+  if (best.types.length > 0 && best.types.every((t) => TOO_VAGUE_TYPES.has(t))) {
+    return { coords: null, status: "TOO_VAGUE" };
+  }
+
+  const { lat, lng } = best.geometry.location;
   return { coords: { lat, lng }, status: "OK" };
 }
 
