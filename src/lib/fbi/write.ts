@@ -170,6 +170,32 @@ function fbiErrorText(html: string): string | null {
 }
 
 /**
+ * FBI accepterait-il cet officiel sur cette rencontre ? Rejoue uniquement la
+ * saisie de la licence (afficherNomPrenomOfficiel.fbi, appelée par la page
+ * FBI dès qu'on tape un numéro) : aucune désignation n'est enregistrée. FBI
+ * y applique notamment son contrôle de neutralité, bloquant ("L'officiel
+ * appartient à la même association sportive ou au même comité ou à la même
+ * ligue ou à la même poule") - critère qu'AlloArbitre ne peut pas vérifier
+ * seul (il ne connaît ni le club ni la poule de l'arbitre).
+ */
+export async function checkFbiOfficielEligibility(
+  client: FbiClient,
+  idRencontre: string,
+  dateRencontre: string,
+  numeroNational: string
+): Promise<{ ok: boolean; message: string }> {
+  const lookup = await client.post(
+    `afficherNomPrenomOfficiel.fbi?numeroTmpOfficiel=${encodeURIComponent(numeroNational.trim())}&idFonction=${ID_FONCTION_ARBITRE}&nomFonction=${encodeURIComponent(LABEL_ARBITRE)}&dateRencontre=${encodeURIComponent(dateRencontre)}&rencontreId=${idRencontre}`,
+    {}
+  );
+  const refusal = fbiErrorText(lookup);
+  if (refusal) return { ok: false, message: refusal };
+  const [status, nom] = lookup.split(";");
+  if (status !== "0" || !nom) return { ok: false, message: `Numéro national non reconnu par FBI (${lookup.slice(0, 120)})` };
+  return { ok: true, message: "Accepté par FBI" };
+}
+
+/**
  * Désigne un arbitre (par son numéro national FFBB) à une position donnée
  * (1 ou 2, "Ordre" côté FBI) sur une rencontre FBI. Ne touche qu'à la ligne
  * ciblée : FBI attend l'état complet du formulaire à chaque enregistrement,

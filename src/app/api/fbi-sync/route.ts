@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { FbiDump } from "@/lib/fbi/client";
 import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInClient } from "@/lib/fbi/fetch";
-import { assignRefereeToFbiRencontre } from "@/lib/fbi/write";
+import { assignRefereeToFbiRencontre, checkFbiOfficielEligibility } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
 import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
 import { syncFbiOfficielsToDesignations } from "@/lib/fbi/designation-sync";
@@ -92,6 +92,56 @@ export async function GET(request: Request) {
   // vers FBI (une position à la fois, jamais d'écrasement d'une position déjà
   // occupée par quelqu'un d'autre). ?pushAll=1 : idem pour tous les matchs à
   // venir ayant au moins une désignation. Réservé aux admins.
+  // ?verifier=JJ/MM/AAAA[&codes=RFU13,RMU15...][&offset=N] (admin, lecture
+  // seule) : demande à FBI, pour chaque désignation AlloArbitre du jour, s'il
+  // accepterait l'officiel sur la rencontre (contrôle de neutralité FBI,
+  // bloquant sur les divisions jeunes CVL). Par lots bornés dans le temps,
+  // comme le push : rappeler avec nextOffset.
+  const verifierDate = new URL(request.url).searchParams.get("verifier");
+  if (verifierDate) {
+    const adminUser = await getCurrentUser();
+    if (!adminUser || adminUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "unauthorized (admin requis)" }, { status: 401 });
+    }
+    const m = verifierDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return NextResponse.json({ error: "Format attendu : ?verifier=JJ/MM/AAAA" }, { status: 400 });
+    const codes = (new URL(request.url).searchParams.get("codes") ?? "").split(",").map((c) => c.trim()).filter(Boolean);
+    const offset = Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0);
+    try {
+      const dayStart = new Date(`${m[3]}-${m[2]}-${m[1]}T00:00:00Z`);
+      const matches = (await findMatches({ from: dayStart, to: new Date(dayStart.getTime() + 86_400_000), status: "toutes" }))
+        .filter((x) => x.fbiIdRencontre && (codes.length === 0 || codes.includes(x.competitionLevel.label)));
+      const items = matches.flatMap((x) => x.designations.map((d) => ({ match: x, d })));
+
+      const client = await loggedInClient(onDump);
+      await client.get("rechercherDesignation.fbi");
+      const startedAt = Date.now();
+      const results = [];
+      let i = offset;
+      for (; i < items.length; i++) {
+        if (i > offset && Date.now() - startedAt > 40_000) break;
+        const { match, d } = items[i];
+        const base = {
+          matchId: match.id,
+          designationId: d.id,
+          niveau: match.competitionLevel.label,
+          match: `${match.homeTeam} - ${match.awayTeam}`,
+          position: d.position,
+          arbitre: `${d.referee.firstName} ${d.referee.lastName}`,
+        };
+        if (!d.referee.nationalNumber) {
+          results.push({ ...base, ok: false, message: "Numéro national manquant dans AlloArbitre" });
+          continue;
+        }
+        const check = await checkFbiOfficielEligibility(client, match.fbiIdRencontre!, verifierDate, d.referee.nationalNumber);
+        results.push({ ...base, ...check });
+      }
+      return NextResponse.json({ total: items.length, nextOffset: i < items.length ? i : null, results });
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
+    }
+  }
+
   const pushMatchId = new URL(request.url).searchParams.get("push");
   const pushAll = new URL(request.url).searchParams.get("pushAll") === "1";
   if (pushMatchId || pushAll) {
