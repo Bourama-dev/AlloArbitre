@@ -19,7 +19,17 @@ export function PushToFbiButton({ matchId }: { matchId: string }) {
     startTransition(async () => {
       try {
         const res = await fetch(`/api/fbi-sync?push=${encodeURIComponent(matchId)}`);
-        const data = await res.json();
+        const text = await res.text();
+        let data: { error?: string; results?: FbiPushMatchResult[] };
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // Page d'erreur HTML de Vercel (délai dépassé...) au lieu du JSON attendu.
+          setResult({
+            error: `Le serveur a renvoyé une erreur HTTP ${res.status}${res.status === 504 ? " (délai dépassé)" : ""}. Relancez : ce qui est déjà sur FBI sera ignoré.`,
+          });
+          return;
+        }
         if (!res.ok) {
           setResult({ error: data.error ?? "Erreur inconnue" });
           return;

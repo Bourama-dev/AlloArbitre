@@ -45,10 +45,11 @@ export async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>):
  * session est réutilisée tant qu'elle a servi récemment - moins d'appels à
  * FBI, et plus rapide.
  *
- * Une seule opération à la fois par session (verrou) : les pages FBI
- * gardent un état côté serveur (fiche ouverte, recherche en cours), deux
- * opérations entremêlées pourraient se mélanger - dangereux pour une
- * écriture. Une session inactive depuis plus de SESSION_IDLE_MS, ou trop
+ * Une seule opération à la fois par session : les pages FBI gardent un état
+ * côté serveur (fiche ouverte, recherche en cours), deux opérations
+ * entremêlées pourraient se mélanger - dangereux pour une écriture. Si la
+ * session partagée est occupée, l'opération ouvre sa propre session
+ * temporaire au lieu d'attendre. Une session inactive depuis plus de SESSION_IDLE_MS, ou trop
  * ancienne, est remplacée par une nouvelle connexion (FBI les fait expirer) ;
  * une erreur "session non connectée" l'invalide aussi.
  *
@@ -57,7 +58,7 @@ export async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>):
 const SESSION_IDLE_MS = 5 * 60_000;
 const SESSION_MAX_AGE_MS = 20 * 60_000;
 let shared: { client: FbiClient; createdAt: number; lastUsedAt: number } | null = null;
-let lock: Promise<void> = Promise.resolve();
+let busy = false;
 
 export async function withFbiSession<T>(
   fn: (client: FbiClient) => Promise<T>,
@@ -65,10 +66,13 @@ export async function withFbiSession<T>(
 ): Promise<T> {
   if (onDump) return fn(await loggedInClient(onDump));
 
-  let release!: () => void;
-  const previous = lock;
-  lock = new Promise<void>((resolve) => (release = resolve));
-  await previous;
+  // Session partagée déjà occupée par une autre opération : plutôt que
+  // d'attendre son tour (plusieurs clics "Pousser vers FBI" à la suite
+  // s'empilaient et dépassaient la minute -> HTTP 504), cette opération
+  // prend sa propre session, jetée ensuite.
+  if (busy) return fn(await loggedInClient());
+
+  busy = true;
   try {
     const now = Date.now();
     if (!shared || now - shared.lastUsedAt > SESSION_IDLE_MS || now - shared.createdAt > SESSION_MAX_AGE_MS) {
@@ -85,7 +89,7 @@ export async function withFbiSession<T>(
       if (shared === session) session.lastUsedAt = Date.now();
     }
   } finally {
-    release();
+    busy = false;
   }
 }
 
