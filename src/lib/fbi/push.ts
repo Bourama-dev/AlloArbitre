@@ -77,8 +77,15 @@ async function pushOnePosition(
     return { position, referee: refereeLabel, status: "error", message: "Numéro national manquant côté AlloArbitre" };
   }
   try {
-    await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational: nationalNumber, dryRun: false });
-    return { position, referee: refereeLabel, status: "ok", message: "Désigné sur FBI" };
+    const result = await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational: nationalNumber, dryRun: false });
+    return {
+      position,
+      referee: refereeLabel,
+      status: "ok",
+      message: result.frais.deuxiemeMatchMemeSalle
+        ? "Désigné sur FBI (0 km : 2e match du jour dans la même salle)"
+        : "Désigné sur FBI",
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const occupied = message.match(OCCUPIED_RE);

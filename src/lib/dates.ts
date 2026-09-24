@@ -104,6 +104,25 @@ export type MatchSlot = {
  * gymnase, dos à dos, ne sont jamais un conflit : l'arbitre est déjà sur
  * place (seul le chevauchement direct compte).
  */
+/**
+ * Règle CD45 des frais kilométriques : quand un arbitre enchaîne deux matchs
+ * le même jour dans la même salle, le 2e ne donne pas lieu à des frais de
+ * déplacement (il est déjà sur place). Vrai si `others` contient un match du
+ * même jour, dans la même salle, commençant avant `target`.
+ */
+export function isLaterMatchSameVenueSameDay(target: MatchSlot, others: MatchSlot[]): boolean {
+  if (!target.venue) return false;
+  const venue = target.venue.trim().toLowerCase();
+  const day = target.date.toISOString().slice(0, 10);
+  return others.some(
+    (o) =>
+      !!o.venue &&
+      o.venue.trim().toLowerCase() === venue &&
+      o.date.toISOString().slice(0, 10) === day &&
+      o.date.getTime() < target.date.getTime()
+  );
+}
+
 export function hasSchedulingConflict(a: MatchSlot, b: MatchSlot): boolean {
   if (overlaps(a.date, a.durationMinutes, b.date, b.durationMinutes)) return true;
 

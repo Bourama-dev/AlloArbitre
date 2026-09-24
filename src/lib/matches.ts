@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchStatus } from "@/lib/match-status";
 import type { MatchStatus } from "@/lib/match-status";
 import { MAX_PER_DAY } from "@/lib/designation-rules";
-import { formatDateTimeFr, hasSchedulingConflict, type MatchSlot } from "@/lib/dates";
+import { formatDateTimeFr, hasSchedulingConflict, isLaterMatchSameVenueSameDay, type MatchSlot } from "@/lib/dates";
 
 export type { MatchStatus } from "@/lib/match-status";
 export { matchStatus } from "@/lib/match-status";
@@ -43,6 +43,8 @@ export type MatchWithRelations = {
      * typiquement créée avant l'arrivée d'une règle. Message lisible, sinon null.
      */
     conflict?: string | null;
+    /** 2e match du jour de cet arbitre dans la même salle : pas de frais kilométriques. */
+    sameVenueEarlier?: boolean;
   }[];
 };
 
@@ -115,7 +117,9 @@ async function annotateDesignationConflicts(matches: MatchWithRelations[]): Prom
   for (const m of active) {
     const slot: MatchSlot = { date: m.date, durationMinutes: m.durationMinutes, venue: m.venue, lat: m.lat, lng: m.lng };
     for (const d of m.designations) {
-      const other = (byReferee.get(d.refereeId) ?? []).find((o) => o.id !== m.id && hasSchedulingConflict(slot, o));
+      const others = (byReferee.get(d.refereeId) ?? []).filter((o) => o.id !== m.id);
+      d.sameVenueEarlier = isLaterMatchSameVenueSameDay(slot, others);
+      const other = others.find((o) => hasSchedulingConflict(slot, o));
       d.conflict = other
         ? `Incompatible avec son autre match du ${formatDateTimeFr(other.date)} (${[other.venue, other.city].filter(Boolean).join(" - ") || "lieu inconnu"}) : chevauchement, ou pas le temps de faire le trajet et d'être présent 30 min avant.`
         : null;

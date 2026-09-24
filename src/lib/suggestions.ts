@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { hasSchedulingConflict } from "@/lib/dates";
+import { hasSchedulingConflict, isLaterMatchSameVenueSameDay } from "@/lib/dates";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
 
@@ -238,6 +238,14 @@ export async function getMatchCandidates(matchId: string): Promise<{
       hasMatchCoords && c.lat != null && c.lng != null
         ? distanceKm({ lat: match.lat!, lng: match.lng! }, { lat: c.lat, lng: c.lng })
         : null;
+    // 2e match du jour dans la même salle : pas de frais kilométriques
+    // (règle CD45) - la distance reste affichée pour le classement.
+    const paidKm = isLaterMatchSameVenueSameDay(
+      { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue },
+      activeDesignations
+    )
+      ? 0
+      : oneWayKm;
 
     return {
       id: c.id,
@@ -248,7 +256,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
       levelLabel: c.level.label,
       currentLoad: activeDesignations.filter((d) => d.date >= now).length,
       distanceKm: oneWayKm,
-      estimatedPayment: oneWayKm != null ? estimatePayment(oneWayKm) : null,
+      estimatedPayment: paidKm != null ? estimatePayment(paidKm) : null,
       reasons,
     };
   });

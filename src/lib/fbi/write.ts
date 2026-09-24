@@ -45,6 +45,8 @@ export type FbiAssignResult = {
   referee: { nom: string; prenom: string; numeroNational: string };
   /** Corps exact (application/x-www-form-urlencoded) qui a été (ou aurait été) envoyé à FBI. */
   payload: string;
+  /** Kilomètres / indemnité envoyés ; 0 km si 2e match du jour dans la même salle. */
+  frais: { kilometres: string; indemnites: string; deuxiemeMatchMemeSalle: boolean };
 };
 
 /**
@@ -108,16 +110,27 @@ function normName(s: string): string {
  * de la fonction Vercel. L'export ne donne pas la licence : comparaison sur
  * nom + prénom (ceux renvoyés par FBI pour ce numéro national).
  */
-async function findFbiScheduleConflict(
+type FbiDayAnalysis = {
+  conflict: { equipe1: string; equipe2: string; heure: string } | null;
+  /**
+   * L'arbitre a déjà, ce jour-là, un match plus tôt dans la même salle :
+   * règle CD45, pas de frais kilométriques pour ce 2e match (il est déjà sur
+   * place).
+   */
+  previousMatchSameSalle: boolean;
+};
+
+async function analyzeFbiDay(
   client: FbiClient,
   idRencontre: string,
   dateFr: string,
   referee: { nom: string; prenom: string }
-): Promise<{ equipe1: string; equipe2: string; heure: string } | null> {
+): Promise<FbiDayAnalysis> {
+  const result: FbiDayAnalysis = { conflict: null, previousMatchSameSalle: false };
   const { rows, exportRows } = await loadDay(client, dateFr);
   const target = rows.find((r) => r.idRencontre === idRencontre);
   const targetStart = target ? parseFbiDateTime(target.date, target.heure) : null;
-  if (!target || !targetStart) return null;
+  if (!target || !targetStart) return result;
   const targetDuration = matchDurationMinutes(target.code);
   const targetEnd = targetStart.getTime() + targetDuration * 60_000;
   const who = `${normName(referee.nom)}|${normName(referee.prenom)}`;
@@ -141,9 +154,19 @@ async function findFbiScheduleConflict(
         ? false // même salle, dos à dos : pas de trajet à prévoir
         : Math.max(targetStart.getTime() - rowEnd, rowStart.getTime() - targetEnd) / 60_000 <
           FBI_UNKNOWN_VENUE_BUFFER_MINUTES;
-    if (isConflict) return { equipe1: row.equipe1, equipe2: row.equipe2, heure: row.heure };
+    if (isConflict && !result.conflict) {
+      result.conflict = { equipe1: row.equipe1, equipe2: row.equipe2, heure: row.heure };
+    }
+    if (sameSalle && rowStart.getTime() < targetStart.getTime()) result.previousMatchSameSalle = true;
   }
-  return null;
+  return result;
+}
+
+/** Message d'erreur FBI (<ul class="errorMessage"><li>...) en texte, ou null. */
+function fbiErrorText(html: string): string | null {
+  if (!html.includes("errorMessage")) return null;
+  const items = Array.from(html.matchAll(/<li>([\s\S]*?)<\/li>/g), (m) => m[1].replace(/<[^>]+>/g, "").trim()).filter(Boolean);
+  return items.length > 0 ? items.join(" / ") : html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -193,24 +216,35 @@ export async function assignRefereeToFbiRencontre(
     `afficherNomPrenomOfficiel.fbi?numeroTmpOfficiel=${encodeURIComponent(numeroNational)}&idFonction=${ID_FONCTION_ARBITRE}&nomFonction=${encodeURIComponent(LABEL_ARBITRE)}&dateRencontre=${encodeURIComponent(dateRencontre)}&rencontreId=${idRencontre}`,
     {}
   );
+  // FBI peut refuser l'officiel (ex. "L'officiel appartient à la même
+  // association sportive ou au même comité ou à la même ligue ou à la même
+  // poule") : c'est un message d'erreur HTML, pas un numéro inconnu.
+  const refusal = fbiErrorText(lookup);
+  if (refusal) {
+    throw new Error(`FBI refuse cet officiel sur cette rencontre : ${refusal}`);
+  }
   const [lookupStatus, nom, prenom] = lookup.split(";");
   if (lookupStatus !== "0" || !nom) {
-    throw new Error(`FBI ne reconnaît pas le numéro national ${numeroNational} (réponse : ${lookup})`);
+    throw new Error(`FBI ne reconnaît pas le numéro national ${numeroNational} (réponse : ${lookup.slice(0, 200)})`);
   }
 
+  let previousMatchSameSalle = false;
   if (dateRencontre) {
-    const conflict = await findFbiScheduleConflict(client, idRencontre, dateRencontre, { nom, prenom });
-    if (conflict) {
+    const day = await analyzeFbiDay(client, idRencontre, dateRencontre, { nom, prenom });
+    if (day.conflict) {
       throw new Error(
-        `Conflit d'horaire sur FBI : cet arbitre est déjà désigné à ${conflict.heure} sur ${conflict.equipe1} - ${conflict.equipe2}`
+        `Conflit d'horaire sur FBI : cet arbitre est déjà désigné à ${day.conflict.heure} sur ${day.conflict.equipe1} - ${day.conflict.equipe2}`
       );
     }
+    previousMatchSameSalle = day.previousMatchSameSalle;
   }
 
   // Calcule kilomètres / indemnité comme le fait le bouton "CALCULER".
   // Réponse: "0;kilometres;indemnites;licence;polyline;distance".
+  // 2e match du jour dans la même salle : 0 km (règle CD45), FBI recalcule
+  // alors l'indemnité sans frais de déplacement.
   const recalc = await client.post(
-    `recalculerIndemniteDesignationAjax.fbi?idLicence=${encodeURIComponent(numeroNational)}&idFonction=${ID_FONCTION_ARBITRE}&kilometre=&couple=false&idRencontre=${idRencontre}&here=true&idOfficielRencontre=${targetRow.idOfficielRencontre}`,
+    `recalculerIndemniteDesignationAjax.fbi?idLicence=${encodeURIComponent(numeroNational)}&idFonction=${ID_FONCTION_ARBITRE}&kilometre=${previousMatchSameSalle ? "0" : ""}&couple=false&idRencontre=${idRencontre}&here=true&idOfficielRencontre=${targetRow.idOfficielRencontre}`,
     {}
   );
   const [recalcStatus, kilometres, indemnites, , polyline, distance] = recalc.split(";");
@@ -226,8 +260,8 @@ export async function assignRefereeToFbiRencontre(
     idFonction: ID_FONCTION_ARBITRE,
     idFonctionValue: ID_FONCTION_ARBITRE,
     numeroNational,
-    kilometres: kilometres ?? "",
-    kilometresCalcules: kilometres ?? "",
+    kilometres: previousMatchSameSalle ? "0" : (kilometres ?? ""),
+    kilometresCalcules: previousMatchSameSalle ? "0" : (kilometres ?? ""),
     indemnites: indemnites ?? "",
     indemnitesCalculees: indemnites ?? "",
     idPresence: targetRow.idPresenceValue || PRESENCE_PREVUE,
@@ -266,5 +300,10 @@ export async function assignRefereeToFbiRencontre(
     position: params.position,
     referee: { nom, prenom, numeroNational },
     payload,
+    frais: {
+      kilometres: updatedRow.kilometres,
+      indemnites: updatedRow.indemnites,
+      deuxiemeMatchMemeSalle: previousMatchSameSalle,
+    },
   };
 }

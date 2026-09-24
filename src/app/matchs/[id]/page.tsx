@@ -112,8 +112,10 @@ export default async function MatchDetailPage({
         ) : (
           <ul className="table-shell divide-y divide-[var(--border)]">
             {match.designations.map((d) => {
-              const oneWayKm =
-                match.lat != null && match.lng != null && d.referee.lat != null && d.referee.lng != null
+              // 2e match du jour dans la même salle : pas de frais kilométriques (règle CD45).
+              const oneWayKm = d.sameVenueEarlier
+                ? 0
+                : match.lat != null && match.lng != null && d.referee.lat != null && d.referee.lng != null
                   ? distanceKm({ lat: match.lat, lng: match.lng }, { lat: d.referee.lat, lng: d.referee.lng })
                   : null;
               return (
@@ -131,7 +133,9 @@ export default async function MatchDetailPage({
                     <span className="text-[var(--muted)] text-xs">(Arbitre {d.position})</span>
                     {oneWayKm != null && (
                       <span className="text-[var(--muted)] text-xs block">
-                        {oneWayKm.toFixed(1)} km · {estimatePayment(oneWayKm).toFixed(2)} €
+                        {d.sameVenueEarlier
+                          ? `0 km (2e match du jour dans la même salle) · ${estimatePayment(0).toFixed(2)} €`
+                          : `${oneWayKm.toFixed(1)} km · ${estimatePayment(oneWayKm).toFixed(2)} €`}
                       </span>
                     )}
                   </span>
