@@ -3,7 +3,7 @@ import { FbiClient } from "./client";
 import { formatDateFr } from "./fetch";
 import { searchDesignations } from "./searchDesignations";
 import { matchesFbiRow } from "./sync";
-import { assignRefereeToFbiRencontre } from "./write";
+import { assignRefereeToFbiRencontre, FbiAlreadyDesignatedError } from "./write";
 
 type MatchForPush = {
   id: string;
@@ -64,20 +64,26 @@ export type FbiPushMatchResult = {
   error?: string;
 };
 
-const OCCUPIED_RE = /^Position \d+ déjà occupée sur FBI par .* \(licence (.+?)\)/;
+const OCCUPIED_RE = /^Position \d+ déjà occupée sur FBI par /;
 
 async function pushOnePosition(
   client: FbiClient,
   idRencontre: string,
   position: number,
-  refereeLabel: string,
-  nationalNumber: string | null
+  referee: { firstName: string; lastName: string; nationalNumber: string | null }
 ): Promise<FbiPushPositionResult> {
+  const refereeLabel = `${referee.firstName} ${referee.lastName}`;
+  const nationalNumber = referee.nationalNumber;
   if (!nationalNumber) {
     return { position, referee: refereeLabel, status: "error", message: "Numéro national manquant côté AlloArbitre" };
   }
   try {
-    const result = await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational: nationalNumber, dryRun: false });
+    const result = await assignRefereeToFbiRencontre(client, idRencontre, {
+      position,
+      numeroNational: nationalNumber,
+      dryRun: false,
+      referee: { nom: referee.lastName, prenom: referee.firstName },
+    });
     return {
       position,
       referee: refereeLabel,
@@ -88,11 +94,13 @@ async function pushOnePosition(
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const occupied = message.match(OCCUPIED_RE);
-    if (occupied) {
-      return occupied[1] === nationalNumber
-        ? { position, referee: refereeLabel, status: "skip", message: "Déjà désigné sur FBI" }
-        : { position, referee: refereeLabel, status: "conflict", message };
+    // Déjà sur FBI (même arbitre, reconnu à son nom) : rien à faire.
+    if (err instanceof FbiAlreadyDesignatedError) {
+      return { position, referee: refereeLabel, status: "skip", message };
+    }
+    // Position prise par quelqu'un d'autre : jamais écrasée.
+    if (OCCUPIED_RE.test(message)) {
+      return { position, referee: refereeLabel, status: "conflict", message };
     }
     return { position, referee: refereeLabel, status: "error", message };
   }
@@ -130,7 +138,7 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
       });
       continue;
     }
-    positions.push(await pushOnePosition(client, idRencontre, d.position, refereeLabel, d.referee.nationalNumber));
+    positions.push(await pushOnePosition(client, idRencontre, d.position, d.referee));
   }
 
   return { matchId: match.id, matchLabel, idRencontre, positions };

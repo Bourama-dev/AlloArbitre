@@ -87,14 +87,23 @@ export function PushAllToFbiButton() {
       const all: FbiPushMatchResult[] = [];
       try {
         let offset: number | null = 0;
+        let retries = 0;
         while (offset !== null) {
           const { ok, data }: { ok: boolean; data: Record<string, unknown> } = await fetchJson(
             `/api/fbi-sync?pushAll=1&offset=${offset}`
           );
           if (!ok) {
+            // Lot interrompu (délai dépassé, FBI lent) : on rejoue le même lot.
+            // Sans risque - ce qui a déjà été poussé est reconnu ("Déjà
+            // désigné sur FBI") et jamais dupliqué.
+            if (retries < 2) {
+              retries++;
+              continue;
+            }
             setError(String(data.error ?? "Erreur inconnue"));
             break;
           }
+          retries = 0;
           all.push(...((data.results as FbiPushMatchResult[]) ?? []));
           setResults([...all]);
           const total = Number(data.total ?? all.length);

@@ -98,6 +98,9 @@ function invalidateDayCache(client: FbiClient) {
   dayCache.delete(client);
 }
 
+/** L'arbitre est déjà désigné sur cette rencontre FBI : rien à pousser (pas un conflit). */
+export class FbiAlreadyDesignatedError extends Error {}
+
 function normName(s: string): string {
   return s
     .normalize("NFD")
@@ -281,13 +284,32 @@ export async function checkFbiOfficielEligibility(
 export async function assignRefereeToFbiRencontre(
   client: FbiClient,
   idRencontre: string,
-  params: { position: number; numeroNational: string; dryRun?: boolean }
+  params: {
+    position: number;
+    numeroNational: string;
+    dryRun?: boolean;
+    /** Nom/prénom attendus : pour reconnaître l'arbitre s'il est déjà sur la fiche FBI (licence chiffrée côté FBI). */
+    referee?: { nom: string; prenom: string };
+  }
 ): Promise<FbiAssignResult> {
   const dryRun = params.dryRun ?? true;
   const numeroNational = params.numeroNational.trim();
   if (!numeroNational) throw new Error("Numéro national manquant");
 
   const { ficheFields, rows } = await loadFicheState(client, idRencontre);
+
+  // FBI renvoie dans la fiche une licence CHIFFRÉE (ex. "c98jck...%3D%3D"),
+  // jamais comparable au numéro national : on reconnaît l'arbitre à son nom.
+  const expected = params.referee ? `${normName(params.referee.nom)}|${normName(params.referee.prenom)}` : null;
+  const isExpected = (r: Record<string, string>) =>
+    !!expected && `${normName(r.nom ?? "")}|${normName(r.prenom ?? "")}` === expected;
+
+  const alreadyThere = rows.find((r) => (r.nom || r.numeroNational) && isExpected(r));
+  if (alreadyThere) {
+    throw new FbiAlreadyDesignatedError(
+      `Déjà désigné sur FBI${alreadyThere.ordre ? ` (position ${alreadyThere.ordre})` : ""}`
+    );
+  }
 
   const targetRow = rows.find((r) => r.ordre === String(params.position));
   if (!targetRow) {
@@ -297,7 +319,7 @@ export async function assignRefereeToFbiRencontre(
   }
   if (targetRow.nom || targetRow.numeroNational) {
     throw new Error(
-      `Position ${params.position} déjà occupée sur FBI par ${targetRow.prenom} ${targetRow.nom} (licence ${targetRow.numeroNational || "?"}) - désignation non modifiée`
+      `Position ${params.position} déjà occupée sur FBI par ${targetRow.prenom} ${targetRow.nom} - désignation non modifiée`
     );
   }
 
@@ -314,6 +336,9 @@ export async function assignRefereeToFbiRencontre(
   // association sportive ou au même comité ou à la même ligue ou à la même
   // poule") : c'est un message d'erreur HTML, pas un numéro inconnu.
   const refusal = fbiErrorText(lookup);
+  if (refusal && /déjà été désigné sur ce match/i.test(refusal)) {
+    throw new FbiAlreadyDesignatedError("Déjà désigné sur FBI");
+  }
   if (refusal) {
     throw new Error(`FBI refuse cet officiel sur cette rencontre : ${refusal}`);
   }

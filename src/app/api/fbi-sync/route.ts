@@ -191,7 +191,7 @@ export async function GET(request: Request) {
       // par lots bornés dans le temps, le client rappelle avec ?offset=
       // (nextOffset) jusqu'à la fin. L'ordre (date croissante) est stable
       // d'un appel à l'autre : pousser ne change pas la liste des matchs.
-      const TIME_BUDGET_MS = 40_000;
+      const TIME_BUDGET_MS = 20_000; // un match peut prendre 20-30 s : 40 s + 1 match dépassait la minute (504)
       const startedAt = Date.now();
       const offset = pushAll ? Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0) : 0;
 
