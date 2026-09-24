@@ -167,13 +167,20 @@ export async function getMatchCandidates(matchId: string): Promise<{
     .toISOString()
     .slice(11, 16);
 
+  // Un créneau horaire (startTime/endTime), ponctuel ou récurrent, ne bloque
+  // que les matchs qui le chevauchent ; sans créneau, toute la journée est
+  // bloquée. Pour une indisponibilité ponctuelle sur plusieurs jours, le
+  // créneau s'applique à chacun de ces jours.
+  const overlapsSlot = (u: RawCandidate["unavailability"][number]) =>
+    !u.startTime || !u.endTime || (u.startTime < matchEnd && matchStart < u.endTime);
+
   const isUnavailable = (u: RawCandidate["unavailability"][number]) => {
     if (!u.recurring) {
-      return !!u.startDate && !!u.endDate && u.startDate <= matchDay && matchDay <= u.endDate;
+      const inRange = !!u.startDate && !!u.endDate && u.startDate <= matchDay && matchDay <= u.endDate;
+      return inRange && overlapsSlot(u);
     }
     if (u.dayOfWeek !== matchWeekday) return false;
-    if (!u.startTime || !u.endTime) return true; // journée entière bloquée
-    return u.startTime < matchEnd && matchStart < u.endTime;
+    return overlapsSlot(u);
   };
 
   const hasMatchCoords = match.lat != null && match.lng != null;

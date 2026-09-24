@@ -33,9 +33,19 @@ export default async function RefereeSheetPage({
     const startDate = String(formData.get("startDate") ?? "");
     const endDate = String(formData.get("endDate") ?? startDate);
     const note = String(formData.get("note") ?? "").trim() || null;
+    // Créneau facultatif : sans heures, toute la journée est bloquée.
+    const startTime = String(formData.get("startTime") ?? "").trim() || null;
+    const endTime = String(formData.get("endTime") ?? "").trim() || null;
     if (!startDate) return;
 
-    await addPunctualUnavailability(id, startDate, endDate || startDate, note);
+    await addPunctualUnavailability(
+      id,
+      startDate,
+      endDate || startDate,
+      note,
+      startTime && endTime ? startTime : null,
+      startTime && endTime ? endTime : null
+    );
     revalidatePath(`/arbitres/${id}`);
   }
 
@@ -187,6 +197,9 @@ export default async function RefereeSheetPage({
                   ) : (
                     <span>
                       Du {u.startDate} au {u.endDate}
+                      {u.startTime && u.endTime
+                        ? `, de ${u.startTime} à ${u.endTime}`
+                        : " (journée entière)"}
                       {u.note ? ` · ${u.note}` : ""}
                     </span>
                   )}
@@ -215,6 +228,14 @@ export default async function RefereeSheetPage({
             <div>
               <label className="field-label">Au</label>
               <input type="date" name="endDate" className="input" />
+            </div>
+            <div>
+              <label className="field-label">De (optionnel)</label>
+              <input type="time" name="startTime" className="input" />
+            </div>
+            <div>
+              <label className="field-label">À (optionnel)</label>
+              <input type="time" name="endTime" className="input" />
             </div>
             <div className="flex-1 min-w-[8rem]">
               <label className="field-label">Note</label>
