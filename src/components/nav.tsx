@@ -12,7 +12,7 @@ type NavUser = {
 
 const links = [
   { href: "/matchs", label: "Matchs" },
-  { href: "/matchs/incomplets", label: "Incomplets" },
+  { href: "/fbi", label: "FBI" },
   { href: "/arbitres", label: "Arbitres" },
   { href: "/reglement", label: "Règlement" },
 ];

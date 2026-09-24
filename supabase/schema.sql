@@ -89,7 +89,7 @@ create table "LevelMapping" (
 create table "Match" (
   id text primary key default gen_random_uuid()::text,
   date timestamp(3) not null,
-  "durationMinutes" integer not null default 100,
+  "durationMinutes" integer not null default 120,
   "homeTeam" text not null,
   "awayTeam" text not null,
   venue text,
@@ -102,6 +102,9 @@ create table "Match" (
   "refereesRequired" integer not null default 2 check ("refereesRequired" >= 2),
   cancelled boolean not null default false,
   "competitionLevelId" text not null references "CompetitionLevel"(id),
+  -- Identifiant FBI (idRencontre) une fois résolu, pour éviter de rechercher
+  -- à nouveau la rencontre côté FBI à chaque push de désignation.
+  "fbiIdRencontre" text,
   "createdAt" timestamp(3) not null default current_timestamp,
   "updatedAt" timestamp(3) not null default now()
 );
@@ -131,6 +134,17 @@ create table "Unavailability" (
   )
 );
 create index "Unavailability_refereeId_idx" on "Unavailability"("refereeId");
+
+-- Mémorise qu'un admin a explicitement retiré tel arbitre de tel match, pour
+-- que la reprise automatique des officiels FBI (designation-sync.ts) ne le
+-- réimporte pas silencieusement au prochain affichage du détail - FBI, lui,
+-- n'a pas été modifié.
+create table "DesignationRemoval" (
+  "matchId" text not null references "Match"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  "removedAt" timestamp(3) not null default now(),
+  primary key ("matchId", "refereeId")
+);
 
 -- Désignation d'un arbitre sur un match. Toujours créée après validation manuelle
 -- d'une suggestion - jamais d'auto-assignation silencieuse.

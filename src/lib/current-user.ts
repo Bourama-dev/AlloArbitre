@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -8,8 +9,14 @@ export type CurrentUser = {
   role: "ADMIN" | "REPARTITEUR";
 };
 
-/** Utilisateur connecté (session Supabase Auth) + son profil applicatif (nom, rôle). */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+/**
+ * Utilisateur connecté (session Supabase Auth) + son profil applicatif (nom,
+ * rôle). Mémorisé pour la durée de la requête (React cache()) : le layout
+ * racine ET la page appellent chacun getCurrentUser(), ce qui refaisait
+ * l'aller-retour réseau vers Supabase Auth + la requête Profile deux fois
+ * par affichage de page.
+ */
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   try {
     const supabase = await createClient();
     const {
@@ -36,4 +43,4 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     }
     return null;
   }
-}
+});

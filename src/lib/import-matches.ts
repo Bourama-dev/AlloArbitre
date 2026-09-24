@@ -40,11 +40,13 @@ function normalizeHeader(raw: string) {
 
 // Un TQR (Tournoi Qualificatif Régional) se joue en format réduit (2 mi-temps
 // au lieu de 4 quart-temps) : ~45 min à 1h de présence réelle en gymnase,
-// contre 1h40 pour un match classique. Sans cette distinction, le calcul de
-// chevauchement (computeMinReferees) traite les TQR comme des matchs complets
-// et surestime le nombre d'arbitres requis quand plusieurs s'enchaînent.
+// contre 2h de présence réelle en gymnase pour un match classique (échauffement
+// + 4 quart-temps + mi-temps + retour aux vestiaires). Sans cette distinction,
+// le calcul de chevauchement (computeMinReferees) traite les TQR comme des
+// matchs complets et surestime le nombre d'arbitres requis quand plusieurs
+// s'enchaînent.
 const TQR_DURATION_MINUTES = 60;
-const STANDARD_DURATION_MINUTES = 100;
+const STANDARD_DURATION_MINUTES = 120;
 
 export function matchDurationMinutes(competitionLevelLabel: string): number {
   return competitionLevelLabel.trim().toUpperCase().startsWith("TQR")

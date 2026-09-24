@@ -3,6 +3,8 @@ import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { SubmitButton } from "@/components/submit-button";
+import { PushToFbiButton } from "@/components/push-to-fbi-button";
+import { removeDesignation } from "@/lib/actions/designation-actions";
 import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 
 export function MatchesTable({
@@ -69,18 +71,30 @@ export function MatchesTable({
                   ) : (
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       {m.designations.map((d) => (
-                        <Link
-                          key={d.id}
-                          href={`/arbitres/${d.referee.id}`}
-                          className="inline-flex items-center gap-1 hover:underline"
-                        >
-                          <span className="avatar-chip">
-                            {d.referee.firstName.charAt(0)}
-                            {d.referee.lastName.charAt(0)}
-                          </span>
-                          {d.referee.firstName} {d.referee.lastName}
-                          <span className="text-[var(--muted)] text-xs">(A{d.position})</span>
-                        </Link>
+                        <span key={d.id} className="inline-flex items-center gap-1">
+                          <Link
+                            href={`/arbitres/${d.referee.id}`}
+                            className="inline-flex items-center gap-1 hover:underline"
+                          >
+                            <span className="avatar-chip">
+                              {d.referee.firstName.charAt(0)}
+                              {d.referee.lastName.charAt(0)}
+                            </span>
+                            {d.referee.firstName} {d.referee.lastName}
+                            <span className="text-[var(--muted)] text-xs">(A{d.position})</span>
+                          </Link>
+                          <form action={removeDesignation}>
+                            <input type="hidden" name="designationId" value={d.id} />
+                            <input type="hidden" name="matchId" value={m.id} />
+                            <button
+                              type="submit"
+                              title="Retirer cette désignation"
+                              className="text-[var(--danger)] hover:underline text-xs"
+                            >
+                              ×
+                            </button>
+                          </form>
+                        </span>
                       ))}
                       {m.designations.length < m.refereesRequired && (
                         <span className="text-[var(--muted)] text-xs">
@@ -130,9 +144,12 @@ export function MatchesTable({
                   <StatusBadge status={status} />
                 </td>
                 <td className="text-right whitespace-nowrap">
-                  <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
-                    Détails
-                  </Link>
+                  <div className="inline-flex flex-col items-end gap-1">
+                    <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
+                      Détails
+                    </Link>
+                    {m.designations.length > 0 && <PushToFbiButton matchId={m.id} />}
+                  </div>
                 </td>
               </tr>
             );

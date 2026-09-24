@@ -2,8 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { hasSchedulingConflict } from "@/lib/dates";
 import { parseFbiDateTime } from "./sync";
 import { geocodeAddress } from "@/lib/geocoding";
-import type { FbiOfficiel } from "./detail";
-import type { FbiRencontreInfo } from "./detail";
+import type { FbiOfficiel, FbiRencontreInfo } from "./detail";
 
 /**
  * Reprend dans AlloArbitre les officiels déjà désignés sur FBI (saisis

@@ -3,9 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/env";
 
 const AUTH_ROUTES = ["/login", "/signup"];
+// Routes API qui gèrent leur propre autorisation (ex. cron Vercel authentifié
+// par CRON_SECRET, sans cookie de session) : pas de redirection vers /login.
+const SELF_AUTH_API_ROUTES = ["/api/fbi-sync"];
 
 export default async function proxy(request: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r));
+  const isSelfAuthApiRoute = SELF_AUTH_API_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r));
 
   let supabaseResponse = NextResponse.next({ request });
   let user = null;
@@ -38,7 +42,7 @@ export default async function proxy(request: NextRequest) {
 
   const isLoggedIn = !!user;
 
-  if (!isLoggedIn && !isAuthRoute) {
+  if (!isLoggedIn && !isAuthRoute && !isSelfAuthApiRoute) {
     const loginUrl = new URL("/login", request.nextUrl);
     loginUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);

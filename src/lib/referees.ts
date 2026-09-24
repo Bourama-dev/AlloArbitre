@@ -120,23 +120,24 @@ export async function listRefereesWithLoad({
     if (term) query = query.or(`"firstName".ilike.%${term}%,"lastName".ilike.%${term}%`);
   }
 
-  const { data: referees, error } = await query;
-  if (error) throw error;
-
   const now = new Date().toISOString();
-  const { data: loadRows, error: loadError } = await supabaseAdmin
-    .from("Designation")
-    .select("refereeId, match:Match!inner(date, cancelled)")
-    .gte("match.date", now)
-    .eq("match.cancelled", false);
+  // Indépendantes l'une de l'autre : parallélisées plutôt qu'enchaînées.
+  const [{ data: referees, error }, { data: loadRows, error: loadError }, unavailableIds] = await Promise.all([
+    query,
+    supabaseAdmin
+      .from("Designation")
+      .select("refereeId, match:Match!inner(date, cancelled)")
+      .gte("match.date", now)
+      .eq("match.cancelled", false),
+    date ? computeUnavailableRefereeIds(date) : Promise.resolve(null),
+  ]);
+  if (error) throw error;
   if (loadError) throw loadError;
 
   const loadByReferee = new Map<string, number>();
   for (const row of (loadRows ?? []) as { refereeId: string }[]) {
     loadByReferee.set(row.refereeId, (loadByReferee.get(row.refereeId) ?? 0) + 1);
   }
-
-  const unavailableIds = date ? await computeUnavailableRefereeIds(date) : null;
 
   let withLoad = ((referees ?? []) as unknown as RawReferee[]).map((r) => ({
     ...r,

@@ -42,7 +42,7 @@ export default async function MatchDetailPage({
     const result = await designateReferee(id, refereeId, user.id);
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
-    revalidatePath("/matchs/incomplets");
+    revalidatePath("/fbi");
     if (!result.ok) {
       redirect(`/matchs/${id}?error=${encodeURIComponent(result.error)}`);
     }
@@ -55,7 +55,7 @@ export default async function MatchDetailPage({
     if (error) throw error;
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
-    revalidatePath("/matchs/incomplets");
+    revalidatePath("/fbi");
   }
 
   return (

@@ -6,6 +6,7 @@ import { backfillMissingCoordinates } from "@/lib/geocoding-backfill";
 import { SubmitButton } from "@/components/submit-button";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 async function submit(formData: FormData) {
   "use server";

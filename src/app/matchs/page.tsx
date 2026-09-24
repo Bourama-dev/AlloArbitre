@@ -50,7 +50,7 @@ export default async function MatchesPage({
     const refereeId = String(formData.get("refereeId"));
     const result = await designateReferee(matchId, refereeId, user.id);
     revalidatePath("/matchs");
-    revalidatePath("/matchs/incomplets");
+    revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
     if (!result.ok) {
       redirect(`/matchs?error=${encodeURIComponent(result.error)}`);
@@ -69,8 +69,8 @@ export default async function MatchesPage({
           <p className="text-xs text-[var(--muted)] mt-0.5">
             Vue par semaine, tous statuts confondus. Pour désigner en lot tous
             les matchs incomplets à venir (toutes semaines), voir{" "}
-            <Link href="/matchs/incomplets" className="text-[var(--accent)] hover:underline">
-              Matchs incomplets
+            <Link href="/fbi" className="text-[var(--accent)] hover:underline">
+              FBI
             </Link>
             . Pour le nombre d&apos;arbitres nécessaires par gymnase sur une
             journée, voir{" "}
@@ -80,14 +80,14 @@ export default async function MatchesPage({
             .
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center flex-wrap gap-2 text-sm">
           <Link href="/matchs/nouveau" className="btn btn-primary">
             + Nouveau match
           </Link>
           <Link href={`/matchs?week=${weekOffset - 1}`} className="btn btn-secondary">
             ← Préc.
           </Link>
-          <span className="text-[var(--muted)] px-1 font-medium">
+          <span className="text-[var(--muted)] px-1 font-medium whitespace-nowrap">
             {formatDateFr(start)} → {formatDateFr(weekEnd)}
           </span>
           <Link href={`/matchs?week=${weekOffset + 1}`} className="btn btn-secondary">
@@ -101,16 +101,16 @@ export default async function MatchesPage({
         </div>
       </div>
 
-      <form className="flex flex-wrap items-end gap-3 card p-4">
+      <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end card p-4">
         <input type="hidden" name="week" value={weekOffset} />
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <label className="field-label">Équipe</label>
           <input
             type="text"
             name="search"
             defaultValue={search ?? ""}
             placeholder="Domicile ou extérieur"
-            className="input"
+            className="input w-full"
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ export default async function MatchesPage({
           <select
             name="level"
             defaultValue={competitionLevelId ?? ""}
-            className="input"
+            className="input w-full"
           >
             <option value="">Tous les niveaux</option>
             {levels.map((l) => (
@@ -130,7 +130,7 @@ export default async function MatchesPage({
         </div>
         <div>
           <label className="field-label">Ville</label>
-          <select name="city" defaultValue={city ?? ""} className="input">
+          <select name="city" defaultValue={city ?? ""} className="input w-full">
             <option value="">Toutes les villes</option>
             {cities.map((c) => (
               <option key={c} value={c}>
@@ -141,7 +141,7 @@ export default async function MatchesPage({
         </div>
         <div>
           <label className="field-label">Statut</label>
-          <select name="status" defaultValue={status} className="input">
+          <select name="status" defaultValue={status} className="input w-full">
             <option value="toutes">Tous les statuts</option>
             <option value="incomplet">Incomplet</option>
             <option value="complet">Complet</option>
@@ -150,14 +150,14 @@ export default async function MatchesPage({
         </div>
         <div>
           <label className="field-label">Trier par</label>
-          <select name="sort" defaultValue={sort} className="input">
+          <select name="sort" defaultValue={sort} className="input w-full">
             <option value="date_asc">Date (croissant)</option>
             <option value="date_desc">Date (décroissant)</option>
             <option value="level">Niveau</option>
             <option value="city">Ville</option>
           </select>
         </div>
-        <button type="submit" className="btn btn-primary">
+        <button type="submit" className="btn btn-primary w-full sm:w-auto">
           Filtrer
         </button>
       </form>
