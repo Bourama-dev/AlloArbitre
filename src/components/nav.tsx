@@ -14,6 +14,7 @@ const links = [
   { href: "/matchs", label: "Matchs" },
   { href: "/fbi", label: "FBI" },
   { href: "/arbitres", label: "Arbitres" },
+  { href: "/export", label: "Export" },
   { href: "/reglement", label: "Règlement" },
 ];
 
