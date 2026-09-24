@@ -216,7 +216,7 @@ export default async function ExportPage({ searchParams }: { searchParams: Promi
           Array.from(byDay.entries()).map(([day, list]) => (
             <div key={day}>
               <h3 className="rx-day">
-                <span className="capitalize">{day}</span>
+                <span className="rx-dayname">{day}</span>
                 <small>
                   {list.length} rencontre{list.length > 1 ? "s" : ""} · {countFilled(list)} désigné
                   {countFilled(list) > 1 ? "s" : ""} · {countRequired(list) - countFilled(list)} à pourvoir
@@ -321,6 +321,7 @@ const RECAP_CSS = `
 .rx-kpi span{color:var(--mut);font-size:12px}
 .rx-kpi.rx-warn b{color:var(--warn)}
 .rx-day{margin:22px 0 8px;font-size:16px;font-weight:700;color:#fff;background:var(--navy);padding:8px 12px;border-radius:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;align-items:center}
+.rx-dayname::first-letter{text-transform:uppercase}
 .rx-day small{font-weight:400;font-size:12px;opacity:.85}
 .rx-scroll{overflow-x:auto}
 .rx-table{width:100%;border-collapse:collapse;min-width:880px}
