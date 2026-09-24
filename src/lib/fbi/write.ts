@@ -241,6 +241,37 @@ export async function removeArbitresFromFbiRencontre(
 }
 
 /**
+ * Supprime les lignes "Observateur" VIDES de la fiche FBI (ligne pré-créée
+ * sans officiel, que le CD45 ne veut pas voir sur les matchs qu'il désigne) -
+ * même action que la croix rouge de la ligne. Une ligne observateur avec un
+ * officiel n'est jamais touchée. Renvoie le nombre de lignes supprimées.
+ */
+export async function removeEmptyObserverRows(client: FbiClient, idRencontre: string): Promise<number> {
+  const { rows } = await loadFicheState(client, idRencontre);
+  const empty = rows.filter(
+    (r) =>
+      /observateur/i.test(r.idFonction ?? r.fonction ?? "") &&
+      !r.nom &&
+      !r.prenom &&
+      !r.numeroNational &&
+      !!r.idOfficielRencontre
+  );
+  let removed = 0;
+  for (const r of empty) {
+    const res = await client.post(
+      `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${encodeURIComponent(r.idOfficielRencontre)}&idRencontre=${idRencontre}&idLicence=`,
+      {}
+    );
+    if (res.trim() !== "") {
+      throw new Error(`FBI n'a pas supprimé la ligne Observateur vide : ${(fbiErrorText(res) ?? res).slice(0, 200)}`);
+    }
+    removed++;
+  }
+  if (removed > 0) invalidateDayCache(client);
+  return removed;
+}
+
+/**
  * FBI accepterait-il cet officiel sur cette rencontre ? Rejoue uniquement la
  * saisie de la licence (afficherNomPrenomOfficiel.fbi, appelée par la page
  * FBI dès qu'on tape un numéro) : aucune désignation n'est enregistrée. FBI

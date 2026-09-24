@@ -3,7 +3,7 @@ import { FbiClient } from "./client";
 import { formatDateFr } from "./fetch";
 import { searchDesignations } from "./searchDesignations";
 import { matchesFbiRow } from "./sync";
-import { assignRefereeToFbiRencontre, FbiAlreadyDesignatedError } from "./write";
+import { assignRefereeToFbiRencontre, FbiAlreadyDesignatedError, removeEmptyObserverRows } from "./write";
 
 type MatchForPush = {
   id: string;
@@ -62,6 +62,8 @@ export type FbiPushMatchResult = {
   idRencontre: string | null;
   positions: FbiPushPositionResult[];
   error?: string;
+  /** Lignes "Observateur" vides retirées de la fiche FBI, ou message d'échec. */
+  observateurs?: string;
 };
 
 const OCCUPIED_RE = /^Position \d+ déjà occupée sur FBI par /;
@@ -154,5 +156,15 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
     positions.push(await pushOnePosition(client, idRencontre, d.position, d.referee, keep));
   }
 
-  return { matchId: match.id, matchLabel, idRencontre, positions };
+  // Fiche touchée par AlloArbitre : ligne(s) Observateur vide(s) retirée(s)
+  // (demande CD45). Un échec ici n'annule pas les désignations poussées.
+  let observateurs: string | undefined;
+  try {
+    const removed = await removeEmptyObserverRows(client, idRencontre);
+    if (removed > 0) observateurs = `${removed} ligne${removed > 1 ? "s" : ""} Observateur vide${removed > 1 ? "s" : ""} supprimée${removed > 1 ? "s" : ""}`;
+  } catch (err) {
+    observateurs = `Ligne Observateur non supprimée : ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  return { matchId: match.id, matchLabel, idRencontre, positions, ...(observateurs ? { observateurs } : {}) };
 }

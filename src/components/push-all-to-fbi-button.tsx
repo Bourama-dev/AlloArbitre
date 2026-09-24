@@ -150,6 +150,7 @@ export function PushAllToFbiButton({ matchIds }: { matchIds: string[] }) {
             <div key={r.matchId} className="border-b border-[var(--border)] last:border-0 pb-2 last:pb-0">
               <p className="font-medium">{r.matchLabel}</p>
               {r.error && <p className="text-[var(--danger)] text-xs">{r.error}</p>}
+              {r.observateurs && <p className="text-xs text-[var(--muted)]">{r.observateurs}</p>}
               {r.positions.map((p) => (
                 <p
                   key={p.position}

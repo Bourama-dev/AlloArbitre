@@ -63,6 +63,7 @@ export function PushToFbiButton({ matchId }: { matchId: string }) {
               A{p.position} {p.referee} : {p.message}
             </p>
           ))}
+          {result.observateurs && <p className="text-[var(--muted)]">{result.observateurs}</p>}
         </div>
       )}
     </div>
