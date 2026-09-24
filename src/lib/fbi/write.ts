@@ -24,6 +24,7 @@ const OFFICIEL_FIELD_ORDER = [
   "idFonction",
   "ordre",
   "numeroNational",
+  "numeroNationalLong",
   "kilometres",
   "kilometresCalcules",
   "indemnites",
@@ -358,9 +359,19 @@ export async function assignRefereeToFbiRencontre(
   if (refusal) {
     throw new Error(`FBI refuse cet officiel sur cette rencontre : ${refusal}`);
   }
-  const [lookupStatus, nom, prenom] = lookup.split(";");
+  // Depuis la maintenance FBI de septembre 2026, le champ numeroNational de
+  // la fiche attend la licence CHIFFRÉE (élément 9 de cette réponse, ce que
+  // la page FBI met dans #numLicenceCrypte) ; le numéro en clair va dans
+  // numeroNationalLong. Envoyer le numéro en clair dans numeroNational faisait
+  // enregistrer la ligne (km, indemnité) SANS l'officiel.
+  const lookupParts = lookup.split(";");
+  const [lookupStatus, nom, prenom] = lookupParts;
+  const licenceCryptee = (lookupParts[9] ?? "").trim();
   if (lookupStatus !== "0" || !nom) {
     throw new Error(`FBI ne reconnaît pas le numéro national ${numeroNational} (réponse : ${lookup.slice(0, 200)})`);
+  }
+  if (!licenceCryptee || licenceCryptee === "null") {
+    throw new Error(`FBI n'a pas renvoyé la licence chiffrée de ${numeroNational} (réponse : ${lookup.slice(0, 200)})`);
   }
 
   let previousMatchSameSalle = false;
@@ -396,7 +407,8 @@ export async function assignRefereeToFbiRencontre(
     fonction: LABEL_ARBITRE,
     idFonction: ID_FONCTION_ARBITRE,
     idFonctionValue: ID_FONCTION_ARBITRE,
-    numeroNational,
+    numeroNational: licenceCryptee,
+    numeroNationalLong: numeroNational,
     kilometres: previousMatchSameSalle ? "0" : (kilometres ?? ""),
     kilometresCalcules: previousMatchSameSalle ? "0" : (kilometres ?? ""),
     indemnites: indemnites ?? "",
@@ -430,8 +442,19 @@ export async function assignRefereeToFbiRencontre(
   const payload = body.toString();
 
   if (!dryRun) {
-    await client.post(`enregistrerRepartitionDesignation.fbi?avecHistorisation=true`, Object.fromEntries(body));
+    const saveResponse = await client.post(`enregistrerRepartitionDesignation.fbi?avecHistorisation=true`, Object.fromEntries(body));
     invalidateDayCache(client);
+    const saveError = fbiErrorText(saveResponse);
+    if (saveError) throw new Error(`FBI a refusé l'enregistrement : ${saveError}`);
+    // FBI peut accepter l'envoi sans retenir l'officiel (vu après sa
+    // maintenance) : on relit la fiche pour ne jamais annoncer "Désigné" à tort.
+    const { rows: after } = await loadFicheState(client, idRencontre);
+    const saved = after.some(
+      (r) => isArbitreRow(r) && `${normName(r.nom ?? "")}|${normName(r.prenom ?? "")}` === `${normName(nom)}|${normName(prenom)}`
+    );
+    if (!saved) {
+      throw new Error(`Enregistrement envoyé mais ${prenom} ${nom} n'apparaît pas sur la fiche FBI - à vérifier sur FBI`);
+    }
   }
 
   return {
