@@ -77,8 +77,15 @@ export async function GET(request: Request) {
     }
     const dryRun = new URL(request.url).searchParams.get("dryRun") !== "0";
     try {
+      // Nom de l'arbitre (AlloArbitre) pour le reconnaître s'il est déjà sur la fiche FBI.
+      const { data: ref } = await supabaseAdmin
+        .from("Referee")
+        .select("firstName, lastName")
+        .eq("nationalNumber", numeroNational)
+        .maybeSingle();
+      const referee = ref ? { nom: ref.lastName as string, prenom: ref.firstName as string } : undefined;
       const result = await withFbiSession(
-        (client) => assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational, dryRun }),
+        (client) => assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational, dryRun, referee }),
         onDump
       );
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), ...result });
