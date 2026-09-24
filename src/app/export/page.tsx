@@ -200,10 +200,6 @@ export default async function ExportPage({ searchParams }: { searchParams: Promi
             <b>{matches.length}</b>
             <span>rencontres</span>
           </div>
-          <div className="rx-kpi">
-            <b>{countFilled(matches)}</b>
-            <span>arbitres désignés</span>
-          </div>
           <div className="rx-kpi rx-warn">
             <b>{countRequired(matches) - countFilled(matches)}</b>
             <span>postes à pourvoir</span>
@@ -218,8 +214,7 @@ export default async function ExportPage({ searchParams }: { searchParams: Promi
               <h3 className="rx-day">
                 <span className="rx-dayname">{day}</span>
                 <small>
-                  {list.length} rencontre{list.length > 1 ? "s" : ""} · {countFilled(list)} désigné
-                  {countFilled(list) > 1 ? "s" : ""} · {countRequired(list) - countFilled(list)} à pourvoir
+                  {list.length} rencontre{list.length > 1 ? "s" : ""} · {countRequired(list) - countFilled(list)} à pourvoir
                 </small>
               </h3>
               <div className="rx-scroll">
