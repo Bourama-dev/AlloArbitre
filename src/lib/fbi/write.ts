@@ -101,6 +101,40 @@ function invalidateDayCache(client: FbiClient) {
   dayCache.delete(client);
 }
 
+const FICHE_ID_RENCONTRE_CRYPTE = "repartitionDesignationForm.repartitionDesignationRencontreBean.idRencontre";
+
+/**
+ * Supprime une ligne d'officiel de la fiche FBI : même appel que la croix
+ * rouge (supprimerOfficielRencontre côté page FBI). Depuis la maintenance
+ * FBI de septembre 2026, la page envoie l'id de rencontre CHIFFRÉ
+ * (#idRencontreCrypte) et les valeurs telles quelles (déjà encodées pour
+ * l'URL) : avec l'id numérique ou des valeurs ré-encodées, FBI répond
+ * "succès" (réponse vide) sans rien supprimer. On relit donc la fiche pour
+ * vérifier que la ligne a vraiment disparu.
+ */
+async function deleteOfficielRow(
+  client: FbiClient,
+  idRencontre: string,
+  ficheFields: Record<string, string>,
+  row: Record<string, string>
+): Promise<void> {
+  const idRencontreCrypte = ficheFields[FICHE_ID_RENCONTRE_CRYPTE];
+  if (!idRencontreCrypte) throw new Error("Id de rencontre chiffré absent de la fiche FBI");
+  const res = await client.post(
+    `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${row.idOfficielRencontre ?? ""}&idRencontre=${idRencontreCrypte}&idLicence=${row.numeroNational ?? ""}`,
+    {}
+  );
+  invalidateDayCache(client);
+  const label = `${row.prenom ?? ""} ${row.nom ?? ""}`.trim() || `ligne ${row.fonction ?? row.idFonction ?? ""}`.trim();
+  if (res.trim() !== "") {
+    throw new Error(`FBI n'a pas supprimé ${label} : ${(fbiErrorText(res) ?? res).slice(0, 200)}`);
+  }
+  const { rows: after } = await loadFicheState(client, idRencontre);
+  if (after.some((r) => r.idOfficielRencontre && r.idOfficielRencontre === row.idOfficielRencontre)) {
+    throw new Error(`FBI a accepté la suppression de ${label} mais la ligne est toujours sur la fiche`);
+  }
+}
+
 /** L'arbitre est déjà désigné sur cette rencontre FBI : rien à pousser (pas un conflit). */
 export class FbiAlreadyDesignatedError extends Error {}
 
@@ -212,7 +246,7 @@ export async function removeArbitresFromFbiRencontre(
     !!(r.numeroNational || r.nom) &&
     !!r.idOfficielRencontre;
 
-  const { rows } = await loadFicheState(client, idRencontre);
+  const { ficheFields, rows } = await loadFicheState(client, idRencontre);
   const targets = rows.filter(isArbitre);
   const result: FbiRemovalResult = {
     idRencontre,
@@ -223,13 +257,10 @@ export async function removeArbitresFromFbiRencontre(
   if (dryRun || targets.length === 0) return result;
 
   for (const r of targets) {
-    const res = await client.post(
-      `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${encodeURIComponent(r.idOfficielRencontre)}&idRencontre=${idRencontre}&idLicence=${encodeURIComponent(r.numeroNational ?? "")}`,
-      {}
-    );
-    // La page FBI considère la suppression réussie quand la réponse est vide.
-    if (res.trim() !== "") {
-      result.error = `Réponse FBI inattendue pour ${r.prenom} ${r.nom} : ${(fbiErrorText(res) ?? res).slice(0, 200)}`;
+    try {
+      await deleteOfficielRow(client, idRencontre, ficheFields, r);
+    } catch (err) {
+      result.error = err instanceof Error ? err.message : String(err);
       break;
     }
   }
@@ -247,7 +278,7 @@ export async function removeArbitresFromFbiRencontre(
  * officiel n'est jamais touchée. Renvoie le nombre de lignes supprimées.
  */
 export async function removeEmptyObserverRows(client: FbiClient, idRencontre: string): Promise<number> {
-  const { rows } = await loadFicheState(client, idRencontre);
+  const { ficheFields, rows } = await loadFicheState(client, idRencontre);
   const empty = rows.filter(
     (r) =>
       /observateur/i.test(r.idFonction ?? r.fonction ?? "") &&
@@ -258,16 +289,9 @@ export async function removeEmptyObserverRows(client: FbiClient, idRencontre: st
   );
   let removed = 0;
   for (const r of empty) {
-    const res = await client.post(
-      `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${encodeURIComponent(r.idOfficielRencontre)}&idRencontre=${idRencontre}&idLicence=`,
-      {}
-    );
-    if (res.trim() !== "") {
-      throw new Error(`FBI n'a pas supprimé la ligne Observateur vide : ${(fbiErrorText(res) ?? res).slice(0, 200)}`);
-    }
+    await deleteOfficielRow(client, idRencontre, ficheFields, r);
     removed++;
   }
-  if (removed > 0) invalidateDayCache(client);
   return removed;
 }
 
@@ -504,14 +528,7 @@ export async function assignRefereeToFbiRencontre(
     if (occupant) {
       // Retrait de l'occupant (croix rouge de la ligne sur FBI), seulement
       // maintenant que le nouvel arbitre a passé tous les contrôles FBI.
-      const res = await client.post(
-        `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${encodeURIComponent(occupant.idOfficielRencontre ?? "")}&idRencontre=${idRencontre}&idLicence=${encodeURIComponent(occupant.numeroNational ?? "")}`,
-        {}
-      );
-      invalidateDayCache(client);
-      if (res.trim() !== "") {
-        throw new Error(`FBI n'a pas retiré ${remplace} : ${(fbiErrorText(res) ?? res).slice(0, 200)}`);
-      }
+      await deleteOfficielRow(client, idRencontre, ficheFields, occupant);
       // L'enregistrement renvoie tout le formulaire : on repart de la fiche
       // relue, sans la ligne supprimée.
       const fresh = await loadFicheState(client, idRencontre);
