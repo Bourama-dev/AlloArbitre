@@ -23,6 +23,13 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     severity: "bloquant",
   },
   {
+    id: "presence-30-min",
+    label: "Présence 30 min avant le match (trajet compris)",
+    description:
+      "Un arbitre doit être au gymnase au moins 30 minutes avant le début du match. Pour deux matchs le même jour dans des gymnases différents, l'écart entre la fin du premier (durée comptée : 2 h) et le début du second doit couvrir le trajet (estimé à 50 km/h à vol d'oiseau) plus ces 30 minutes, ou 1 h si un des gymnases n'est pas géocodé. Dans le même gymnase, les matchs peuvent s'enchaîner.",
+    severity: "bloquant",
+  },
+  {
     id: "max-4-jour-tqr",
     label: "Maximum 4 matchs TQR par jour",
     description:

@@ -84,7 +84,8 @@ export default async function FbiPage({
 
   const byDayMap = new Map<string, typeof filtered>();
   for (const m of filtered) {
-    const key = m.date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
+    // Heure du gymnase stockée sans fuseau : regroupement en UTC (cf. formatDateTimeFr).
+    const key = m.date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
     byDayMap.set(key, [...(byDayMap.get(key) ?? []), m]);
   }
   const byDay = Array.from(byDayMap.entries());

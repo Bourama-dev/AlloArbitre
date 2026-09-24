@@ -6,6 +6,7 @@ import Link from "next/link";
 import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
+import { ConflictBadge } from "@/components/conflict-badge";
 import { SubmitButton } from "@/components/submit-button";
 import { PushToFbiButton } from "@/components/push-to-fbi-button";
 import { removeDesignation } from "@/lib/actions/designation-actions";
@@ -95,6 +96,7 @@ export function FbiMatchRow({
                     {d.referee.firstName} {d.referee.lastName}
                     <span className="text-[var(--muted)] text-xs">(A{d.position})</span>
                   </Link>
+                  <ConflictBadge conflict={d.conflict} />
                   <form action={removeDesignation}>
                     <input type="hidden" name="designationId" value={d.id} />
                     <input type="hidden" name="matchId" value={m.id} />

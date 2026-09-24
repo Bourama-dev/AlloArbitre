@@ -1,7 +1,7 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { overlaps, formatDateTimeFr } from "@/lib/dates";
+import { hasSchedulingConflict, formatDateTimeFr, type MatchSlot } from "@/lib/dates";
 import {
   getMatchForSuggestion,
   suggestReferees,
@@ -31,7 +31,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   if (!user) throw new Error("Non authentifié.");
 
   const plan: PlanItem[] = [];
-  const pendingByReferee = new Map<string, { date: Date; durationMinutes: number }[]>();
+  const pendingByReferee = new Map<string, MatchSlot[]>();
 
   for (const matchId of matchIds) {
     const match = await getMatchForSuggestion(matchId);
@@ -40,14 +40,21 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
     if (match.cancelled || slotsToFill <= 0) continue;
 
     const matchLabel = `${match.homeTeam} vs ${match.awayTeam} · ${formatDateTimeFr(match.date)}`;
+    const slot: MatchSlot = {
+      date: match.date,
+      durationMinutes: match.durationMinutes,
+      venue: match.venue,
+      lat: match.lat,
+      lng: match.lng,
+    };
 
     for (let i = 0; i < slotsToFill; i++) {
       const { suggestions } = await suggestReferees(matchId);
       const pickIndex = suggestions.findIndex((s) => {
         const pending = pendingByReferee.get(s.id) ?? [];
-        return !pending.some((p) =>
-          overlaps(match.date, match.durationMinutes, p.date, p.durationMinutes)
-        );
+        // Même contrôle qu'à l'enregistrement (trajet + présence 30 min),
+        // pour ne pas proposer un arbitre que designateReferee refuserait.
+        return !pending.some((p) => hasSchedulingConflict(slot, p));
       });
 
       if (pickIndex === -1) {
@@ -71,7 +78,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       });
 
       const list = pendingByReferee.get(pick.id) ?? [];
-      list.push({ date: match.date, durationMinutes: match.durationMinutes });
+      list.push(slot);
       pendingByReferee.set(pick.id, list);
     }
   }
