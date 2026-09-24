@@ -70,7 +70,9 @@ async function pushOnePosition(
   client: FbiClient,
   idRencontre: string,
   position: number,
-  referee: { firstName: string; lastName: string; nationalNumber: string | null }
+  referee: { firstName: string; lastName: string; nationalNumber: string | null },
+  /** Autres arbitres AlloArbitre du match : jamais retirés de FBI. */
+  keep: { nom: string; prenom: string }[]
 ): Promise<FbiPushPositionResult> {
   const refereeLabel = `${referee.firstName} ${referee.lastName}`;
   const nationalNumber = referee.nationalNumber;
@@ -83,14 +85,17 @@ async function pushOnePosition(
       numeroNational: nationalNumber,
       dryRun: false,
       referee: { nom: referee.lastName, prenom: referee.firstName },
+      // AlloArbitre remplace la désignation FBI existante sur cette position.
+      replace: true,
+      keep,
     });
     return {
       position,
       referee: refereeLabel,
       status: "ok",
-      message: result.frais.deuxiemeMatchMemeSalle
-        ? "Désigné sur FBI (0 km : 2e match du jour dans la même salle)"
-        : "Désigné sur FBI",
+      message:
+        (result.remplace ? `Désigné sur FBI (remplace ${result.remplace})` : "Désigné sur FBI") +
+        (result.frais.deuxiemeMatchMemeSalle ? " - 0 km : 2e match du jour dans la même salle" : ""),
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -98,7 +103,7 @@ async function pushOnePosition(
     if (err instanceof FbiAlreadyDesignatedError) {
       return { position, referee: refereeLabel, status: "skip", message };
     }
-    // Position prise par quelqu'un d'autre : jamais écrasée.
+    // Position prise par un autre arbitre AlloArbitre du match (inversion A1/A2).
     if (OCCUPIED_RE.test(message)) {
       return { position, referee: refereeLabel, status: "conflict", message };
     }
@@ -106,7 +111,12 @@ async function pushOnePosition(
   }
 }
 
-/** Pousse toutes les désignations AlloArbitre d'un match vers FBI (une position à la fois, jamais d'écrasement). */
+/**
+ * Pousse toutes les désignations AlloArbitre d'un match vers FBI, une
+ * position à la fois : AlloArbitre remplace l'officiel qui occuperait la
+ * position sur FBI (sauf s'il est lui-même désigné sur ce match dans
+ * AlloArbitre : inversion A1/A2, signalée sans rien retirer).
+ */
 export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Promise<FbiPushMatchResult> {
   const matchLabel = `${match.homeTeam} - ${match.awayTeam} (${formatDateFr(new Date(match.date))})`;
   if (match.designations.length === 0) {
@@ -134,11 +144,14 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
         position: d.position,
         referee: refereeLabel,
         status: "conflict",
-        message: `Non poussé : conflit d'horaire à corriger dans AlloArbitre. ${d.conflict}`,
+        message: `Non poussé : à corriger dans AlloArbitre. ${d.conflict}`,
       });
       continue;
     }
-    positions.push(await pushOnePosition(client, idRencontre, d.position, d.referee));
+    const keep = match.designations
+      .filter((o) => o !== d)
+      .map((o) => ({ nom: o.referee.lastName, prenom: o.referee.firstName }));
+    positions.push(await pushOnePosition(client, idRencontre, d.position, d.referee, keep));
   }
 
   return { matchId: match.id, matchLabel, idRencontre, positions };

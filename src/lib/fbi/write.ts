@@ -48,6 +48,8 @@ export type FbiAssignResult = {
   payload: string;
   /** Kilomètres / indemnité envoyés ; 0 km si 2e match du jour dans la même salle. */
   frais: { kilometres: string; indemnites: string; deuxiemeMatchMemeSalle: boolean };
+  /** Officiel retiré de FBI pour libérer la position (mode `replace`), "Prénom NOM". */
+  remplace?: string;
 };
 
 /**
@@ -275,7 +277,8 @@ export async function checkFbiOfficielEligibility(
  *
  * FBI pré-crée en général une ligne vide par arbitre requis ; quand la fiche
  * n'en a pas (vu sur des RMU18), la ligne est ajoutée comme avec "AJOUTER".
- * Si la position est déjà occupée par quelqu'un d'autre, on refuse plutôt
+ * Si la position est déjà occupée par quelqu'un d'autre : remplacé en mode
+ * `replace` (après tous les contrôles), sinon on refuse plutôt
  * que d'écraser une désignation existante.
  *
  * `dryRun` (par défaut true) : construit et renvoie le payload exact sans
@@ -290,6 +293,17 @@ export async function assignRefereeToFbiRencontre(
     dryRun?: boolean;
     /** Nom/prénom attendus : pour reconnaître l'arbitre s'il est déjà sur la fiche FBI (licence chiffrée côté FBI). */
     referee?: { nom: string; prenom: string };
+    /**
+     * Position occupée sur FBI par un autre officiel : le retirer puis
+     * désigner celui-ci (AlloArbitre remplace FBI). Sinon, refus.
+     */
+    replace?: boolean;
+    /**
+     * Officiels à ne jamais retirer, même en mode `replace` : les autres
+     * arbitres AlloArbitre du match (évite d'en perdre un lors d'une simple
+     * inversion A1/A2).
+     */
+    keep?: { nom: string; prenom: string }[];
   }
 ): Promise<FbiAssignResult> {
   const dryRun = params.dryRun ?? true;
@@ -316,10 +330,23 @@ export async function assignRefereeToFbiRencontre(
   const isArbitreRow = (r: Record<string, string>) =>
     r.idFonctionValue === ID_FONCTION_ARBITRE || /^arbitre/i.test(r.idFonction ?? r.fonction ?? "");
   const existingRow = rows.find((r) => isArbitreRow(r) && r.ordre === String(params.position));
-  // Pas de ligne pour cette position (fiche sans lignes pré-créées) : on en
-  // ajoute une, comme le bouton "AJOUTER" de la page FBI.
-  const isNewRow = !existingRow;
-  const targetRow: Record<string, string> = existingRow ?? {
+  const occupant = existingRow && (existingRow.nom || existingRow.numeroNational) ? existingRow : null;
+  if (occupant) {
+    const occupantKey = `${normName(occupant.nom ?? "")}|${normName(occupant.prenom ?? "")}`;
+    const protectedOccupant = (params.keep ?? []).some((k) => `${normName(k.nom)}|${normName(k.prenom)}` === occupantKey);
+    if (!params.replace || protectedOccupant) {
+      throw new Error(
+        `Position ${params.position} déjà occupée sur FBI par ${occupant.prenom} ${occupant.nom}${
+          protectedOccupant ? " (aussi désigné sur ce match dans AlloArbitre : positions inversées)" : ""
+        } - désignation non modifiée`
+      );
+    }
+  }
+  // Pas de ligne libre pour cette position (fiche sans lignes pré-créées, ou
+  // occupant à remplacer) : on en ajoute une, comme le bouton "AJOUTER".
+  const reusableRow = existingRow && !occupant ? existingRow : undefined;
+  const isNewRow = !reusableRow;
+  const targetRow: Record<string, string> = reusableRow ?? {
     _index: "new",
     idOfficielRencontre: "",
     nom: "",
@@ -334,11 +361,6 @@ export async function assignRefereeToFbiRencontre(
     blSaisieClub: "0",
     blSaisieClubValue: "0",
   };
-  if (targetRow.nom || targetRow.numeroNational) {
-    throw new Error(
-      `Position ${params.position} déjà occupée sur FBI par ${targetRow.prenom} ${targetRow.nom} - désignation non modifiée`
-    );
-  }
 
   const dateRencontre = ficheFields["repartitionDesignationForm.repartitionDesignationRencontreBean.date"] ?? "";
 
@@ -419,9 +441,10 @@ export async function assignRefereeToFbiRencontre(
     distance: distance ?? "",
   };
 
-  const finalRows = isNewRow
-    ? [...rows, updatedRow]
-    : rows.map((r) => (r._index === targetRow._index ? updatedRow : r));
+  const withNewRow = (current: Record<string, string>[]) =>
+    isNewRow
+      ? [...current.filter((r) => r !== occupant), updatedRow]
+      : current.map((r) => (r._index === targetRow._index ? updatedRow : r));
 
   // idFonction / idPresence / blSaisieClub sont rendus par des <select> côté
   // FBI : le champ "brut" porte le libellé affiché (ex. "Arbitre",
@@ -431,17 +454,38 @@ export async function assignRefereeToFbiRencontre(
   // voulait pas toucher) part corrompue.
   const resolve = (row: Record<string, string>, key: string) => row[`${key}Value`] ?? row[key] ?? "";
 
-  const body = new URLSearchParams();
-  for (const [name, value] of Object.entries(ficheFields)) body.append(name, value);
-  finalRows.forEach((row, i) => {
-    for (const key of OFFICIEL_FIELD_ORDER) {
-      body.append(`repartitionDesignationForm.repartitionDesignationOfficielBeans[${i}].${key}`, resolve(row, key));
-    }
-  });
+  const buildBody = (fields: Record<string, string>, finalRows: Record<string, string>[]) => {
+    const body = new URLSearchParams();
+    for (const [name, value] of Object.entries(fields)) body.append(name, value);
+    finalRows.forEach((row, i) => {
+      for (const key of OFFICIEL_FIELD_ORDER) {
+        body.append(`repartitionDesignationForm.repartitionDesignationOfficielBeans[${i}].${key}`, resolve(row, key));
+      }
+    });
+    return body;
+  };
 
+  let body = buildBody(ficheFields, withNewRow(rows));
   const payload = body.toString();
+  const remplace = occupant ? `${occupant.prenom ?? ""} ${occupant.nom ?? ""}`.trim() : undefined;
 
   if (!dryRun) {
+    if (occupant) {
+      // Retrait de l'occupant (croix rouge de la ligne sur FBI), seulement
+      // maintenant que le nouvel arbitre a passé tous les contrôles FBI.
+      const res = await client.post(
+        `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${encodeURIComponent(occupant.idOfficielRencontre ?? "")}&idRencontre=${idRencontre}&idLicence=${encodeURIComponent(occupant.numeroNational ?? "")}`,
+        {}
+      );
+      invalidateDayCache(client);
+      if (res.trim() !== "") {
+        throw new Error(`FBI n'a pas retiré ${remplace} : ${(fbiErrorText(res) ?? res).slice(0, 200)}`);
+      }
+      // L'enregistrement renvoie tout le formulaire : on repart de la fiche
+      // relue, sans la ligne supprimée.
+      const fresh = await loadFicheState(client, idRencontre);
+      body = buildBody(fresh.ficheFields, withNewRow(fresh.rows));
+    }
     const saveResponse = await client.post(`enregistrerRepartitionDesignation.fbi?avecHistorisation=true`, Object.fromEntries(body));
     invalidateDayCache(client);
     // La réponse de l'enregistrement contient un bloc d'erreur générique même
@@ -456,7 +500,9 @@ export async function assignRefereeToFbiRencontre(
     if (!saved) {
       const saveError = fbiErrorText(saveResponse);
       throw new Error(
-        `Enregistrement envoyé mais ${prenom} ${nom} n'apparaît pas sur la fiche FBI${saveError ? ` (FBI : ${saveError})` : ""} - à vérifier sur FBI`
+        `Enregistrement envoyé mais ${prenom} ${nom} n'apparaît pas sur la fiche FBI${saveError ? ` (FBI : ${saveError})` : ""}${
+          remplace ? ` - ${remplace} a déjà été retiré, position vide` : ""
+        } - à vérifier sur FBI`
       );
     }
   }
@@ -467,6 +513,7 @@ export async function assignRefereeToFbiRencontre(
     position: params.position,
     referee: { nom, prenom, numeroNational },
     payload,
+    remplace,
     frais: {
       kilometres: updatedRow.kilometres,
       indemnites: updatedRow.indemnites,

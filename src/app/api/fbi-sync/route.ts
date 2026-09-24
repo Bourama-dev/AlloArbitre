@@ -98,8 +98,8 @@ export async function GET(request: Request) {
   }
 
   // ?push=<matchId> : pousse toutes les désignations AlloArbitre d'un match
-  // vers FBI (une position à la fois, jamais d'écrasement d'une position déjà
-  // occupée par quelqu'un d'autre). ?pushAll=1 : idem pour tous les matchs à
+  // vers FBI (une position à la fois ; AlloArbitre remplace l'officiel qui
+  // occupe la position sur FBI, cf. pushMatchToFbi). ?pushAll=1 : idem pour tous les matchs à
   // venir ayant au moins une désignation. Réservé aux admins.
   // ?verifier=JJ/MM/AAAA[&codes=RFU13,RMU15...][&offset=N] (admin, lecture
   // seule) : demande à FBI, pour chaque désignation AlloArbitre du jour, s'il
