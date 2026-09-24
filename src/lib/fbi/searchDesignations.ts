@@ -100,13 +100,57 @@ function searchForm(params: SearchParams): Record<string, string> {
   };
 }
 
+export type FbiExportRow = {
+  code: string;
+  numero: string;
+  equipe1: string;
+  equipe2: string;
+  salle: string;
+  ville: string;
+  date: string; // DD/MM/YYYY
+  heure: string; // HH:mm
+  etat: string;
+  officiels: { nom: string; prenom: string; fonction: string }[];
+};
+
 /**
  * Export "Excel" de la recherche de désignations (bouton de la page FBI,
- * action=executeCsv). Sonde de mise au point : si l'export liste les
- * officiels de chaque rencontre, il permet de connaître toutes les
- * désignations d'une journée en une seule requête au lieu d'ouvrir chaque
- * fiche. Renvoie la réponse brute.
+ * action=executeCsv) : une ligne par rencontre avec ses officiels désignés
+ * (vérifié le 24/09 : colonnes Code, N°, Equipe 1, Equipe 2, Poule, Salle,
+ * Ville, Date, Heure, Rem., État, puis par officiel Nom / Prénom / Fonction
+ * / Distance / Indemn Km). Donne toutes les désignations d'une période en
+ * une seule requête, là où il fallait ouvrir la fiche de chaque rencontre.
+ * Noms d'équipes et villes complets (non tronqués, contrairement au tableau).
  */
+export async function fetchDesignationsExportRows(client: FbiClient, params: SearchParams): Promise<FbiExportRow[]> {
+  const [header, ...lines] = await fetchDesignationsExport(client, params);
+  if (!header || String(header[0]).trim() !== "Code" || String(header[11] ?? "").trim() !== "Nom") {
+    throw new Error(`FBI : format d'export inattendu (en-têtes : ${JSON.stringify(header).slice(0, 200)})`);
+  }
+  const text = (v: unknown) => (v === null || v === undefined ? "" : String(v).trim());
+  return lines.map((cells) => {
+    const officiels: FbiExportRow["officiels"] = [];
+    for (let i = 11; i + 2 < cells.length; i += 5) {
+      const nom = text(cells[i]);
+      const prenom = text(cells[i + 1]);
+      if (nom || prenom) officiels.push({ nom, prenom, fonction: text(cells[i + 2]) });
+    }
+    return {
+      code: text(cells[0]),
+      numero: text(cells[1]),
+      equipe1: text(cells[2]),
+      equipe2: text(cells[3]),
+      salle: text(cells[5]),
+      ville: text(cells[6]),
+      date: text(cells[7]),
+      heure: text(cells[8]),
+      etat: text(cells[10]),
+      officiels,
+    };
+  });
+}
+
+/** Export brut (lignes de cellules) : utilisé par fetchDesignationsExportRows et la sonde ?export=. */
 export async function fetchDesignationsExport(client: FbiClient, params: SearchParams): Promise<unknown[][]> {
   const form = searchForm(params);
   await client.get("rechercherDesignation.fbi");
