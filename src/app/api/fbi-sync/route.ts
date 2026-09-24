@@ -109,8 +109,20 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: `Match ${pushMatchId} introuvable` }, { status: 404 });
       }
 
+      // Chaque match = plusieurs allers-retours FBI : au-delà de ~60 s Vercel
+      // coupe la fonction et renvoie une page d'erreur HTML. On traite donc
+      // par lots bornés dans le temps, le client rappelle avec ?offset=
+      // (nextOffset) jusqu'à la fin. L'ordre (date croissante) est stable
+      // d'un appel à l'autre : pousser ne change pas la liste des matchs.
+      const TIME_BUDGET_MS = 40_000;
+      const startedAt = Date.now();
+      const offset = pushAll ? Math.max(0, Number(new URL(request.url).searchParams.get("offset")) || 0) : 0;
+
       const results = [];
-      for (const m of matches) {
+      let index = offset;
+      for (; index < matches.length; index++) {
+        if (pushAll && index > offset && Date.now() - startedAt > TIME_BUDGET_MS) break;
+        const m = matches[index];
         results.push(
           await pushMatchToFbi(client, {
             id: m.id,
@@ -118,11 +130,16 @@ export async function GET(request: Request) {
             homeTeam: m.homeTeam,
             awayTeam: m.awayTeam,
             fbiIdRencontre: m.fbiIdRencontre,
-            designations: m.designations.map((d) => ({ position: d.position, referee: d.referee })),
+            designations: m.designations.map((d) => ({ position: d.position, referee: d.referee, conflict: d.conflict })),
           })
         );
       }
-      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), results });
+      return NextResponse.json({
+        ...(debugRunId ? { debugRunId } : {}),
+        results,
+        total: matches.length,
+        nextOffset: index < matches.length ? index : null,
+      });
     } catch (error) {
       return NextResponse.json(
         { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },

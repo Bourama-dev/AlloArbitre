@@ -11,7 +11,12 @@ type MatchForPush = {
   homeTeam: string;
   awayTeam: string;
   fbiIdRencontre: string | null;
-  designations: { position: number; referee: { firstName: string; lastName: string; nationalNumber: string | null } }[];
+  designations: {
+    position: number;
+    referee: { firstName: string; lastName: string; nationalNumber: string | null };
+    /** Conflit d'horaire côté AlloArbitre (cf. annotateDesignationConflicts) : jamais poussé vers FBI. */
+    conflict?: string | null;
+  }[];
 };
 
 /**
@@ -109,6 +114,15 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
   const positions: FbiPushPositionResult[] = [];
   for (const d of match.designations) {
     const refereeLabel = `${d.referee.firstName} ${d.referee.lastName}`;
+    if (d.conflict) {
+      positions.push({
+        position: d.position,
+        referee: refereeLabel,
+        status: "conflict",
+        message: `Non poussé : conflit d'horaire à corriger dans AlloArbitre. ${d.conflict}`,
+      });
+      continue;
+    }
     positions.push(await pushOnePosition(client, idRencontre, d.position, refereeLabel, d.referee.nationalNumber));
   }
 
