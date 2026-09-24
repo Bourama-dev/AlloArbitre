@@ -169,6 +169,60 @@ function fbiErrorText(html: string): string | null {
   return items.length > 0 ? items.join(" / ") : html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+export type FbiRemovalResult = {
+  idRencontre: string;
+  dryRun: boolean;
+  retires: { nom: string; prenom: string; numeroNational: string; ordre: string }[];
+  /** Arbitres encore présents après suppression (relecture de la fiche) - doit être vide. */
+  restants: string[];
+  error?: string;
+};
+
+/**
+ * Retire les officiels de fonction "Arbitre" d'une rencontre FBI - même
+ * action que la croix rouge de chaque ligne sur la page FBI
+ * (supprimerRepartitionDesignationOfficielRencontre.fbi). Les autres
+ * fonctions (chronométreur, observateur...) ne sont jamais touchées.
+ * dryRun (par défaut) : liste seulement ce qui serait retiré. Après une
+ * suppression réelle, la fiche est relue pour vérifier.
+ */
+export async function removeArbitresFromFbiRencontre(
+  client: FbiClient,
+  idRencontre: string,
+  dryRun = true
+): Promise<FbiRemovalResult> {
+  const isArbitre = (r: Record<string, string>) =>
+    (r.idFonctionValue === ID_FONCTION_ARBITRE || /^arbitre/i.test(r.idFonction ?? r.fonction ?? "")) &&
+    !!(r.numeroNational || r.nom) &&
+    !!r.idOfficielRencontre;
+
+  const { rows } = await loadFicheState(client, idRencontre);
+  const targets = rows.filter(isArbitre);
+  const result: FbiRemovalResult = {
+    idRencontre,
+    dryRun,
+    retires: targets.map((r) => ({ nom: r.nom ?? "", prenom: r.prenom ?? "", numeroNational: r.numeroNational ?? "", ordre: r.ordre ?? "" })),
+    restants: [],
+  };
+  if (dryRun || targets.length === 0) return result;
+
+  for (const r of targets) {
+    const res = await client.post(
+      `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${encodeURIComponent(r.idOfficielRencontre)}&idRencontre=${idRencontre}&idLicence=${encodeURIComponent(r.numeroNational ?? "")}`,
+      {}
+    );
+    // La page FBI considère la suppression réussie quand la réponse est vide.
+    if (res.trim() !== "") {
+      result.error = `Réponse FBI inattendue pour ${r.prenom} ${r.nom} : ${(fbiErrorText(res) ?? res).slice(0, 200)}`;
+      break;
+    }
+  }
+
+  const { rows: after } = await loadFicheState(client, idRencontre);
+  result.restants = after.filter(isArbitre).map((r) => `${r.prenom} ${r.nom}`);
+  return result;
+}
+
 /**
  * FBI accepterait-il cet officiel sur cette rencontre ? Rejoue uniquement la
  * saisie de la licence (afficherNomPrenomOfficiel.fbi, appelée par la page

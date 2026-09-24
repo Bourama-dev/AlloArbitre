@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { FbiDump } from "@/lib/fbi/client";
 import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, loggedInClient } from "@/lib/fbi/fetch";
-import { assignRefereeToFbiRencontre, checkFbiOfficielEligibility } from "@/lib/fbi/write";
+import { assignRefereeToFbiRencontre, checkFbiOfficielEligibility, removeArbitresFromFbiRencontre } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
 import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
 import { syncFbiOfficielsToDesignations } from "@/lib/fbi/designation-sync";
@@ -97,6 +97,27 @@ export async function GET(request: Request) {
   // accepterait l'officiel sur la rencontre (contrôle de neutralité FBI,
   // bloquant sur les divisions jeunes CVL). Par lots bornés dans le temps,
   // comme le push : rappeler avec nextOffset.
+  // ?retirer=<idRencontre>[,<idRencontre>...] : retire les ARBITRES de ces
+  // rencontres sur FBI (ÉCRITURE). dryRun=1 par défaut (liste seulement) ;
+  // dryRun=0 pour supprimer réellement. Admin uniquement.
+  const retirer = new URL(request.url).searchParams.get("retirer");
+  if (retirer) {
+    const adminUser = await getCurrentUser();
+    if (!adminUser || adminUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "unauthorized (admin requis pour écrire sur FBI)" }, { status: 401 });
+    }
+    const ids = retirer.split(",").map((s) => s.trim()).filter((s) => /^\d+$/.test(s));
+    const dryRun = new URL(request.url).searchParams.get("dryRun") !== "0";
+    try {
+      const client = await loggedInClient(onDump);
+      const results = [];
+      for (const id of ids) results.push(await removeArbitresFromFbiRencontre(client, id, dryRun));
+      return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), dryRun, results });
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
+    }
+  }
+
   const verifierDate = new URL(request.url).searchParams.get("verifier");
   if (verifierDate) {
     const adminUser = await getCurrentUser();
