@@ -272,9 +272,8 @@ export async function checkFbiOfficielEligibility(
  * ciblée : FBI attend l'état complet du formulaire à chaque enregistrement,
  * donc les autres lignes sont renvoyées telles quelles, verbatim.
  *
- * La ligne pour cette position doit déjà exister (vide) sur FBI - FBI
- * pré-crée une ligne par arbitre requis dès l'ouverture de la fiche, sans
- * avoir besoin de cliquer "AJOUTER" (vérifié sur une rencontre 1/2 puis 0/2).
+ * FBI pré-crée en général une ligne vide par arbitre requis ; quand la fiche
+ * n'en a pas (vu sur des RMU18), la ligne est ajoutée comme avec "AJOUTER".
  * Si la position est déjà occupée par quelqu'un d'autre, on refuse plutôt
  * que d'écraser une désignation existante.
  *
@@ -311,12 +310,29 @@ export async function assignRefereeToFbiRencontre(
     );
   }
 
-  const targetRow = rows.find((r) => r.ordre === String(params.position));
-  if (!targetRow) {
-    throw new Error(
-      `Aucune ligne "Ordre ${params.position}" sur la fiche FBI de la rencontre ${idRencontre} (${rows.length} ligne(s) trouvée(s))`
-    );
-  }
+  // Seules les lignes de fonction Arbitre comptent : une fiche peut porter une
+  // ligne vide "Observateur Arb" en Ordre 1, qu'il ne faut jamais remplir.
+  const isArbitreRow = (r: Record<string, string>) =>
+    r.idFonctionValue === ID_FONCTION_ARBITRE || /^arbitre/i.test(r.idFonction ?? r.fonction ?? "");
+  const existingRow = rows.find((r) => isArbitreRow(r) && r.ordre === String(params.position));
+  // Pas de ligne pour cette position (fiche sans lignes pré-créées) : on en
+  // ajoute une, comme le bouton "AJOUTER" de la page FBI.
+  const isNewRow = !existingRow;
+  const targetRow: Record<string, string> = existingRow ?? {
+    _index: "new",
+    idOfficielRencontre: "",
+    nom: "",
+    prenom: "",
+    fonction: LABEL_ARBITRE,
+    idFonction: ID_FONCTION_ARBITRE,
+    idFonctionValue: ID_FONCTION_ARBITRE,
+    ordre: String(params.position),
+    numeroNational: "",
+    idPresence: PRESENCE_PREVUE,
+    idPresenceValue: PRESENCE_PREVUE,
+    blSaisieClub: "0",
+    blSaisieClubValue: "0",
+  };
   if (targetRow.nom || targetRow.numeroNational) {
     throw new Error(
       `Position ${params.position} déjà occupée sur FBI par ${targetRow.prenom} ${targetRow.nom} - désignation non modifiée`
@@ -391,7 +407,9 @@ export async function assignRefereeToFbiRencontre(
     distance: distance ?? "",
   };
 
-  const finalRows = rows.map((r) => (r._index === targetRow._index ? updatedRow : r));
+  const finalRows = isNewRow
+    ? [...rows, updatedRow]
+    : rows.map((r) => (r._index === targetRow._index ? updatedRow : r));
 
   // idFonction / idPresence / blSaisieClub sont rendus par des <select> côté
   // FBI : le champ "brut" porte le libellé affiché (ex. "Arbitre",
