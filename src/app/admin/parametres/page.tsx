@@ -29,7 +29,12 @@ export default async function SettingsAdminPage({
     }
     const { error } = await supabaseAdmin
       .from("Settings")
-      .upsert({ id: 1, maxDistanceKm: value, updatedAt: new Date().toISOString() });
+      .upsert({
+        id: 1,
+        maxDistanceKm: value,
+        requireAvailability: formData.get("requireAvailability") === "on",
+        updatedAt: new Date().toISOString(),
+      });
     if (error) throw error;
     revalidatePath("/admin/parametres");
     redirect("/admin/parametres?saved=1");
@@ -68,6 +73,22 @@ export default async function SettingsAdminPage({
             gymnase le même jour n&apos;est pas concerné (aucun nouveau déplacement). Laisser vide pour ne pas limiter.
           </p>
         </div>
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="requireAvailability"
+            defaultChecked={settings.requireAvailability}
+            className="mt-0.5"
+          />
+          <span>
+            <span className="font-medium">Sans réponse aux disponibilités = exclu</span>
+            <span className="block text-xs text-[var(--muted)]">
+              Une fois la date limite d&apos;une campagne de disponibilités passée, un arbitre qui n&apos;a pas
+              répondu n&apos;est plus proposé sur les matchs de cette période et sa désignation est refusée.
+              Décoché, il reste proposé avec une simple mention.
+            </span>
+          </span>
+        </label>
         <button type="submit" className="btn btn-primary">
           Enregistrer
         </button>

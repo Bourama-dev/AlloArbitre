@@ -5,6 +5,7 @@ import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
 import { ageAt, divisionReasons, getDivisionRules, getSettings, maxDistanceReason } from "@/lib/algo-rules";
 import { coordKey, roadDistance, roadDistancesTo } from "@/lib/routing";
+import { loadAvailabilityIndex } from "@/lib/availability";
 
 export type RefereeSuggestion = {
   id: string;
@@ -220,6 +221,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
     getDivisionRules(match.competitionLevelId),
   ]);
   if (error) throw error;
+  const matchDay = match.date.toISOString().slice(0, 10);
+  const availability = await loadAvailabilityIndex(matchDay, matchDay, settings.requireAvailability);
 
   type RawCandidate = {
     id: string;
@@ -298,6 +301,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
     if (c.unavailability.some(isUnavailable)) {
       reasons.push("Indisponible");
     }
+    const availabilityVerdict = availability.verdict(c.id, match.date);
+    if (availabilityVerdict.block) reasons.push(availabilityVerdict.block);
     const quotaViolations = checkQuotaRules(
       match.date,
       match.durationMinutes,
@@ -330,6 +335,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
       groupLabels,
       age: ageAt(c.birthDate, match.date),
       why: [] as string[],
+      availabilityNote: availabilityVerdict.note,
       reasons,
       coords: c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null,
       laterSameVenue,
@@ -369,13 +375,20 @@ export async function getMatchCandidates(matchId: string): Promise<{
     c.estimatedPayment = paidKm != null ? estimatePayment(paidKm) : null;
   }
 
-  const strip = ({ coords: _coords, laterSameVenue: _later, ...rest }: (typeof candidates)[number]) => rest;
+  const strip = ({
+    coords: _coords,
+    laterSameVenue: _later,
+    availabilityNote: _note,
+    ...rest
+  }: (typeof candidates)[number]) => rest;
 
   const eligible: RefereeSuggestion[] = candidates
     .filter((c) => c.reasons.length === 0)
     .map((c) => {
       const { reasons: _reasons, ...s } = strip(c);
-      return { ...s, why: buildWhy(s, minLevelLabel, settings.maxDistanceKm) };
+      const why = buildWhy(s, minLevelLabel, settings.maxDistanceKm);
+      if (c.availabilityNote) why.splice(1, 0, c.availabilityNote);
+      return { ...s, why };
     })
     .sort(
       (a, b) =>
@@ -531,6 +544,12 @@ export async function designateReferee(
     matchDate
   );
   if (divisionBlock.length > 0) return { ok: false, error: divisionBlock.join(" ") + "." };
+
+  // Disponibilités saisies par l'arbitre dans son espace.
+  const day = matchDate.toISOString().slice(0, 10);
+  const availability = await loadAvailabilityIndex(day, day, settings.requireAvailability);
+  const availabilityBlock = availability.verdict(refereeId, matchDate).block;
+  if (availabilityBlock) return { ok: false, error: availabilityBlock + "." };
 
   // Distance maximale du comité (sauf doublé dans la même salle : aucun
   // nouveau déplacement).

@@ -5,6 +5,10 @@
     {
       "path": "/api/fbi-sync",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/disponibilites-cron",
+      "schedule": "0 6 * * *"
     }
   ]
 }

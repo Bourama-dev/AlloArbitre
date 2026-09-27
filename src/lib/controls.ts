@@ -16,6 +16,7 @@ import { distanceKm } from "@/lib/geocoding";
 import { divisionReasons, getSettings, maxDistanceReason, type DivisionRules } from "@/lib/algo-rules";
 import { cachedRoadDistances, coordKey } from "@/lib/routing";
 import { NON_DESIGNABLE_LEVELS, unavailabilityBlocksMatch } from "@/lib/suggestions";
+import { loadAvailabilityIndex } from "@/lib/availability";
 
 export type ControlIssue = {
   matchId: string;
@@ -146,6 +147,8 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
           .map((r) => ({ origin: { lat: r.lat!, lng: r.lng! }, dest: { lat: m.lat!, lng: m.lng! } }))
   );
   const road = settings.maxDistanceKm != null ? await cachedRoadDistances(pairs) : new Map();
+  const lastDay = new Date(to.getTime() - 1).toISOString().slice(0, 10);
+  const availability = await loadAvailabilityIndex(from.toISOString().slice(0, 10), lastDay, settings.requireAvailability);
 
   const label = (m: RawMatch) => `${m.homeTeam} vs ${m.awayTeam}`;
   const activeOf = (r: RawReferee) =>
@@ -201,6 +204,8 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
       if (r.unavailability.some((u) => unavailabilityBlocksMatch(u, date, m.durationMinutes))) {
         problems.push("Indisponible sur ce créneau");
       }
+      const availabilityBlock = availability.verdict(r.id, date).block;
+      if (availabilityBlock) problems.push(availabilityBlock);
       for (const v of checkQuotaRules(date, m.durationMinutes, others, isTqr)) {
         if (v.severity === "bloquant") problems.push(v.message);
       }

@@ -72,6 +72,13 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     severity: "bloquant",
   },
   {
+    id: "disponibilites",
+    label: "Disponibilités saisies par l'arbitre",
+    description:
+      "Sur une période ouverte à la saisie (menu Disponibilités), un arbitre qui a répondu n'est proposé que sur les créneaux qu'il a cochés (matin avant 12 h, après-midi 12 h - 18 h, soir à partir de 18 h). Sans réponse, il reste proposé avec une mention, sauf si « Sans réponse = exclu » est activé (Admin > Paramètres) et que la saisie est close.",
+    severity: "bloquant",
+  },
+  {
     id: "groupes",
     label: "Groupes de désignation",
     description:

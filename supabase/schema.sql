@@ -204,3 +204,39 @@ create table "RouteDistance" (
   "createdAt" timestamp(3) not null default now(),
   primary key ("originKey", "destKey")
 );
+
+-- Espace arbitre : rôle ARBITRE (fixé via auth app_metadata.role par
+-- src/lib/referee-auth.ts) et rattachement du profil à la fiche arbitre.
+-- handle_new_user() lit app_metadata.role / refereeId (voir migration
+-- espace_arbitre_disponibilites).
+alter type "UserRole" add value 'ARBITRE';
+alter table "Profile" add column "refereeId" text unique references "Referee"(id) on delete set null;
+
+-- Campagnes de saisie des disponibilités (voir src/lib/availability.ts).
+create table "AvailabilityPeriod" (
+  id text primary key default gen_random_uuid()::text,
+  label text not null,
+  "startDate" date not null,
+  "endDate" date not null,
+  deadline timestamptz not null,
+  "invitationSentAt" timestamptz,
+  "reminderSentAt" timestamptz,
+  "reportSentAt" timestamptz,
+  "createdAt" timestamptz not null default now(),
+  check ("endDate" >= "startDate")
+);
+create table "AvailabilityResponse" (
+  "periodId" text not null references "AvailabilityPeriod"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  "respondedAt" timestamptz not null default now(),
+  comment text,
+  primary key ("periodId", "refereeId")
+);
+create table "AvailabilitySlot" (
+  "periodId" text not null references "AvailabilityPeriod"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  day date not null,
+  slot text not null check (slot in ('matin', 'apres-midi', 'soir')),
+  primary key ("periodId", "refereeId", day, slot)
+);
+alter table "Settings" add column "requireAvailability" boolean not null default false;

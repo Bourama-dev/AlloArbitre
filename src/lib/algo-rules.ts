@@ -9,12 +9,19 @@
  */
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-export type CommitteeSettings = { maxDistanceKm: number | null };
+export type CommitteeSettings = {
+  maxDistanceKm: number | null;
+  /** Sans réponse aux disponibilités à la clôture : exclu des suggestions. */
+  requireAvailability: boolean;
+};
 
 export async function getSettings(): Promise<CommitteeSettings> {
-  const { data, error } = await supabaseAdmin.from("Settings").select("maxDistanceKm").eq("id", 1).maybeSingle();
+  const { data, error } = await supabaseAdmin.from("Settings").select("maxDistanceKm, requireAvailability").eq("id", 1).maybeSingle();
   if (error) throw error;
-  return { maxDistanceKm: (data?.maxDistanceKm as number | null) ?? null };
+  return {
+    maxDistanceKm: (data?.maxDistanceKm as number | null) ?? null,
+    requireAvailability: (data?.requireAvailability as boolean | undefined) ?? false,
+  };
 }
 
 export type DivisionRules = {
