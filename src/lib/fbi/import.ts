@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchDurationMinutes } from "@/lib/import-matches";
 import { cleanPlaceName, geocodeAddress } from "@/lib/geocoding";
+import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
 import type { FbiDesignationRow } from "./searchDesignations";
 import { parseFbiDateTime, teamNamesMatch } from "./sync";
 
@@ -38,13 +39,21 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
   // Un même gymnase revient sur beaucoup de rencontres du même import : ne le
   // géocode qu'une fois par exécution plutôt qu'une fois par rencontre.
   const geocodeCache = new Map<string, { lat: number; lng: number } | null>();
+  // Gymnases déjà géocodés : repris tels quels (ville tronquée par FBI,
+  // coordonnées corrigées à la main...), sans appel à Google.
+  const knownVenues = await loadKnownVenueCoords();
   async function resolveVenueCoords(venue: string | null, ville: string | null) {
+    const known = knownVenues.get(venueKey(venue, ville) ?? "");
+    if (known) return known;
     // FBI tronque salle/ville ("GYMNASE JOSEPH MAURY (...") : nettoyées avant géocodage.
     const address = [cleanPlaceName(venue), cleanPlaceName(ville)].filter(Boolean).join(", ");
     if (!address || !process.env.GOOGLE_MAPS_API_KEY) return null;
     const key = address.trim().toLowerCase();
     if (!geocodeCache.has(key)) geocodeCache.set(key, await geocodeAddress(address));
-    return geocodeCache.get(key) ?? null;
+    const coords = geocodeCache.get(key) ?? null;
+    const vk = venueKey(venue, ville);
+    if (coords && vk) knownVenues.set(vk, coords);
+    return coords;
   }
 
   for (const row of rows) {

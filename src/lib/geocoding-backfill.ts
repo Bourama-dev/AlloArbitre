@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { cleanPlaceName, geocodeAddressDetailed, GEOCODING_CONFIG_ERRORS, type LatLng } from "@/lib/geocoding";
+import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
 
 export type GeocodingBackfillSummary = {
   refereesGeocoded: number;
@@ -70,7 +71,18 @@ export async function backfillMissingCoordinates(): Promise<GeocodingBackfillSum
   if (matchError) throw matchError;
 
   const failedVenues = new Set<string>();
+  const knownVenues = await loadKnownVenueCoords();
   for (const m of matches ?? []) {
+    // Gymnase déjà géocodé sur un autre match (même salle, même ville) :
+    // coordonnées reprises, sans Google (utile quand FBI tronque la ville).
+    const vk = venueKey(m.venue, m.city);
+    const known = vk ? knownVenues.get(vk) : undefined;
+    if (known) {
+      const { error } = await supabaseAdmin.from("Match").update({ lat: known.lat, lng: known.lng }).eq("id", m.id);
+      if (error) throw error;
+      summary.matchesGeocoded++;
+      continue;
+    }
     const address = m.venueAddress || [cleanPlaceName(m.venue), cleanPlaceName(m.city)].filter(Boolean).join(", ");
     if (!address) continue;
     const coords = await resolve(address);
@@ -80,6 +92,7 @@ export async function backfillMissingCoordinates(): Promise<GeocodingBackfillSum
     }
     const { error } = await supabaseAdmin.from("Match").update({ lat: coords.lat, lng: coords.lng }).eq("id", m.id);
     if (error) throw error;
+    if (vk) knownVenues.set(vk, coords);
     summary.matchesGeocoded++;
   }
   summary.venuesFailed = Array.from(failedVenues);
