@@ -57,6 +57,27 @@ export const DESIGNATION_RULES: DesignationRule[] = [
       "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'un même week-end (samedi et dimanche). Ne s'applique pas aux TQR.",
     severity: "bloquant",
   },
+  {
+    id: "distance-max",
+    label: "Distance maximale fixée par le comité",
+    description:
+      "Si une distance maximale est fixée (Admin > Paramètres), un arbitre plus loin du gymnase (par la route quand la distance routière est connue, sinon à vol d'oiseau) n'est ni proposé ni désignable. Un 2e match le même jour dans le même gymnase n'est pas concerné.",
+    severity: "bloquant",
+  },
+  {
+    id: "age-min",
+    label: "Âge minimum par division",
+    description:
+      "Si un âge minimum est fixé pour une division (Admin > Niveaux), un arbitre plus jeune à la date du match ne peut pas y être désigné. Sans date de naissance, le contrôle ne bloque pas mais est signalé dans Contrôles.",
+    severity: "bloquant",
+  },
+  {
+    id: "groupes",
+    label: "Groupes de désignation",
+    description:
+      "Une division rattachée à un ou plusieurs groupes (Admin > Groupes) n'est ouverte qu'aux arbitres membres de ces groupes. Une division sans groupe reste ouverte à tous.",
+    severity: "bloquant",
+  },
 ];
 
 const MAX_PER_PERIOD = 3;

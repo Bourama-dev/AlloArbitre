@@ -161,3 +161,46 @@ create table "Designation" (
   "position" smallint not null default 1 check ("position" in (1, 2)),
   unique ("matchId", "refereeId")
 );
+
+-- Division désignée par le CD45 (auto-désignation) ; false = à la main uniquement.
+-- alter table "CompetitionLevel" add column "autoDesignation" boolean not null default true;
+
+-- Âge minimum de l'arbitre (à la date du match) par division ; NULL = pas de contrôle.
+alter table "CompetitionLevel" add column "minRefereeAge" integer
+  check ("minRefereeAge" is null or "minRefereeAge" between 10 and 99);
+
+-- Paramètres du comité (une seule ligne, id = 1) - voir /admin/parametres.
+create table "Settings" (
+  id smallint primary key default 1 check (id = 1),
+  "maxDistanceKm" double precision check ("maxDistanceKm" is null or "maxDistanceKm" > 0),
+  "updatedAt" timestamp(3) not null default now()
+);
+
+-- Groupes de désignation (viviers) - voir /admin/groupes. Une division
+-- rattachée à au moins un groupe n'est ouverte qu'aux membres de ces groupes.
+create table "RefereeGroup" (
+  id text primary key default gen_random_uuid()::text,
+  label text not null unique,
+  "createdAt" timestamp(3) not null default current_timestamp
+);
+create table "RefereeGroupMember" (
+  "groupId" text not null references "RefereeGroup"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  primary key ("groupId", "refereeId")
+);
+create table "RefereeGroupDivision" (
+  "groupId" text not null references "RefereeGroup"(id) on delete cascade,
+  "competitionLevelId" text not null references "CompetitionLevel"(id) on delete cascade,
+  primary key ("groupId", "competitionLevelId")
+);
+
+-- Cache des distances routières Google Routes (src/lib/routing.ts) ; clés =
+-- coordonnées arrondies à 4 décimales "lat,lng".
+create table "RouteDistance" (
+  "originKey" text not null,
+  "destKey" text not null,
+  "distanceKm" double precision not null,
+  "durationMinutes" double precision not null,
+  "createdAt" timestamp(3) not null default now(),
+  primary key ("originKey", "destKey")
+);

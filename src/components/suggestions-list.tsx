@@ -52,15 +52,36 @@ export function SuggestionsList({
             <div className="text-[var(--muted)] text-xs">
               {s.levelLabel} · {s.zone ?? "zone inconnue"} · {s.currentLoad} désignation
               {s.currentLoad > 1 ? "s" : ""}
+              {s.age != null && <> · {s.age} ans</>}
               {s.distanceKm != null && (
                 <>
                   {" "}
-                  · {s.distanceKm.toFixed(1)} km · {s.estimatedPayment!.toFixed(2)} €
+                  · <span title={s.distanceByRoad ? "Distance par la route" : "Distance à vol d'oiseau"}>
+                    {s.distanceByRoad ? "" : "~"}
+                    {s.distanceKm.toFixed(1)} km{s.distanceByRoad ? " (route)" : ""}
+                  </span>
+                  {s.estimatedPayment != null && <> · {s.estimatedPayment.toFixed(2)} €</>}
                 </>
               )}
+              {s.groupLabels.length > 0 && <> · {s.groupLabels.join(", ")}</>}
             </div>
+            {s.sameVenueDouble && !reasons && (
+              <span className="inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded bg-[var(--brand-tint)] text-[var(--brand)]">
+                Doublé possible : déjà dans ce gymnase ce jour-là
+              </span>
+            )}
             {reasons && reasons.length > 0 && (
               <div className="text-[var(--danger)] text-xs mt-0.5">{reasons.join(" · ")}</div>
+            )}
+            {!reasons && s.why.length > 0 && (
+              <details className="text-xs mt-0.5">
+                <summary className="cursor-pointer text-[var(--accent)]">Pourquoi ?</summary>
+                <ul className="list-disc pl-4 text-[var(--muted)] mt-1 space-y-0.5">
+                  {s.why.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                </ul>
+              </details>
             )}
           </div>
         </div>

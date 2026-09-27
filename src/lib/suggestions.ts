@@ -3,6 +3,8 @@ import { hasSchedulingConflict, isLaterMatchSameVenueSameDay } from "@/lib/dates
 import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
+import { ageAt, divisionReasons, getDivisionRules, getSettings, maxDistanceReason } from "@/lib/algo-rules";
+import { coordKey, roadDistance, roadDistancesTo } from "@/lib/routing";
 
 export type RefereeSuggestion = {
   id: string;
@@ -13,14 +15,22 @@ export type RefereeSuggestion = {
   levelLabel: string;
   currentLoad: number;
   distanceKm: number | null;
+  /** true : distance routière réelle (Google Routes) ; false : à vol d'oiseau. */
+  distanceByRoad: boolean;
   estimatedPayment: number | null;
+  /** Déjà désigné le même jour dans ce gymnase : doublé possible, sans nouveau trajet. */
+  sameVenueDouble: boolean;
+  groupLabels: string[];
+  age: number | null;
+  /** Raisons du classement, affichées dans « Pourquoi ? ». */
+  why: string[];
 };
 
 export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
 
 // Niveaux d'arbitre stagiaire : encore en formation, ne peuvent être
 // désignés sur aucun match (règle CD45) tant qu'ils ne sont pas validés.
-const NON_DESIGNABLE_LEVELS = ["DEP-STG"];
+export const NON_DESIGNABLE_LEVELS = ["DEP-STG"];
 
 type RawMatchForSuggestion = {
   id: string;
@@ -78,7 +88,7 @@ type UnavailabilitySlot = {
  * créneau s'applique à chacun de ces jours. Dates de match à l'heure du
  * gymnase, stockées sans fuseau (d'où les lectures en UTC).
  */
-function unavailabilityBlocksMatch(u: UnavailabilitySlot, matchDate: Date, durationMinutes: number): boolean {
+export function unavailabilityBlocksMatch(u: UnavailabilitySlot, matchDate: Date, durationMinutes: number): boolean {
   const matchDay = matchDate.toISOString().slice(0, 10);
   const matchStart = matchDate.toISOString().slice(11, 16);
   const matchEnd = new Date(matchDate.getTime() + durationMinutes * 60000).toISOString().slice(11, 16);
@@ -121,18 +131,61 @@ export async function getMatchForSuggestion(matchId: string) {
 // queue de liste) plutôt que d'être reportés après tous les arbitres géocodés.
 const UNKNOWN_DISTANCE_KM = 25;
 
+// Nombre d'arbitres compatibles (les plus proches à vol d'oiseau) dont on
+// demande la distance routière réelle : le classement de tête est exact, sans
+// payer un calcul d'itinéraire pour tout l'effectif à chaque match.
+const ROAD_DISTANCE_TOP_N = 40;
+
 function rankScore(s: RefereeSuggestion): number {
+  // Doublé dans la même salle : aucun trajet supplémentaire, toujours en tête.
+  if (s.sameVenueDouble) return -1;
   return s.distanceKm ?? UNKNOWN_DISTANCE_KM;
+}
+
+/** Même jour, même gymnase, sans chevauchement : l'arbitre est déjà sur place. */
+function isSameVenueSameDay(
+  target: { date: Date; venue: string | null },
+  others: { date: Date; venue: string | null }[]
+): boolean {
+  if (!target.venue) return false;
+  const venue = target.venue.trim().toLowerCase();
+  const day = target.date.toISOString().slice(0, 10);
+  return others.some(
+    (o) => !!o.venue && o.venue.trim().toLowerCase() === venue && o.date.toISOString().slice(0, 10) === day
+  );
+}
+
+function buildWhy(s: RefereeSuggestion, minLevelLabel: string | null, maxDistanceKm: number | null): string[] {
+  const why: string[] = [];
+  why.push(minLevelLabel ? `Niveau ${s.levelLabel} (minimum requis : ${minLevelLabel})` : `Niveau ${s.levelLabel}`);
+  if (s.sameVenueDouble) {
+    why.push("Déjà désigné le même jour dans ce gymnase : doublé sans nouveau déplacement");
+  }
+  if (s.distanceKm != null) {
+    why.push(
+      `${s.distanceKm.toFixed(1)} km ${s.distanceByRoad ? "par la route" : "à vol d'oiseau"} du gymnase` +
+        (s.estimatedPayment != null ? ` (~${s.estimatedPayment.toFixed(2)} €)` : "") +
+        (maxDistanceKm != null ? `, sous le maximum de ${maxDistanceKm} km` : "")
+    );
+  } else {
+    why.push("Distance inconnue (adresse non géocodée) : classé comme s'il était à 25 km");
+  }
+  why.push(`${s.currentLoad} désignation(s) à venir (départage à distance égale)`);
+  if (s.groupLabels.length > 0) why.push(`Groupe(s) : ${s.groupLabels.join(", ")}`);
+  why.push("Club, horaires, trajet entre gymnases, indisponibilités, quotas et âge vérifiés");
+  return why;
 }
 
 /**
  * Candidats pour un match, en deux groupes : les arbitres compatibles
- * (respectant tous les critères - niveau requis si configuré, pas de
- * conflit d'horaire, pas d'indisponibilité, aucun quota bloquant dépassé),
- * triés par proximité puis équité ; et les autres arbitres actifs, avec la
- * ou les raisons de leur incompatibilité, pour rester sélectionnables
- * manuellement si besoin. Ne crée jamais de désignation - la validation
- * manuelle (voir designateReferee) est toujours requise.
+ * (respectant tous les critères - niveau requis si configuré, groupe de
+ * désignation, âge minimum, distance maximale, pas de conflit d'horaire, pas
+ * d'indisponibilité, aucun quota bloquant dépassé), triés par doublé dans la
+ * même salle, puis proximité (par la route quand elle est connue), puis
+ * équité ; et les autres arbitres actifs, avec la ou les raisons de leur
+ * incompatibilité, pour rester sélectionnables manuellement si besoin. Ne
+ * crée jamais de désignation - la validation manuelle (voir designateReferee)
+ * est toujours requise.
  */
 export async function getMatchCandidates(matchId: string): Promise<{
   minLevelLabel: string | null;
@@ -143,13 +196,15 @@ export async function getMatchCandidates(matchId: string): Promise<{
   if (!match) return { minLevelLabel: null, eligible: [], ineligible: [] };
 
   const minRank = match.competitionLevel.mapping?.minRefereeLevel?.rank;
+  const minLevelLabel = match.competitionLevel.mapping?.minRefereeLevel?.label ?? null;
   const alreadyAssignedIds = match.designations.map((d) => d.refereeId);
 
   let query = supabaseAdmin
     .from("Referee")
     .select(
-      `id, firstName, lastName, zone, phone, lat, lng,
+      `id, firstName, lastName, zone, phone, lat, lng, birthDate,
        level:RefereeLevel(id, label, rank),
+       groups:RefereeGroupMember(groupId, group:RefereeGroup(label)),
        designations:Designation(id, match:Match(date, durationMinutes, cancelled, venue, lat, lng)),
        unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
     )
@@ -159,7 +214,11 @@ export async function getMatchCandidates(matchId: string): Promise<{
     query = query.not("id", "in", `(${alreadyAssignedIds.join(",")})`);
   }
 
-  const { data, error } = await query;
+  const [{ data, error }, settings, divisionRules] = await Promise.all([
+    query,
+    getSettings(),
+    getDivisionRules(match.competitionLevelId),
+  ]);
   if (error) throw error;
 
   type RawCandidate = {
@@ -170,7 +229,9 @@ export async function getMatchCandidates(matchId: string): Promise<{
     phone: string | null;
     lat: number | null;
     lng: number | null;
+    birthDate: string | null;
     level: { id: string; label: string; rank: number };
+    groups: { groupId: string; group: { label: string } | { label: string }[] | null }[];
     designations: {
       id: string;
       match: {
@@ -197,6 +258,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
     unavailabilityBlocksMatch(u, match.date, match.durationMinutes);
 
   const hasMatchCoords = match.lat != null && match.lng != null;
+  const matchSlot = { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue };
 
   const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => {
     const activeDesignations = c.designations
@@ -208,6 +270,10 @@ export async function getMatchCandidates(matchId: string): Promise<{
         lat: d.match.lat,
         lng: d.match.lng,
       }));
+    const groupIds = c.groups.map((g) => g.groupId);
+    const groupLabels = c.groups
+      .map((g) => (Array.isArray(g.group) ? g.group[0]?.label : g.group?.label))
+      .filter((l): l is string => !!l);
 
     const reasons: string[] = [];
     if (NON_DESIGNABLE_LEVELS.includes(c.level.label)) {
@@ -216,6 +282,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
     if (minRank !== undefined && c.level.rank > minRank) {
       reasons.push("Niveau insuffisant");
     }
+    reasons.push(...divisionReasons(divisionRules, { birthDate: c.birthDate, groupIds }, match.date));
     const ownTeam = refereeOwnClubTeam(c.zone, match.homeTeam, match.awayTeam);
     if (ownTeam) reasons.push(ownClubMessage(ownTeam));
     if (
@@ -245,12 +312,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
         : null;
     // 2e match du jour dans la même salle : pas de frais kilométriques
     // (règle CD45) - la distance reste affichée pour le classement.
-    const paidKm = isLaterMatchSameVenueSameDay(
-      { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue },
-      activeDesignations
-    )
-      ? 0
-      : oneWayKm;
+    const laterSameVenue = isLaterMatchSameVenueSameDay(matchSlot, activeDesignations);
+    const sameVenueDouble = isSameVenueSameDay(matchSlot, activeDesignations);
 
     return {
       id: c.id,
@@ -261,13 +324,59 @@ export async function getMatchCandidates(matchId: string): Promise<{
       levelLabel: c.level.label,
       currentLoad: activeDesignations.filter((d) => d.date >= now).length,
       distanceKm: oneWayKm,
-      estimatedPayment: paidKm != null ? estimatePayment(paidKm) : null,
+      distanceByRoad: false,
+      estimatedPayment: null as number | null,
+      sameVenueDouble,
+      groupLabels,
+      age: ageAt(c.birthDate, match.date),
+      why: [] as string[],
       reasons,
+      coords: c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null,
+      laterSameVenue,
     };
   });
 
+  // Distance routière réelle pour les arbitres compatibles les plus proches.
+  // La route étant toujours plus longue que le vol d'oiseau, un arbitre déjà
+  // trop loin à vol d'oiseau est écarté sans calcul d'itinéraire.
+  if (hasMatchCoords) {
+    const shortlist = candidates
+      .filter((c) => c.reasons.length === 0 && c.coords && !c.sameVenueDouble)
+      .filter((c) => settings.maxDistanceKm == null || (c.distanceKm ?? 0) <= settings.maxDistanceKm)
+      .sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0))
+      .slice(0, ROAD_DISTANCE_TOP_N);
+    const road = await roadDistancesTo(
+      { lat: match.lat!, lng: match.lng! },
+      shortlist.map((c) => c.coords!)
+    );
+    for (const c of shortlist) {
+      const r = road.get(coordKey(c.coords!));
+      if (r) {
+        c.distanceKm = r.km;
+        c.distanceByRoad = true;
+      }
+    }
+  }
+
+  for (const c of candidates) {
+    // Doublé dans la même salle : pas de nouveau déplacement, donc pas de
+    // plafond kilométrique à appliquer.
+    if (!c.sameVenueDouble) {
+      const tooFar = maxDistanceReason(c.distanceKm, settings.maxDistanceKm, c.distanceByRoad);
+      if (tooFar) c.reasons.push(tooFar);
+    }
+    const paidKm = c.laterSameVenue ? 0 : c.distanceKm;
+    c.estimatedPayment = paidKm != null ? estimatePayment(paidKm) : null;
+  }
+
+  const strip = ({ coords: _coords, laterSameVenue: _later, ...rest }: (typeof candidates)[number]) => rest;
+
   const eligible: RefereeSuggestion[] = candidates
     .filter((c) => c.reasons.length === 0)
+    .map((c) => {
+      const { reasons: _reasons, ...s } = strip(c);
+      return { ...s, why: buildWhy(s, minLevelLabel, settings.maxDistanceKm) };
+    })
     .sort(
       (a, b) =>
         rankScore(a) - rankScore(b) ||
@@ -278,13 +387,10 @@ export async function getMatchCandidates(matchId: string): Promise<{
 
   const ineligible: IneligibleReferee[] = candidates
     .filter((c) => c.reasons.length > 0)
+    .map(strip)
     .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
 
-  return {
-    minLevelLabel: match.competitionLevel.mapping?.minRefereeLevel?.label ?? null,
-    eligible,
-    ineligible,
-  };
+  return { minLevelLabel, eligible, ineligible };
 }
 
 /** Compat : ne renvoie que les arbitres compatibles (utilisé par l'auto-désignation). */
@@ -298,18 +404,7 @@ export async function suggestReferees(matchId: string): Promise<{
 
 /** Explique pourquoi un arbitre a été retenu en tête des suggestions (affiché dans le récapitulatif d'auto-désignation). */
 export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number): string {
-  const parts = [
-    `Niveau ${s.levelLabel} (suffisant)`,
-    s.distanceKm != null
-      ? `${s.distanceKm.toFixed(1)} km du gymnase (~${s.estimatedPayment!.toFixed(2)} €)`
-      : "distance inconnue (adresse non géocodée)",
-    `${s.currentLoad} désignation(s) à venir`,
-  ];
-  return (
-    `${parts.join(" · ")} — classé 1er sur ${totalCandidates} arbitre(s) disponible(s) ` +
-    `(sans conflit d'horaire, ni indisponibilité, ni dépassement de quota), ` +
-    `trié du plus proche au plus loin (équité en départage à distance égale).`
-  );
+  return `Classé 1er sur ${totalCandidates} arbitre(s) compatible(s) — ${s.why.join(" · ")}.`;
 }
 
 
@@ -324,7 +419,7 @@ export async function designateReferee(
   const { data: match, error: matchError } = await supabaseAdmin
     .from("Match")
     .select(
-      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, homeTeam, awayTeam, designations:Designation(id, refereeId, position), competitionLevel:CompetitionLevel(label)"
+      "id, date, durationMinutes, cancelled, refereesRequired, venue, lat, lng, homeTeam, awayTeam, competitionLevelId, designations:Designation(id, refereeId, position), competitionLevel:CompetitionLevel(label)"
     )
     .eq("id", matchId)
     .maybeSingle();
@@ -334,7 +429,7 @@ export async function designateReferee(
 
   const { data: referee, error: refereeError } = await supabaseAdmin
     .from("Referee")
-    .select("zone, level:RefereeLevel(label)")
+    .select("zone, birthDate, lat, lng, level:RefereeLevel(label), groups:RefereeGroupMember(groupId)")
     .eq("id", refereeId)
     .maybeSingle();
   if (refereeError) throw refereeError;
@@ -422,6 +517,38 @@ export async function designateReferee(
   ).filter((v) => v.severity === "bloquant");
   if (quotaViolations.length > 0) {
     return { ok: false, error: quotaViolations.map((v) => v.message).join(" ") };
+  }
+
+  // Âge minimum et groupes de désignation de la division.
+  const [divisionRules, settings] = await Promise.all([
+    getDivisionRules(match.competitionLevelId as string),
+    getSettings(),
+  ]);
+  const groupIds = ((referee?.groups ?? []) as { groupId: string }[]).map((g) => g.groupId);
+  const divisionBlock = divisionReasons(
+    divisionRules,
+    { birthDate: (referee?.birthDate as string | null) ?? null, groupIds },
+    matchDate
+  );
+  if (divisionBlock.length > 0) return { ok: false, error: divisionBlock.join(" ") + "." };
+
+  // Distance maximale du comité (sauf doublé dans la même salle : aucun
+  // nouveau déplacement).
+  const sameVenueDouble = isSameVenueSameDay({ date: matchDate, venue: match.venue }, existingMatches);
+  if (
+    settings.maxDistanceKm != null &&
+    !sameVenueDouble &&
+    match.lat != null &&
+    match.lng != null &&
+    referee?.lat != null &&
+    referee?.lng != null
+  ) {
+    const home = { lat: referee.lat as number, lng: referee.lng as number };
+    const gym = { lat: match.lat, lng: match.lng };
+    const crowKm = distanceKm(home, gym);
+    const road = crowKm <= settings.maxDistanceKm ? await roadDistance(home, gym) : null;
+    const tooFar = maxDistanceReason(road?.km ?? crowKm, settings.maxDistanceKm, !!road);
+    if (tooFar) return { ok: false, error: tooFar + "." };
   }
 
   // Première position libre (A1, A2...) : "nombre de désignés + 1" créait

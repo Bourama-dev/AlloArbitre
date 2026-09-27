@@ -14,12 +14,15 @@ const links = [
   { href: "/matchs", label: "Matchs" },
   { href: "/fbi", label: "FBI" },
   { href: "/arbitres", label: "Arbitres" },
+  { href: "/controles", label: "Contrôles" },
   { href: "/export", label: "Export" },
   { href: "/reglement", label: "Règlement" },
 ];
 
 const adminLinks = [
   { href: "/admin/niveaux", label: "Niveaux" },
+  { href: "/admin/groupes", label: "Groupes" },
+  { href: "/admin/parametres", label: "Paramètres" },
   { href: "/admin/import", label: "Import matchs" },
   { href: "/admin/utilisateurs", label: "Utilisateurs" },
 ];

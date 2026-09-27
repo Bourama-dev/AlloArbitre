@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getMatchById, matchStatus } from "@/lib/matches";
 import { getMatchCandidates, designateReferee } from "@/lib/suggestions";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
+import { coordKey, roadDistancesTo } from "@/lib/routing";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { AlertToast } from "@/components/alert-toast";
@@ -33,6 +34,15 @@ export default async function MatchDetailPage({
     status === "incomplet"
       ? await getMatchCandidates(id)
       : { minLevelLabel: null, eligible: [], ineligible: [] };
+
+  // Distance par la route des arbitres déjà désignés (cache, sinon Google).
+  const designatedHomes = match.designations
+    .filter((d) => d.referee.lat != null && d.referee.lng != null)
+    .map((d) => ({ lat: d.referee.lat!, lng: d.referee.lng! }));
+  const roadKm =
+    match.lat != null && match.lng != null && designatedHomes.length > 0
+      ? await roadDistancesTo({ lat: match.lat, lng: match.lng }, designatedHomes)
+      : new Map<string, { km: number; minutes: number }>();
 
   async function designate(formData: FormData) {
     "use server";
@@ -113,11 +123,16 @@ export default async function MatchDetailPage({
           <ul className="table-shell divide-y divide-[var(--border)]">
             {match.designations.map((d) => {
               // 2e match du jour dans la même salle : pas de frais kilométriques (règle CD45).
+              const home =
+                d.referee.lat != null && d.referee.lng != null ? { lat: d.referee.lat, lng: d.referee.lng } : null;
+              const road = home ? roadKm.get(coordKey(home)) : undefined;
               const oneWayKm = d.sameVenueEarlier
                 ? 0
-                : match.lat != null && match.lng != null && d.referee.lat != null && d.referee.lng != null
-                  ? distanceKm({ lat: match.lat, lng: match.lng }, { lat: d.referee.lat, lng: d.referee.lng })
-                  : null;
+                : road
+                  ? road.km
+                  : match.lat != null && match.lng != null && home
+                    ? distanceKm({ lat: match.lat, lng: match.lng }, home)
+                    : null;
               return (
               <li key={d.id} className="px-4 py-2.5 text-sm flex items-center justify-between">
                 <Link
@@ -135,7 +150,7 @@ export default async function MatchDetailPage({
                       <span className="text-[var(--muted)] text-xs block">
                         {d.sameVenueEarlier
                           ? `0 km (2e match du jour dans la même salle) · ${estimatePayment(0).toFixed(2)} €`
-                          : `${oneWayKm.toFixed(1)} km · ${estimatePayment(oneWayKm).toFixed(2)} €`}
+                          : `${road ? "" : "~"}${oneWayKm.toFixed(1)} km${road ? " (route)" : ""} · ${estimatePayment(oneWayKm).toFixed(2)} €`}
                       </span>
                     )}
                   </span>

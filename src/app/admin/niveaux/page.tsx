@@ -10,6 +10,7 @@ type CompetitionLevelRow = {
   id: string;
   label: string;
   autoDesignation: boolean;
+  minRefereeAge: number | null;
   mapping: { minRefereeLevel: { id: string; label: string } } | null;
 };
 
@@ -43,7 +44,7 @@ export default async function LevelMappingAdminPage({
     await Promise.all([
       supabaseAdmin
         .from("CompetitionLevel")
-        .select("id, label, autoDesignation, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label))")
+        .select("id, label, autoDesignation, minRefereeAge, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label))")
         .order("label", { ascending: true }),
       supabaseAdmin.from("RefereeLevel").select("id, label, rank").order("rank", { ascending: true }),
     ]);
@@ -51,8 +52,20 @@ export default async function LevelMappingAdminPage({
   if (rlError) throw rlError;
 
   const competitionLevelRows: CompetitionLevelRow[] = (
-    (competitionLevels ?? []) as unknown as { id: string; label: string; autoDesignation: boolean; mapping: unknown }[]
-  ).map((c) => ({ id: c.id, label: c.label, autoDesignation: c.autoDesignation, mapping: normalizeMapping(c.mapping) }));
+    (competitionLevels ?? []) as unknown as {
+      id: string;
+      label: string;
+      autoDesignation: boolean;
+      minRefereeAge: number | null;
+      mapping: unknown;
+    }[]
+  ).map((c) => ({
+    id: c.id,
+    label: c.label,
+    autoDesignation: c.autoDesignation,
+    minRefereeAge: c.minRefereeAge,
+    mapping: normalizeMapping(c.mapping),
+  }));
 
   // Divisions désignées par le CD45 (auto-désignation). Seniors : PRF/PRM
   // seulement ; DM2-DM4 à la main pour les clubs demandeurs.
@@ -63,6 +76,22 @@ export default async function LevelMappingAdminPage({
     const id = String(formData.get("competitionLevelId"));
     const value = formData.get("autoDesignation") === "true";
     const { error } = await supabaseAdmin.from("CompetitionLevel").update({ autoDesignation: value }).eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/niveaux");
+  }
+
+  // Âge minimum de l'arbitre (à la date du match) sur cette division ; vide = pas de contrôle.
+  async function saveMinAge(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+    const id = String(formData.get("competitionLevelId"));
+    const raw = String(formData.get("minRefereeAge") ?? "").trim();
+    const value = raw === "" ? null : Number(raw);
+    if (value != null && (!Number.isInteger(value) || value < 10 || value > 99)) {
+      redirect(`/admin/niveaux?error=${encodeURIComponent("Âge minimum : un entier entre 10 et 99, ou vide.")}`);
+    }
+    const { error } = await supabaseAdmin.from("CompetitionLevel").update({ minRefereeAge: value }).eq("id", id);
     if (error) throw error;
     revalidatePath("/admin/niveaux");
   }
@@ -209,6 +238,9 @@ export default async function LevelMappingAdminPage({
                 <th className="px-3 py-2 font-medium" title="Inclus dans l'auto-désignation. Sinon : désignation manuelle uniquement (ex. club qui en fait la demande).">
                   Désigné par le CD45
                 </th>
+                <th className="px-3 py-2 font-medium" title="Âge minimum de l'arbitre à la date du match. Vide = pas de contrôle.">
+                  Âge min. arbitre
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -249,6 +281,23 @@ export default async function LevelMappingAdminPage({
                       </span>
                       <button type="submit" className="btn btn-secondary text-xs">
                         {c.autoDesignation ? "Exclure" : "Inclure"}
+                      </button>
+                    </form>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <form action={saveMinAge} className="flex items-center gap-2">
+                      <input type="hidden" name="competitionLevelId" value={c.id} />
+                      <input
+                        type="number"
+                        name="minRefereeAge"
+                        min={10}
+                        max={99}
+                        defaultValue={c.minRefereeAge ?? ""}
+                        placeholder="-"
+                        className="input w-20"
+                      />
+                      <button type="submit" className="btn btn-secondary text-xs">
+                        OK
                       </button>
                     </form>
                   </td>
