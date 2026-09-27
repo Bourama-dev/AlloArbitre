@@ -16,6 +16,7 @@ const links = [
   { href: "/arbitres", label: "Arbitres" },
   { href: "/disponibilites", label: "Disponibilités" },
   { href: "/controles", label: "Contrôles" },
+  { href: "/statistiques", label: "Statistiques" },
   { href: "/export", label: "Export" },
   { href: "/reglement", label: "Règlement" },
 ];
@@ -55,15 +56,15 @@ export function Nav({ user }: { user: NavUser }) {
         <div className="flex items-center gap-2 text-sm shrink-0">
           <Link
             href="/compte"
-            className="hidden xl:flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)]"
+            className="hidden 2xl:flex items-center gap-2 text-[var(--muted)] hover:text-[var(--foreground)]"
           >
             <span className="avatar-chip">{initial}</span>
             <span className="max-w-[10rem] truncate">{user.name ?? user.email}</span>
           </Link>
-          <Link href="/compte" className="hidden lg:block btn-ghost text-xs">
+          <Link href="/compte" className="hidden xl:block btn-ghost text-xs">
             Mon compte
           </Link>
-          <form action={logout} className="hidden lg:block">
+          <form action={logout} className="hidden xl:block">
             <button type="submit" className="btn btn-secondary">
               Déconnexion
             </button>

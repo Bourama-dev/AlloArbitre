@@ -139,17 +139,24 @@ export async function cachedRoadDistances(
   const CHUNK = 80;
   for (let i = 0; i < originKeys.length; i += CHUNK) {
     for (let j = 0; j < destKeys.length; j += CHUNK) {
-      const { data, error } = await supabaseAdmin
-        .from("RouteDistance")
-        .select("originKey, destKey, distanceKm, durationMinutes")
-        .in("destKey", destKeys.slice(j, j + CHUNK))
-        .in("originKey", originKeys.slice(i, i + CHUNK));
-      if (error) {
-        console.error("[routing] lecture du cache :", error.message);
-        return out;
-      }
-      for (const row of data ?? []) {
-        out.set(`${row.originKey}>${row.destKey}`, { km: row.distanceKm as number, minutes: row.durationMinutes as number });
+      // Pagination : PostgREST plafonne à 1000 lignes par requête.
+      for (let page = 0; ; page += 1000) {
+        const { data, error } = await supabaseAdmin
+          .from("RouteDistance")
+          .select("originKey, destKey, distanceKm, durationMinutes")
+          .in("destKey", destKeys.slice(j, j + CHUNK))
+          .in("originKey", originKeys.slice(i, i + CHUNK))
+          .order("originKey")
+          .order("destKey")
+          .range(page, page + 999);
+        if (error) {
+          console.error("[routing] lecture du cache :", error.message);
+          return out;
+        }
+        for (const row of data ?? []) {
+          out.set(`${row.originKey}>${row.destKey}`, { km: row.distanceKm as number, minutes: row.durationMinutes as number });
+        }
+        if ((data ?? []).length < 1000) break;
       }
     }
   }

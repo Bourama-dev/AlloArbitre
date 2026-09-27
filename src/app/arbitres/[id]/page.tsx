@@ -11,6 +11,7 @@ import {
 import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr, formatDateOnlyFr } from "@/lib/dates";
 import { SubmitButton } from "@/components/submit-button";
+import { computeSeasonStats, currentSeasonStartYear, season } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,8 @@ export default async function RefereeSheetPage({
   if (!sheet) notFound();
 
   const { referee, upcoming, past, currentLoad, unavailability } = sheet;
+  const seasonStats = await computeSeasonStats(season(currentSeasonStartYear()), { cd45Only: false, refereeId: id });
+  const mine = seasonStats.referees[0];
 
   async function addPunctualAction(formData: FormData) {
     "use server";
@@ -165,6 +168,49 @@ export default async function RefereeSheetPage({
           )}
         </div>
       </div>
+
+      {mine && (
+        <section>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              Statistiques saison {seasonStats.season.label}
+            </h2>
+            <Link href="/statistiques" className="text-xs text-[var(--accent)] hover:underline">
+              Toutes les statistiques
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: "Matchs", value: String(mine.total) },
+              { label: "Joués / à venir", value: `${mine.played} / ${mine.upcoming}` },
+              {
+                label: "Dispos saisies",
+                value: mine.periods > 0 ? `${mine.responses} / ${mine.periods}` : "-",
+              },
+              { label: "Retraits", value: String(mine.removals) },
+              { label: "Km A/R estimés", value: Math.round(mine.km).toLocaleString("fr-FR") },
+              {
+                label: "Indemnités estimées",
+                value: mine.estimatedPayment.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }),
+              },
+            ].map((k) => (
+              <div key={k.label} className="card p-3">
+                <p className="field-label mb-1">{k.label}</p>
+                <p className="text-lg font-semibold">{k.value}</p>
+              </div>
+            ))}
+          </div>
+          {Object.keys(mine.byDivision).length > 0 && (
+            <p className="text-xs text-[var(--muted)] mt-2">
+              Par division :{" "}
+              {Object.entries(mine.byDivision)
+                .sort((a, b) => b[1] - a[1])
+                .map(([d, n]) => `${d} ${n}`)
+                .join(" · ")}
+            </p>
+          )}
+        </section>
+      )}
 
       <section>
         <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">
