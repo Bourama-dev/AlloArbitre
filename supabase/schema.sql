@@ -240,3 +240,14 @@ create table "AvailabilitySlot" (
   primary key ("periodId", "refereeId", day, slot)
 );
 alter table "Settings" add column "requireAvailability" boolean not null default false;
+-- (invitationSentAt / reminderSentAt / reportSentAt d'AvailabilityPeriod :
+-- inutilisés depuis l'abandon des e-mails, annonces et relances via WhatsApp.)
+
+-- Tentatives d'activation du compte arbitre (licence + date de naissance) :
+-- 5 échecs en 1 h sur une licence bloquent l'activation (src/lib/referee-auth.ts).
+create table "RefereeActivationAttempt" (
+  id bigint generated always as identity primary key,
+  "licenseKey" text not null,
+  success boolean not null,
+  "createdAt" timestamptz not null default now()
+);

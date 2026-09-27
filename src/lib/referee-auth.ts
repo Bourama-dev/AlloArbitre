@@ -1,67 +1,147 @@
 /**
- * Connexion des arbitres à leur espace par lien e-mail (sans mot de passe).
+ * Accès des arbitres à leur espace, sans aucun envoi d'e-mail : le lien de
+ * /espace/connexion est partagé par le répartiteur (groupe WhatsApp).
  *
- * Le compte Supabase Auth de l'arbitre est créé à la première demande, avec
- * app_metadata.role = "ARBITRE" (posé par le serveur, jamais modifiable par
- * l'utilisateur) : le trigger handle_new_user lui donne le rôle ARBITRE et
- * le rattache à sa fiche, et le proxy le cantonne à /espace. Le lien est
- * généré par l'API admin Supabase et envoyé par Resend (pas par le serveur
- * d'e-mails intégré de Supabase, limité à quelques envois par heure).
+ * - Activation (une fois) : n° de licence + date de naissance de la fiche,
+ *   puis choix d'un mot de passe. Au-delà de 5 échecs en 1 h sur une même
+ *   licence, l'activation est bloquée (la date de naissance se devine).
+ * - Connexion : n° de licence (ou e-mail de la fiche) + mot de passe.
+ * - Mot de passe oublié / fiche incomplète : le répartiteur génère depuis la
+ *   fiche arbitre un lien personnel à usage unique (valable 1 h), à envoyer
+ *   en privé ; il ouvre l'espace et propose de choisir un mot de passe.
+ *
+ * Le compte Supabase Auth porte app_metadata.role = "ARBITRE" (posé par le
+ * serveur, jamais modifiable par l'utilisateur) : le trigger handle_new_user
+ * lui donne le rôle ARBITRE, et le proxy le cantonne à /espace.
  */
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { appUrl, emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 
-export type LoginLinkResult = { ok: true } | { ok: false; error: string };
+export const MIN_PASSWORD_LENGTH = 8;
+const MAX_FAILED_ATTEMPTS = 5;
 
-export async function sendRefereeLoginLink(rawEmail: string): Promise<LoginLinkResult> {
-  const email = rawEmail.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Adresse e-mail invalide." };
+type RefereeRow = { id: string; firstName: string; lastName: string; email: string | null; birthDate: string | null };
 
-  const { data: referee, error } = await supabaseAdmin
+export function normalizeLicense(s: string): string {
+  return s.replace(/\s+/g, "").toUpperCase();
+}
+
+async function findByLicense(license: string): Promise<RefereeRow | null> {
+  const key = normalizeLicense(license);
+  if (key.length < 4) return null;
+  const { data, error } = await supabaseAdmin
     .from("Referee")
-    .select("id, firstName, lastName, email")
+    .select("id, firstName, lastName, email, birthDate")
     .eq("active", true)
-    .ilike("email", email.replace(/([%_\\])/g, "\\$1"))
+    .ilike("licenseNumber", key.replace(/([%_\\])/g, "\\$1"))
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  // Adresse inconnue : même réponse qu'en cas de succès (pas d'énumération
-  // des adresses d'arbitres).
-  if (!referee) return { ok: true };
+  return (data as RefereeRow | null) ?? null;
+}
 
-  // Premier accès : création du compte arbitre. Un compte existant (déjà
-  // arbitre, ou membre du staff avec la même adresse) est simplement réutilisé.
-  const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+/** Adresse de connexion : celle de la fiche, sinon une adresse technique propre à l'arbitre. */
+function loginEmailOf(r: RefereeRow): string {
+  return (r.email ?? "").trim().toLowerCase() || `arbitre-${r.id}@alloarbitre.invalid`;
+}
+
+async function findAuthUserId(email: string): Promise<string | null> {
+  const { data, error } = await supabaseAdmin.from("Profile").select("id").ilike("email", email).limit(1).maybeSingle();
+  if (error) throw error;
+  return (data?.id as string | undefined) ?? null;
+}
+
+export type AuthResult = { ok: true; email: string } | { ok: false; error: string };
+
+export async function activateRefereeAccount(license: string, birthDate: string, password: string): Promise<AuthResult> {
+  const key = normalizeLicense(license);
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, error: `Mot de passe trop court (${MIN_PASSWORD_LENGTH} caractères minimum).` };
+  }
+
+  const since = new Date(Date.now() - 3_600_000).toISOString();
+  const { count, error: countError } = await supabaseAdmin
+    .from("RefereeActivationAttempt")
+    .select("id", { count: "exact", head: true })
+    .eq("licenseKey", key)
+    .eq("success", false)
+    .gte("createdAt", since);
+  if (countError) throw countError;
+  if ((count ?? 0) >= MAX_FAILED_ATTEMPTS) {
+    return { ok: false, error: "Trop d'essais. Réessayez dans une heure ou demandez un lien personnel à votre répartiteur." };
+  }
+
+  const referee = await findByLicense(key);
+  const matches = !!referee && !!referee.birthDate && referee.birthDate.slice(0, 10) === birthDate;
+  await supabaseAdmin.from("RefereeActivationAttempt").insert({ licenseKey: key, success: matches });
+  if (!referee || !matches) {
+    return {
+      ok: false,
+      error: "N° de licence ou date de naissance incorrects (ou fiche incomplète : demandez un lien personnel à votre répartiteur).",
+    };
+  }
+
+  const email = loginEmailOf(referee);
+  if (await findAuthUserId(email)) {
+    return {
+      ok: false,
+      error: "Ce compte est déjà activé : connectez-vous avec votre mot de passe. Oublié ? Demandez un lien personnel à votre répartiteur.",
+    };
+  }
+  const { error } = await supabaseAdmin.auth.admin.createUser({
     email,
+    password,
     email_confirm: true,
     app_metadata: { role: "ARBITRE", refereeId: referee.id },
     user_metadata: { name: `${referee.firstName} ${referee.lastName}` },
   });
-  if (createError && !/already|registered|exists/i.test(createError.message)) {
-    console.error("[referee-auth] createUser :", createError.message);
-    return { ok: false, error: "Impossible de préparer votre accès. Réessayez plus tard." };
+  if (error) {
+    console.error("[referee-auth] createUser :", error.message);
+    return { ok: false, error: "Activation impossible pour le moment. Contactez votre répartiteur." };
   }
+  return { ok: true, email };
+}
 
+/** Adresse de connexion à partir d'un n° de licence ou d'un e-mail saisi. */
+export async function resolveLoginEmail(identifier: string): Promise<string | null> {
+  const id = identifier.trim();
+  if (id.includes("@")) return id.toLowerCase();
+  const referee = await findByLicense(id);
+  return referee ? loginEmailOf(referee) : null;
+}
+
+/**
+ * Lien personnel à usage unique (1 h) généré par le répartiteur, à envoyer
+ * en privé : crée le compte arbitre s'il n'existe pas encore. Aucun e-mail
+ * n'est envoyé (generateLink se contente de produire le jeton).
+ */
+export async function createPersonalLink(refereeId: string, baseUrl: string): Promise<AuthResult & { url?: string }> {
+  const { data, error } = await supabaseAdmin
+    .from("Referee")
+    .select("id, firstName, lastName, email, birthDate")
+    .eq("id", refereeId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return { ok: false, error: "Arbitre introuvable." };
+  const referee = data as RefereeRow;
+  const email = loginEmailOf(referee);
+
+  if (!(await findAuthUserId(email))) {
+    const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      app_metadata: { role: "ARBITRE", refereeId: referee.id },
+      user_metadata: { name: `${referee.firstName} ${referee.lastName}` },
+    });
+    if (createError) {
+      console.error("[referee-auth] createUser :", createError.message);
+      return { ok: false, error: "Création du compte arbitre impossible." };
+    }
+  }
   const { data: link, error: linkError } = await supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email });
   if (linkError || !link?.properties?.hashed_token) {
     console.error("[referee-auth] generateLink :", linkError?.message);
-    return { ok: false, error: "Impossible de générer le lien de connexion. Réessayez plus tard." };
+    return { ok: false, error: "Génération du lien impossible." };
   }
-
-  const url = `${appUrl()}/auth/confirm?token_hash=${encodeURIComponent(link.properties.hashed_token)}&type=magiclink`;
-  const sent = await sendEmail({
-    to: email,
-    subject: "Votre lien de connexion AlloArbitre",
-    html: emailLayout({
-      title: `Bonjour ${escapeHtml(referee.firstName as string)},`,
-      paragraphs: [
-        "Voici votre lien pour accéder à votre espace arbitre : saisie de vos disponibilités et consultation de vos désignations.",
-        "Ce lien est personnel et valable une heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
-      ],
-      button: { label: "Accéder à mon espace", url },
-    }),
-    text: `Votre lien de connexion à l'espace arbitre AlloArbitre (valable une heure) : ${url}`,
-  });
-  if (!sent.ok) return { ok: false, error: "L'e-mail n'a pas pu être envoyé. Contactez votre répartiteur." };
-  return { ok: true };
+  const url = `${baseUrl}/auth/confirm?token_hash=${encodeURIComponent(link.properties.hashed_token)}&type=magiclink`;
+  return { ok: true, email, url };
 }

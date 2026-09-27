@@ -106,9 +106,6 @@ export type AvailabilityPeriod = {
   startDate: string;
   endDate: string;
   deadline: Date;
-  invitationSentAt: string | null;
-  reminderSentAt: string | null;
-  reportSentAt: string | null;
 };
 
 export function mapPeriod(row: Record<string, unknown>): AvailabilityPeriod {
@@ -118,13 +115,10 @@ export function mapPeriod(row: Record<string, unknown>): AvailabilityPeriod {
     startDate: row.startDate as string,
     endDate: row.endDate as string,
     deadline: new Date(row.deadline as string),
-    invitationSentAt: (row.invitationSentAt as string | null) ?? null,
-    reminderSentAt: (row.reminderSentAt as string | null) ?? null,
-    reportSentAt: (row.reportSentAt as string | null) ?? null,
   };
 }
 
-export const PERIOD_SELECT = "id, label, startDate, endDate, deadline, invitationSentAt, reminderSentAt, reportSentAt";
+export const PERIOD_SELECT = "id, label, startDate, endDate, deadline";
 
 export type AvailabilityVerdict = {
   /** Raison bloquante, ou null. */

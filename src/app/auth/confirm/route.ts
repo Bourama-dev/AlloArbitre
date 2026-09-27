@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 /**
- * Lien reçu par e-mail (voir referee-auth.ts) : valide le jeton à usage
+ * Lien personnel généré par le répartiteur (voir referee-auth.ts) : valide le jeton à usage
  * unique, ouvre la session (cookies) puis envoie vers l'espace arbitre.
  */
 export async function GET(request: Request) {
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   if (tokenHash && type === "magiclink") {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
-    if (!error) return NextResponse.redirect(new URL("/espace", url));
+    if (!error) return NextResponse.redirect(new URL("/espace?motdepasse=1", url));
     console.error("[auth/confirm] verifyOtp :", error.message);
   }
   return NextResponse.redirect(new URL("/espace/connexion?error=lien", url));

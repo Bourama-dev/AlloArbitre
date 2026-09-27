@@ -12,6 +12,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr, formatDateOnlyFr } from "@/lib/dates";
 import { SubmitButton } from "@/components/submit-button";
 import { computeSeasonStats, currentSeasonStartYear, season } from "@/lib/stats";
+import { PersonalLinkButton } from "@/components/personal-link-button";
 
 export const dynamic = "force-dynamic";
 
@@ -168,6 +169,11 @@ export default async function RefereeSheetPage({
           )}
         </div>
       </div>
+
+      <section className="card p-4">
+        <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">Accès à l&apos;espace arbitre</h2>
+        <PersonalLinkButton refereeId={referee.id} firstName={referee.firstName} />
+      </section>
 
       {mine && (
         <section>

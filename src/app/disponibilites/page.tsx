@@ -4,8 +4,6 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { PERIOD_SELECT, formatDeadlineFr, mapPeriod, parisLocalToDate } from "@/lib/availability";
-import { sendInvitation } from "@/lib/availability-campaign";
-import { emailConfigured } from "@/lib/email";
 import { AlertToast } from "@/components/alert-toast";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -44,7 +42,6 @@ export default async function AvailabilityPeriodsPage({
     const startDate = String(formData.get("startDate") ?? "");
     const endDate = String(formData.get("endDate") ?? "");
     const deadlineLocal = String(formData.get("deadline") ?? "");
-    const invite = formData.get("invite") === "on";
     if (!label || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate) || !deadlineLocal) {
       redirect(`/disponibilites?error=${encodeURIComponent("Nom, dates et date limite sont obligatoires.")}`);
     }
@@ -59,12 +56,7 @@ export default async function AvailabilityPeriodsPage({
       .single();
     if (error) throw error;
     revalidatePath("/disponibilites");
-    if (invite) {
-      const result = await sendInvitation(data.id as string);
-      if (!result.ok) redirect(`/disponibilites?error=${encodeURIComponent(`Période créée, mais invitation non envoyée : ${result.error}`)}`);
-      redirect(`/disponibilites?ok=${encodeURIComponent(`Période créée, invitation envoyée à ${result.sent} arbitre(s).`)}`);
-    }
-    redirect(`/disponibilites?ok=${encodeURIComponent("Période créée.")}`);
+    redirect(`/disponibilites/${data.id}?ok=${encodeURIComponent("Période créée : partagez le message ci-dessous dans le groupe WhatsApp.")}`);
   }
 
   return (
@@ -76,16 +68,10 @@ export default async function AvailabilityPeriodsPage({
         <h1 className="text-xl font-semibold tracking-tight">Disponibilités</h1>
         <p className="text-sm text-[var(--muted)] max-w-3xl">
           Ouvrez une période (un week-end, une semaine…) : les arbitres saisissent leurs créneaux disponibles dans leur
-          espace (<span className="font-mono">/espace</span>), jusqu&apos;à la date limite. Une relance part
-          automatiquement 48 h avant la clôture vers ceux qui n&apos;ont pas répondu, puis le rapport des
-          non-répondants vous est envoyé. Les créneaux saisis filtrent directement les suggestions de désignation.
+          espace jusqu&apos;à la date limite, puis la saisie est verrouillée. Chaque période fournit un message
+          d&apos;annonce et un message de relance (avec les noms des retardataires) à coller dans le groupe WhatsApp.
+          Les créneaux saisis filtrent directement les suggestions de désignation.
         </p>
-        {!emailConfigured() && (
-          <p className="text-xs text-[var(--warning)] bg-[var(--warning-bg)] rounded-lg p-2 mt-2">
-            Envoi d&apos;e-mails non configuré (RESEND_API_KEY) : les arbitres peuvent saisir, mais invitations,
-            relances, rapports et liens de connexion ne partent pas.
-          </p>
-        )}
       </div>
 
       <form action={createPeriod} className="card p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
@@ -113,10 +99,6 @@ export default async function AvailabilityPeriodsPage({
           </label>
           <input id="deadline" name="deadline" type="datetime-local" required className="input w-full" />
         </div>
-        <label className="flex items-center gap-2 text-sm lg:col-span-4">
-          <input type="checkbox" name="invite" defaultChecked />
-          Envoyer tout de suite l&apos;invitation par e-mail aux {activeCount ?? 0} arbitres actifs
-        </label>
         <SubmitButton className="btn btn-primary" pendingLabel="Création…">
           Ouvrir la période
         </SubmitButton>

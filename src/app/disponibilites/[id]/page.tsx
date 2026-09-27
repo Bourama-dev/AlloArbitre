@@ -4,19 +4,15 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { SLOTS, dateToParisLocal, daysBetween, formatDayFr, formatDeadlineFr, parisLocalToDate } from "@/lib/availability";
-import { activeReferees, getPeriod, sendInvitation, sendReminder, sendReport } from "@/lib/availability-campaign";
+import { activeReferees, announcementMessage, getPeriod, reminderMessage } from "@/lib/availability-campaign";
 import { AlertToast } from "@/components/alert-toast";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
-import { SubmitButton } from "@/components/submit-button";
+import { CopyText } from "@/components/copy-text";
 
 export const dynamic = "force-dynamic";
 
 function back(id: string, kind: "ok" | "error", msg: string): never {
   redirect(`/disponibilites/${id}?${kind}=${encodeURIComponent(msg)}`);
-}
-
-function formatSent(iso: string | null) {
-  return iso ? formatDeadlineFr(new Date(iso)) : "jamais";
 }
 
 export default async function AvailabilityPeriodPage({
@@ -54,27 +50,6 @@ export default async function AvailabilityPeriodPage({
   const missing = referees.filter((r) => !responseBy.has(r.id));
   const shown = filtre === "sans-reponse" ? missing : referees;
 
-  async function invite() {
-    "use server";
-    if (!(await getCurrentUser())) return;
-    const r = await sendInvitation(id);
-    revalidatePath(`/disponibilites/${id}`);
-    back(id, r.ok ? "ok" : "error", r.ok ? `Invitation envoyée à ${r.sent} arbitre(s).` : r.error);
-  }
-  async function remind() {
-    "use server";
-    if (!(await getCurrentUser())) return;
-    const r = await sendReminder(id);
-    revalidatePath(`/disponibilites/${id}`);
-    back(id, r.ok ? "ok" : "error", r.ok ? `Relance envoyée à ${r.sent} arbitre(s).` : r.error);
-  }
-  async function report() {
-    "use server";
-    if (!(await getCurrentUser())) return;
-    const r = await sendReport(id);
-    revalidatePath(`/disponibilites/${id}`);
-    back(id, r.ok ? "ok" : "error", r.ok ? `Rapport envoyé à ${r.sent} répartiteur(s).` : r.error);
-  }
   async function updateDeadline(formData: FormData) {
     "use server";
     if (!(await getCurrentUser())) return;
@@ -82,7 +57,7 @@ export default async function AvailabilityPeriodPage({
     if (!local) return;
     const { error } = await supabaseAdmin
       .from("AvailabilityPeriod")
-      .update({ deadline: parisLocalToDate(local).toISOString(), reminderSentAt: null, reportSentAt: null })
+      .update({ deadline: parisLocalToDate(local).toISOString() })
       .eq("id", id);
     if (error) throw error;
     revalidatePath(`/disponibilites/${id}`);
@@ -114,27 +89,29 @@ export default async function AvailabilityPeriodPage({
         </p>
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="card p-4">
+          <CopyText label="Annonce à coller dans le groupe WhatsApp" text={announcementMessage(period)} />
+        </div>
+        <div className="card p-4">
+          {closed ? (
+            <div className="space-y-1">
+              <p className="field-label">Bilan de clôture</p>
+              <p className="text-sm">
+                {missing.length === 0
+                  ? "Tous les arbitres actifs ont répondu."
+                  : `${missing.length} arbitre(s) n'ont pas répondu : ${missing.map((r) => `${r.lastName} ${r.firstName}`).join(", ")}.`}
+              </p>
+            </div>
+          ) : missing.length === 0 ? (
+            <p className="text-sm text-[var(--success)]">Tout le monde a répondu : pas de relance nécessaire.</p>
+          ) : (
+            <CopyText label={`Relance des ${missing.length} sans réponse`} text={reminderMessage(period, missing)} />
+          )}
+        </div>
+      </div>
+
       <div className="card p-4 flex flex-wrap items-end gap-3">
-        <form action={invite}>
-          <SubmitButton className="btn btn-secondary text-xs" pendingLabel="Envoi…">
-            Envoyer l&apos;invitation
-          </SubmitButton>
-          <p className="text-[11px] text-[var(--muted)] mt-1">Dernier envoi : {formatSent(period.invitationSentAt)}</p>
-        </form>
-        {!closed && (
-          <form action={remind}>
-            <SubmitButton className="btn btn-secondary text-xs" pendingLabel="Envoi…">
-              Relancer les {missing.length} sans réponse
-            </SubmitButton>
-            <p className="text-[11px] text-[var(--muted)] mt-1">Dernière relance : {formatSent(period.reminderSentAt)}</p>
-          </form>
-        )}
-        <form action={report}>
-          <SubmitButton className="btn btn-secondary text-xs" pendingLabel="Envoi…">
-            M&apos;envoyer le rapport
-          </SubmitButton>
-          <p className="text-[11px] text-[var(--muted)] mt-1">Dernier rapport : {formatSent(period.reportSentAt)}</p>
-        </form>
         <form action={updateDeadline} className="flex items-end gap-2">
           <div>
             <label className="field-label" htmlFor="deadline">

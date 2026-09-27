@@ -15,6 +15,7 @@ import {
 import { formatDateTimeFr } from "@/lib/dates";
 import { AlertToast } from "@/components/alert-toast";
 import { SubmitButton } from "@/components/submit-button";
+import { MIN_PASSWORD_LENGTH } from "@/lib/referee-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ const one = <T,>(v: One<T>): T | null => (Array.isArray(v) ? (v[0] ?? null) : v)
 export default async function RefereeSpacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; motdepasse?: string; mdp?: string }>;
 }) {
   const me = await getCurrentReferee();
   if (!me) {
@@ -38,7 +39,7 @@ export default async function RefereeSpacePage({
       </div>
     );
   }
-  const { saved, error } = await searchParams;
+  const { saved, error, motdepasse, mdp } = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
 
   const [{ data: periodRows, error: pError }, { data: designationRows, error: dError }] = await Promise.all([
@@ -140,6 +141,23 @@ export default async function RefereeSpacePage({
     redirect("/espace?saved=1");
   }
 
+  async function changePassword(formData: FormData) {
+    "use server";
+    const me = await getCurrentReferee();
+    if (!me || me.isStaff) redirect("/espace");
+    const password = String(formData.get("password") ?? "");
+    if (password.length < MIN_PASSWORD_LENGTH || password !== String(formData.get("confirm") ?? "")) {
+      redirect(
+        "/espace?motdepasse=1&error=" +
+          encodeURIComponent(`Mots de passe différents ou trop courts (${MIN_PASSWORD_LENGTH} caractères minimum).`)
+      );
+    }
+    const supabase = await createClient();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) redirect("/espace?motdepasse=1&error=" + encodeURIComponent("Changement impossible : " + error.message));
+    redirect("/espace?mdp=1");
+  }
+
   async function logout() {
     "use server";
     const supabase = await createClient();
@@ -217,6 +235,7 @@ export default async function RefereeSpacePage({
     <div className="max-w-xl mx-auto space-y-6">
       {saved && <AlertToast message="Disponibilités enregistrées. Merci !" variant="success" />}
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
+      {mdp && <AlertToast message="Mot de passe enregistré." variant="success" />}
 
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -233,6 +252,40 @@ export default async function RefereeSpacePage({
           </form>
         )}
       </div>
+
+      {!me.isStaff && (
+        <details open={!!motdepasse} className="card p-4">
+          <summary className="cursor-pointer text-sm font-semibold">
+            {motdepasse ? "Choisissez votre mot de passe" : "Changer mon mot de passe"}
+          </summary>
+          <form action={changePassword} className="space-y-2 mt-3">
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={MIN_PASSWORD_LENGTH}
+              autoComplete="new-password"
+              placeholder={`Nouveau mot de passe (${MIN_PASSWORD_LENGTH} caractères min.)`}
+              className="input w-full"
+            />
+            <input
+              name="confirm"
+              type="password"
+              required
+              minLength={MIN_PASSWORD_LENGTH}
+              autoComplete="new-password"
+              placeholder="Confirmez"
+              className="input w-full"
+            />
+            <SubmitButton className="btn btn-primary w-full" pendingLabel="Enregistrement…">
+              Enregistrer le mot de passe
+            </SubmitButton>
+            <p className="text-xs text-[var(--muted)]">
+              Ensuite, connectez-vous avec votre n° de licence et ce mot de passe.
+            </p>
+          </form>
+        </details>
+      )}
 
       <div className="space-y-3">
         <h2 className="text-sm font-semibold">Mes disponibilités</h2>

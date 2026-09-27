@@ -5,9 +5,9 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/env";
 const AUTH_ROUTES = ["/login", "/signup"];
 // Routes API qui gèrent leur propre autorisation (ex. cron Vercel authentifié
 // par CRON_SECRET, sans cookie de session) : pas de redirection vers /login.
-const SELF_AUTH_API_ROUTES = ["/api/fbi-sync", "/api/disponibilites-cron"];
-// Pages publiques de l'espace arbitre : connexion par lien e-mail.
-const REFEREE_PUBLIC_ROUTES = ["/espace/connexion", "/auth/confirm"];
+const SELF_AUTH_API_ROUTES = ["/api/fbi-sync"];
+// Pages publiques de l'espace arbitre : connexion, activation, lien personnel.
+const REFEREE_PUBLIC_ROUTES = ["/espace/connexion", "/espace/activer", "/auth/confirm"];
 // Seules routes accessibles à un compte ARBITRE.
 const REFEREE_ROUTES = ["/espace", "/auth/"];
 
