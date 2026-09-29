@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { matchStatus } from "@/lib/match-status";
 import { FbiMatchRow } from "@/components/fbi-match-row";
@@ -32,6 +32,35 @@ export function FbiMatchesPanel({
   const [result, setResult] = useState<AutoDesignateSummary | null>(null);
   const [isPreviewing, startPreview] = useTransition();
   const [isApplying, startApply] = useTransition();
+  const [selection, setSelection] = useState({ checked: 0, total: 0 });
+
+  const boxes = useCallback(
+    (root: ParentNode | null = containerRef.current) =>
+      Array.from(root?.querySelectorAll<HTMLInputElement>('input[name="matchIds"]') ?? []),
+    []
+  );
+
+  // Compteur + état des cases « tout » (cochée / partielle) recalculés à
+  // chaque clic dans le tableau et après chaque rafraîchissement des données.
+  const syncSelection = useCallback(() => {
+    const all = boxes();
+    setSelection({ checked: all.filter((b) => b.checked).length, total: all.length });
+    containerRef.current?.querySelectorAll<HTMLInputElement>("input[data-select-day]").forEach((head) => {
+      const dayBoxes = boxes(head.closest("section"));
+      const n = dayBoxes.filter((b) => b.checked).length;
+      head.checked = dayBoxes.length > 0 && n === dayBoxes.length;
+      head.indeterminate = n > 0 && n < dayBoxes.length;
+    });
+  }, [boxes]);
+
+  useEffect(() => {
+    syncSelection();
+  }, [byDay, syncSelection]);
+
+  function setAll(checked: boolean, root: ParentNode | null = containerRef.current) {
+    for (const b of boxes(root)) b.checked = checked;
+    syncSelection();
+  }
 
   function handlePreview() {
     setPlanError(null);
@@ -68,9 +97,29 @@ export function FbiMatchesPanel({
 
   return (
     <div className="space-y-3">
-      <div ref={containerRef}>
+      <div
+        ref={containerRef}
+        onChange={(e) => {
+          if ((e.target as HTMLInputElement).name === "matchIds") syncSelection();
+        }}
+      >
         {hasIncomplete && (
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-wrap items-center gap-3 mb-2">
+            <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={selection.total > 0 && selection.checked === selection.total}
+                ref={(el) => {
+                  if (el) el.indeterminate = selection.checked > 0 && selection.checked < selection.total;
+                }}
+                onChange={(e) => setAll(e.target.checked)}
+                disabled={selection.total === 0}
+              />
+              Tout sélectionner
+              <span className="text-xs text-[var(--muted)]">
+                ({selection.checked}/{selection.total})
+              </span>
+            </label>
             <button
               type="button"
               onClick={handlePreview}
@@ -93,7 +142,17 @@ export function FbiMatchesPanel({
               <table>
                 <thead>
                   <tr>
-                    {hasIncomplete && <th className="w-8" />}
+                    {hasIncomplete && (
+                      <th className="w-8">
+                        <input
+                          type="checkbox"
+                          data-select-day={day}
+                          aria-label={`Sélectionner tous les matchs du ${day}`}
+                          title="Sélectionner tous les matchs de la journée"
+                          onChange={(e) => setAll(e.target.checked, e.currentTarget.closest("section"))}
+                        />
+                      </th>
+                    )}
                     <th>Date</th>
                     <th>Niveau</th>
                     <th>Domicile</th>
