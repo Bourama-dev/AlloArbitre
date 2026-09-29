@@ -40,21 +40,24 @@ export default async function RefereeLoginPage({
         )}
         {active && (
           <p className="mb-4 text-sm text-[var(--success)] bg-[var(--success-bg)] rounded-lg p-3">
-            Compte activé ! Connectez-vous avec votre n° de licence et votre mot de passe.
+            Compte activé ! Connectez-vous avec votre adresse e-mail et votre mot de passe.
           </p>
         )}
 
         <form action={login} className="space-y-3">
           <div>
             <label className="block text-sm mb-1" htmlFor="identifier">
-              N° de licence (ou e-mail)
+              Adresse e-mail (ou n° de licence)
             </label>
             <input
               id="identifier"
               name="identifier"
               required
+              inputMode="email"
               autoComplete="username"
-              autoCapitalize="characters"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               className="input w-full"
             />
           </div>

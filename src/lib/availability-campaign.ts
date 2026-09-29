@@ -35,7 +35,7 @@ export function announcementMessage(p: AvailabilityPeriod): string {
     `🏀 Disponibilités « ${p.label} »`,
     `Merci de saisir vos créneaux disponibles avant le ${formatDeadlineFr(p.deadline)}, même si vous n'êtes disponible sur aucun créneau.`,
     `👉 ${spaceLoginUrl()}`,
-    `Première connexion : « Activer mon compte » avec votre n° de licence et votre date de naissance.`,
+    `Première connexion : « Activer mon compte » avec votre n° de licence et votre date de naissance. Ensuite : votre adresse e-mail et votre mot de passe.`,
   ].join("\n");
 }
 

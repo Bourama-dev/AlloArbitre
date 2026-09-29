@@ -281,7 +281,7 @@ export default async function RefereeSpacePage({
               Enregistrer le mot de passe
             </SubmitButton>
             <p className="text-xs text-[var(--muted)]">
-              Ensuite, connectez-vous avec votre n° de licence et ce mot de passe.
+              Ensuite, connectez-vous avec votre adresse e-mail (ou n° de licence) et ce mot de passe.
             </p>
           </form>
         </details>

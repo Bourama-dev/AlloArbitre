@@ -5,7 +5,7 @@
  * - Activation (une fois) : n° de licence + date de naissance de la fiche,
  *   puis choix d'un mot de passe. Au-delà de 5 échecs en 1 h sur une même
  *   licence, l'activation est bloquée (la date de naissance se devine).
- * - Connexion : n° de licence (ou e-mail de la fiche) + mot de passe.
+ * - Connexion : e-mail de la fiche (ou n° de licence) + mot de passe.
  * - Mot de passe oublié / fiche incomplète : le répartiteur génère depuis la
  *   fiche arbitre un lien personnel à usage unique (valable 1 h), à envoyer
  *   en privé ; il ouvre l'espace et propose de choisir un mot de passe.
@@ -114,9 +114,25 @@ export async function activateRefereeAccount(license: string, birthDate: string,
 /** Adresse de connexion à partir d'un n° de licence ou d'un e-mail saisi. */
 export async function resolveLoginEmail(identifier: string): Promise<string | null> {
   const id = identifier.trim();
-  if (id.includes("@")) return id.toLowerCase();
-  const referee = await findByLicense(id);
-  return referee ? loginEmailOf(referee) : null;
+  const referee = id.includes("@") ? await findByEmail(id) : await findByLicense(id);
+  if (!referee) return id.includes("@") ? id.toLowerCase() : null;
+  // Adresse du compte déjà rattaché à la fiche : elle reste valable même si
+  // l'e-mail de la fiche a été modifié depuis l'activation.
+  const { data, error } = await supabaseAdmin.from("Profile").select("email").eq("refereeId", referee.id).limit(1).maybeSingle();
+  if (error) throw error;
+  return (data?.email as string | undefined) ?? loginEmailOf(referee);
+}
+
+async function findByEmail(email: string): Promise<RefereeRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("Referee")
+    .select("id, firstName, lastName, email, birthDate")
+    .eq("active", true)
+    .ilike("email", email.trim().replace(/([%_\\])/g, "\\$1"))
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as RefereeRow | null) ?? null;
 }
 
 /**
