@@ -3,6 +3,7 @@ import { matchStatus } from "@/lib/match-status";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
 import { PushAllToFbiButton, ImportFbiMatchesButton } from "@/components/push-all-to-fbi-button";
 import { FbiMatchesPanel } from "@/components/fbi-matches-panel";
+import type { DesignateState } from "@/components/fbi-match-row";
 import { getCurrentUser } from "@/lib/current-user";
 import { designateReferee } from "@/lib/suggestions";
 import { revalidatePath } from "next/cache";
@@ -95,18 +96,21 @@ export default async function FbiPage({
   }
   const byDay = Array.from(byDayMap.entries());
 
-  async function designate(formData: FormData) {
+  // Renvoie le motif d'un refus à la ligne concernée (affiché sous le menu
+  // « Désigner… ») : l'ancienne redirection vers /fbi?error= n'était lue
+  // nulle part et faisait perdre les filtres - la désignation semblait
+  // simplement ne rien faire.
+  async function designate(_prev: DesignateState, formData: FormData): Promise<DesignateState> {
     "use server";
     const user = await getCurrentUser();
     if (!user) redirect("/login");
     const matchId = String(formData.get("matchId"));
-    const refereeId = String(formData.get("refereeId"));
+    const refereeId = String(formData.get("refereeId") ?? "");
+    if (!refereeId) return { error: "Choisissez un arbitre." };
     const result = await designateReferee(matchId, refereeId, user.id);
     revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
-    if (!result.ok) {
-      redirect(`/fbi?error=${encodeURIComponent(result.error)}`);
-    }
+    return result.ok ? { error: null } : { error: result.error };
   }
 
   return (
@@ -121,16 +125,16 @@ export default async function FbiPage({
         </div>
         <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 items-end card p-3 w-full lg:w-auto">
           <div>
-            <label className="field-label">Du</label>
-            <input type="date" name="du" defaultValue={toIsoDay(du)} className="input w-full" />
+            <label htmlFor="fbi-du" className="field-label">Du</label>
+            <input type="date" id="fbi-du" name="du" defaultValue={toIsoDay(du)} className="input w-full" />
           </div>
           <div>
-            <label className="field-label">Au</label>
-            <input type="date" name="au" defaultValue={toIsoDay(au)} className="input w-full" />
+            <label htmlFor="fbi-au" className="field-label">Au</label>
+            <input type="date" id="fbi-au" name="au" defaultValue={toIsoDay(au)} className="input w-full" />
           </div>
           <div>
-            <label className="field-label">Groupe</label>
-            <select name="groupe" defaultValue={groupe} className="input w-full">
+            <label htmlFor="fbi-groupe" className="field-label">Groupe</label>
+            <select id="fbi-groupe" name="groupe" defaultValue={groupe} className="input w-full">
               <option value="">Tous</option>
               {Object.entries(GROUPES).map(([key, g]) => (
                 <option key={key} value={key}>
@@ -140,8 +144,8 @@ export default async function FbiPage({
             </select>
           </div>
           <div>
-            <label className="field-label">Division</label>
-            <select name="code" defaultValue={code} className="input w-full">
+            <label htmlFor="fbi-code" className="field-label">Division</label>
+            <select id="fbi-code" name="code" defaultValue={code} className="input w-full">
               <option value="">Toutes</option>
               {codes.map((c) => (
                 <option key={c} value={c}>
@@ -151,8 +155,8 @@ export default async function FbiPage({
             </select>
           </div>
           <div>
-            <label className="field-label">Statut</label>
-            <select name="etat" defaultValue={status} className="input w-full">
+            <label htmlFor="fbi-etat" className="field-label">Statut</label>
+            <select id="fbi-etat" name="etat" defaultValue={status} className="input w-full">
               <option value="toutes">Tous</option>
               <option value="incomplet">Incomplet</option>
               <option value="complet">Complet</option>
@@ -160,8 +164,8 @@ export default async function FbiPage({
             </select>
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <label className="field-label">Équipe</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Domicile ou extérieur" className="input w-full" />
+            <label htmlFor="fbi-search" className="field-label">Équipe</label>
+            <input type="text" id="fbi-search" name="search" defaultValue={search} placeholder="Domicile ou extérieur" className="input w-full" />
           </div>
           <button type="submit" className="btn btn-secondary w-full sm:w-auto">
             Afficher

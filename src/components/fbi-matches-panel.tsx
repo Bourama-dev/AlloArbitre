@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { matchStatus } from "@/lib/match-status";
-import { FbiMatchRow } from "@/components/fbi-match-row";
+import { FbiMatchRow, type DesignateAction } from "@/components/fbi-match-row";
 import { previewAutoDesignation, applyAutoDesignation } from "@/lib/actions/auto-designate-actions";
 import type { PlanItem, AutoDesignateSummary } from "@/lib/actions/auto-designate-actions";
 import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
@@ -20,7 +20,7 @@ export function FbiMatchesPanel({
 }: {
   byDay: [string, MatchWithRelations[]][];
   referees: ActiveReferee[];
-  designateAction: (formData: FormData) => void | Promise<void>;
+  designateAction: DesignateAction;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
