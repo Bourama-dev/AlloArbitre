@@ -36,12 +36,18 @@ export function ImportFbiMatchesButton() {
           return;
         }
         const s = data.import as
-          | { created: number; updated: number; competitionLevelsCreated: string[]; errors: string[] }
+          | {
+              created: number;
+              updated: number;
+              duplicatesRemoved?: number;
+              competitionLevelsCreated: string[];
+              errors: string[];
+            }
           | undefined;
         setIsError(false);
         setMessage(
           s
-            ? `${s.created} match(s) créé(s), ${s.updated} mis à jour.${s.competitionLevelsCreated.length ? ` Niveaux créés : ${s.competitionLevelsCreated.join(", ")}.` : ""}${s.errors.length ? ` Erreurs : ${s.errors.join(" | ")}` : ""}`
+            ? `${s.created} match(s) créé(s), ${s.updated} mis à jour.${s.duplicatesRemoved ? ` ${s.duplicatesRemoved} doublon(s) supprimé(s).` : ""}${s.competitionLevelsCreated.length ? ` Niveaux créés : ${s.competitionLevelsCreated.join(", ")}.` : ""}${s.errors.length ? ` Erreurs : ${s.errors.join(" | ")}` : ""}`
             : "Import non déclenché (droits insuffisants)."
         );
         router.refresh();
