@@ -31,9 +31,10 @@ export type RefereeSuggestion = {
 
 export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
 
-// Niveaux d'arbitre stagiaire : encore en formation, ne peuvent être
-// désignés sur aucun match (règle CD45) tant qu'ils ne sont pas validés.
-export const NON_DESIGNABLE_LEVELS = ["DEP-STG"];
+// Niveaux d'arbitre stagiaire (en formation) : jamais choisis par les
+// suggestions ni par l'auto-désignation, mais désignables à la main par un
+// répartiteur (ex. en binôme avec un arbitre confirmé).
+export const MANUAL_ONLY_LEVELS = ["DEP-STG"];
 
 type RawMatchForSuggestion = {
   id: string;
@@ -281,8 +282,8 @@ export async function getMatchCandidates(matchId: string): Promise<{
       .filter((l): l is string => !!l);
 
     const reasons: string[] = [];
-    if (NON_DESIGNABLE_LEVELS.includes(c.level.label)) {
-      reasons.push(`Niveau ${c.level.label} non désignable sur un match`);
+    if (MANUAL_ONLY_LEVELS.includes(c.level.label)) {
+      reasons.push(`Stagiaire (${c.level.label}) : désignation manuelle uniquement`);
     }
     if (minRank !== undefined && c.level.rank > minRank) {
       reasons.push("Niveau insuffisant");
@@ -445,18 +446,11 @@ export async function designateReferee(
 
   const { data: referee, error: refereeError } = await supabaseAdmin
     .from("Referee")
-    .select("zone, birthDate, lat, lng, level:RefereeLevel(label), groups:RefereeGroupMember(groupId)")
+    .select("zone, birthDate, lat, lng, groups:RefereeGroupMember(groupId)")
     .eq("id", refereeId)
     .maybeSingle();
   if (refereeError) throw refereeError;
-  const rawRefereeLevel = referee?.level as unknown;
-  const refereeLevel = (Array.isArray(rawRefereeLevel) ? rawRefereeLevel[0] : rawRefereeLevel) as
-    | { label: string }
-    | null
-    | undefined;
-  if (refereeLevel?.label && NON_DESIGNABLE_LEVELS.includes(refereeLevel.label)) {
-    return { ok: false, error: `Niveau ${refereeLevel.label} : non désignable sur un match.` };
-  }
+  if (!referee) return { ok: false, error: "Arbitre introuvable." };
 
   const ownTeam = refereeOwnClubTeam(referee?.zone as string | null, match.homeTeam, match.awayTeam);
   if (ownTeam) return { ok: false, error: ownClubMessage(ownTeam) };

@@ -15,7 +15,7 @@ import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { distanceKm } from "@/lib/geocoding";
 import { divisionReasons, getSettings, maxDistanceReason, type DivisionRules } from "@/lib/algo-rules";
 import { cachedRoadDistances, coordKey } from "@/lib/routing";
-import { NON_DESIGNABLE_LEVELS, unavailabilityBlocksMatch } from "@/lib/suggestions";
+import { unavailabilityBlocksMatch } from "@/lib/suggestions";
 import { loadAvailabilityIndex } from "@/lib/availability";
 
 export type ControlIssue = {
@@ -186,9 +186,6 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
       const refLevel = one(r.level);
       const problems: string[] = [];
 
-      if (refLevel && NON_DESIGNABLE_LEVELS.includes(refLevel.label)) {
-        problems.push(`Niveau ${refLevel.label} non désignable`);
-      }
       if (minLevel && refLevel && refLevel.rank > minLevel.rank) {
         problems.push(`Niveau ${refLevel.label} insuffisant (minimum ${minLevel.label})`);
       }
