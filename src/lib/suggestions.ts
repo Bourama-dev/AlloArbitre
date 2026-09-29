@@ -5,7 +5,7 @@ import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
 import { ageAt, divisionReasons, getDivisionRules, getSettings, maxDistanceReason } from "@/lib/algo-rules";
 import { coordKey, roadDistance, roadDistancesTo } from "@/lib/routing";
-import { loadAvailabilityIndex } from "@/lib/availability";
+import { loadAvailabilityIndex, type AvailabilityStatus } from "@/lib/availability";
 
 export type RefereeSuggestion = {
   id: string;
@@ -25,6 +25,8 @@ export type RefereeSuggestion = {
   age: number | null;
   /** Raisons du classement, affichées dans « Pourquoi ? ». */
   why: string[];
+  /** Réponse à la campagne de disponibilités couvrant le match. */
+  availabilityStatus: AvailabilityStatus;
 };
 
 export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
@@ -336,6 +338,7 @@ export async function getMatchCandidates(matchId: string): Promise<{
       age: ageAt(c.birthDate, match.date),
       why: [] as string[],
       availabilityNote: availabilityVerdict.note,
+      availabilityStatus: availabilityVerdict.status,
       reasons,
       coords: c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null,
       laterSameVenue,

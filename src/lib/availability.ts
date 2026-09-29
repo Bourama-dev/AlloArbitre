@@ -124,7 +124,18 @@ export function mapPeriod(row: Record<string, unknown>): AvailabilityPeriod {
 
 export const PERIOD_SELECT = "id, label, startDate, endDate, deadline";
 
+export type AvailabilityStatus =
+  /** A répondu à la campagne et a coché le créneau du match. */
+  | "disponible"
+  /** A répondu mais n'a pas coché ce créneau. */
+  | "indisponible"
+  /** Une campagne couvre le match mais l'arbitre n'y a pas répondu. */
+  | "sans-reponse"
+  /** Aucune campagne de disponibilités ne couvre le jour du match. */
+  | "hors-campagne";
+
 export type AvailabilityVerdict = {
+  status: AvailabilityStatus;
   /** Raison bloquante, ou null. */
   block: string | null;
   /** Mention non bloquante (explication), ou null. */
@@ -135,7 +146,7 @@ export type AvailabilityIndex = {
   verdict(refereeId: string, matchDate: Date): AvailabilityVerdict;
 };
 
-const NO_EFFECT: AvailabilityVerdict = { block: null, note: null };
+const NO_EFFECT: AvailabilityVerdict = { status: "hors-campagne", block: null, note: null };
 
 /**
  * Charge les campagnes qui recouvrent [fromDay, toDay] avec réponses et
@@ -182,14 +193,22 @@ export async function loadAvailabilityIndex(
       if (answered.length > 0) {
         const ok = answered.some((p) => available.has(`${p.id}|${refereeId}|${day}|${slot}`));
         return ok
-          ? { block: null, note: `S'est déclaré disponible (${formatDayFr(day)}, ${slotLabel(slot).toLowerCase()})` }
-          : { block: `Non disponible sur le créneau « ${slotLabel(slot)} » (disponibilités saisies)`, note: null };
+          ? {
+              status: "disponible",
+              block: null,
+              note: `S'est déclaré disponible (${formatDayFr(day)}, ${slotLabel(slot).toLowerCase()})`,
+            }
+          : {
+              status: "indisponible",
+              block: `Non disponible sur le créneau « ${slotLabel(slot)} » (disponibilités saisies)`,
+              note: null,
+            };
       }
       const closed = covering.some((p) => p.deadline.getTime() <= now);
       if (requireAvailability && closed) {
-        return { block: "N'a pas saisi ses disponibilités (saisie close)", note: null };
+        return { status: "sans-reponse", block: "N'a pas saisi ses disponibilités (saisie close)", note: null };
       }
-      return { block: null, note: "N'a pas (encore) saisi ses disponibilités pour cette période" };
+      return { status: "sans-reponse", block: null, note: "N'a pas (encore) saisi ses disponibilités pour cette période" };
     },
   };
 }

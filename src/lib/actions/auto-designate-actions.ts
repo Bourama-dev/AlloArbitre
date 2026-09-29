@@ -62,7 +62,11 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
     };
 
     for (let i = 0; i < slotsToFill; i++) {
-      const { suggestions } = await suggestReferees(matchId);
+      const { suggestions: allSuggestions } = await suggestReferees(matchId);
+      // Auto-désignation : uniquement les arbitres qui ont répondu à la
+      // campagne de disponibilités ET coché le créneau du match. Les autres
+      // (sans réponse, jour hors campagne) restent désignables à la main.
+      const suggestions = allSuggestions.filter((s) => s.availabilityStatus === "disponible");
       const pickIndex = suggestions.findIndex((s) => {
         const pending = pendingByReferee.get(s.id) ?? [];
         // Même contrôle qu'à l'enregistrement (trajet + présence 30 min),
@@ -71,12 +75,17 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       });
 
       if (pickIndex === -1) {
+        const noCampaign = allSuggestions.length > 0 && allSuggestions.every((s) => s.availabilityStatus === "hors-campagne");
+        const withoutAnswer = allSuggestions.filter((s) => s.availabilityStatus === "sans-reponse").length;
         plan.push({
           matchId,
           matchLabel,
           refereeId: null,
           refereeName: null,
-          reason: "Aucun arbitre disponible.",
+          reason: noCampaign
+            ? "Aucune campagne de disponibilités ne couvre ce jour : à désigner à la main."
+            : `Aucun arbitre ayant déclaré ses disponibilités n'est libre sur ce créneau` +
+              (withoutAnswer > 0 ? ` (${withoutAnswer} arbitre(s) compatible(s) sans réponse, à désigner à la main si besoin).` : "."),
         });
         continue;
       }
