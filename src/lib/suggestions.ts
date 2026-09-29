@@ -425,7 +425,10 @@ export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number)
 }
 
 
-export type DesignateResult = { ok: true } | { ok: false; error: string };
+export type DesignateResult =
+  /** warnings : quotas dépassés (jour / semaine / week-end / TQR), non bloquants. */
+  | { ok: true; warnings: string[] }
+  | { ok: false; error: string };
 
 /** Création de la désignation - toujours suite à une validation manuelle explicite. */
 export async function designateReferee(
@@ -525,9 +528,10 @@ export async function designateReferee(
     existingMatches,
     isTqr
   ).filter((v) => v.severity === "bloquant");
-  if (quotaViolations.length > 0) {
-    return { ok: false, error: quotaViolations.map((v) => v.message).join(" ") };
-  }
+  // Désignation manuelle : un quota dépassé n'empêche pas la désignation,
+  // il est seulement signalé au répartiteur (alerte). Les suggestions et
+  // l'auto-désignation, elles, n'en proposent pas.
+  const warnings = quotaViolations.map((v) => v.message);
 
   // Âge minimum et groupes de désignation de la division.
   const [divisionRules, settings] = await Promise.all([
@@ -612,5 +616,5 @@ export async function designateReferee(
   if (insertError) {
     return { ok: false, error: "Erreur lors de la création de la désignation." };
   }
-  return { ok: true };
+  return { ok: true, warnings };
 }

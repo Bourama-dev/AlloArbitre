@@ -14,7 +14,7 @@ import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 import type { FbiRencontreDetail } from "@/lib/fbi/detail";
 
 /** Résultat de la désignation directe d'une ligne : motif du refus éventuel. */
-export type DesignateState = { error: string | null } | null;
+export type DesignateState = { error: string | null; warning?: string | null } | null;
 export type DesignateAction = (prev: DesignateState, formData: FormData) => Promise<DesignateState>;
 
 const presenceStyles: Record<string, string> = {
@@ -155,6 +155,11 @@ export function FbiMatchRow({
           {designState?.error && (
             <p role="alert" className="text-xs text-[var(--danger)] mt-1 max-w-xs whitespace-normal">
               {designState.error}
+            </p>
+          )}
+          {designState?.warning && (
+            <p role="status" className="text-xs text-[var(--warning)] mt-1 max-w-xs whitespace-normal">
+              ⚠ Désigné malgré : {designState.warning}
             </p>
           )}
         </td>

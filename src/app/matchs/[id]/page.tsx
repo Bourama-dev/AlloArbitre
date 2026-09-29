@@ -19,10 +19,10 @@ export default async function MatchDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; alerte?: string }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, alerte } = await searchParams;
 
   const match = await getMatchById(id);
   if (!match) notFound();
@@ -55,6 +55,9 @@ export default async function MatchDetailPage({
     revalidatePath("/fbi");
     if (!result.ok) {
       redirect(`/matchs/${id}?error=${encodeURIComponent(result.error)}`);
+    }
+    if (result.warnings.length) {
+      redirect(`/matchs/${id}?alerte=${encodeURIComponent("Désigné malgré : " + result.warnings.join(" "))}`);
     }
   }
 
@@ -112,6 +115,7 @@ export default async function MatchDetailPage({
       </div>
 
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
+      {alerte && <AlertToast message={decodeURIComponent(alerte)} variant="warning" />}
 
       <section>
         <h2 className="text-sm font-semibold mb-2">

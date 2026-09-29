@@ -15,12 +15,19 @@ export type DesignationRule = {
  * correspondante (voir checkQuotaRules) si elle est de nature à bloquer ou
  * déconseiller une désignation.
  */
+/**
+ * Quotas (jour / semaine / week-end / TQR) : « avertissement » - une
+ * désignation manuelle qui les dépasse est enregistrée avec une alerte ;
+ * les suggestions et l'auto-désignation n'en proposent jamais.
+ * (checkQuotaRules renvoie toujours ces dépassements avec la sévérité
+ * « bloquant » pour que les suggestions les écartent.)
+ */
 export const DESIGNATION_RULES: DesignationRule[] = [
   {
     id: "max-2-jour",
     label: "Maximum 2 matchs par jour",
     description: "Un arbitre ne peut pas siffler plus de 2 matchs au cours d'une même journée.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "presence-30-min",
@@ -34,28 +41,28 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     label: "Maximum 4 matchs TQR par jour",
     description:
       "Un TQR se jouant en format réduit (2 mi-temps), un arbitre peut en siffler jusqu'à 4 dans la même journée (soit l'équivalent de 2 matchs classiques), à condition de respecter un repos après 2 matchs d'affilée.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "repos-tqr",
     label: "Repos après 2 TQR d'affilée",
     description:
       "Après 2 matchs TQR joués sans interruption (dos à dos), un arbitre doit laisser passer au moins un match avant d'en resiffler un autre.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "max-3-semaine",
     label: "Maximum 3 désignations par semaine",
     description:
       "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'une même semaine (du lundi au dimanche). Ne s'applique pas aux TQR.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "max-3-weekend",
     label: "Maximum 3 désignations par week-end",
     description:
       "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'un même week-end (samedi et dimanche). Ne s'applique pas aux TQR.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "distance-max",

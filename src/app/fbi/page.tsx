@@ -110,7 +110,8 @@ export default async function FbiPage({
     const result = await designateReferee(matchId, refereeId, user.id);
     revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
-    return result.ok ? { error: null } : { error: result.error };
+    if (!result.ok) return { error: result.error };
+    return { error: null, warning: result.warnings.length ? result.warnings.join(" ") : null };
   }
 
   return (

@@ -22,6 +22,7 @@ export default async function MatchesPage({
     city?: string;
     sort?: string;
     error?: string;
+    alerte?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -55,6 +56,9 @@ export default async function MatchesPage({
     if (!result.ok) {
       redirect(`/matchs?error=${encodeURIComponent(result.error)}`);
     }
+    if (result.warnings.length) {
+      redirect(`/matchs?alerte=${encodeURIComponent("Désigné malgré : " + result.warnings.join(" "))}`);
+    }
   }
 
   const weekEnd = new Date(end);
@@ -63,6 +67,7 @@ export default async function MatchesPage({
   return (
     <div className="space-y-4">
       {params.error && <AlertToast message={decodeURIComponent(params.error)} variant="error" />}
+      {params.alerte && <AlertToast message={decodeURIComponent(params.alerte)} variant="warning" />}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Matchs</h1>
