@@ -20,10 +20,10 @@ export default async function AvailabilityPeriodPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; ok?: string; filtre?: string }>;
+  searchParams: Promise<{ error?: string; ok?: string; filtre?: string; modifier?: string }>;
 }) {
   const { id } = await params;
-  const { error, ok, filtre } = await searchParams;
+  const { error, ok, filtre, modifier } = await searchParams;
   const period = await getPeriod(id);
   if (!period) notFound();
 
@@ -49,6 +49,82 @@ export default async function AvailabilityPeriodPage({
   const closed = period.deadline.getTime() <= Date.now();
   const missing = referees.filter((r) => !responseBy.has(r.id));
   const shown = filtre === "sans-reponse" ? missing : referees;
+  const editing = modifier ? referees.find((r) => r.id === modifier) : undefined;
+  const editResponse = editing ? responseBy.get(editing.id) : undefined;
+  const editSlots = editing ? slotsBy.get(editing.id) : undefined;
+
+  /**
+   * Correction par un répartiteur (arbitre qui a prévenu par message, erreur
+   * de saisie...) : remplace les créneaux de l'arbitre sur la période, même
+   * après la date limite. La réponse est marquée comme donnée.
+   */
+  async function saveRefereeAvailability(formData: FormData) {
+    "use server";
+    if (!(await getCurrentUser())) return;
+    const refereeId = String(formData.get("refereeId") ?? "");
+    const current = await getPeriod(id);
+    if (!current || !refereeId) back(id, "error", "Arbitre ou période introuvable.");
+    const validDays = new Set(daysBetween(current.startDate, current.endDate));
+    const validSlots = new Set<string>(SLOTS.map((sl) => sl.id));
+    const picked = [...new Set(formData.getAll("slot").map(String))]
+      .map((v) => v.split("|"))
+      .filter(([day, slot]) => validDays.has(day) && validSlots.has(slot))
+      .map(([day, slot]) => ({ periodId: id, refereeId, day, slot }));
+    const comment = String(formData.get("comment") ?? "").trim().slice(0, 500) || null;
+
+    const { error: delError } = await supabaseAdmin
+      .from("AvailabilitySlot")
+      .delete()
+      .eq("periodId", id)
+      .eq("refereeId", refereeId);
+    if (delError) throw delError;
+    if (picked.length > 0) {
+      const { error: insError } = await supabaseAdmin.from("AvailabilitySlot").insert(picked);
+      if (insError) throw insError;
+    }
+    const { data: existing, error: exError } = await supabaseAdmin
+      .from("AvailabilityResponse")
+      .select("respondedAt")
+      .eq("periodId", id)
+      .eq("refereeId", refereeId)
+      .maybeSingle();
+    if (exError) throw exError;
+    const { error: respError } = await supabaseAdmin.from("AvailabilityResponse").upsert(
+      {
+        periodId: id,
+        refereeId,
+        respondedAt: (existing?.respondedAt as string | undefined) ?? new Date().toISOString(),
+        comment,
+      },
+      { onConflict: "periodId,refereeId" }
+    );
+    if (respError) throw respError;
+    revalidatePath(`/disponibilites/${id}`);
+    revalidatePath("/fbi");
+    back(
+      id,
+      "ok",
+      `Disponibilités de ${String(formData.get("refereeName") ?? "l'arbitre")} enregistrées (${picked.length} créneau(x)).`
+    );
+  }
+
+  /** Remet l'arbitre « sans réponse » sur cette période. */
+  async function clearRefereeAvailability(formData: FormData) {
+    "use server";
+    if (!(await getCurrentUser())) return;
+    const refereeId = String(formData.get("refereeId") ?? "");
+    const { error: e1 } = await supabaseAdmin.from("AvailabilitySlot").delete().eq("periodId", id).eq("refereeId", refereeId);
+    if (e1) throw e1;
+    const { error: e2 } = await supabaseAdmin
+      .from("AvailabilityResponse")
+      .delete()
+      .eq("periodId", id)
+      .eq("refereeId", refereeId);
+    if (e2) throw e2;
+    revalidatePath(`/disponibilites/${id}`);
+    revalidatePath("/fbi");
+    back(id, "ok", "Réponse effacée : l'arbitre est de nouveau « sans réponse ».");
+  }
 
   async function updateDeadline(formData: FormData) {
     "use server";
@@ -168,6 +244,81 @@ export default async function AvailabilityPeriodPage({
         </div>
       </section>
 
+      {editing && (
+        <section id="modifier" className="card p-4 space-y-3 border-2 border-[var(--accent)]">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold">
+                Modifier les disponibilités de {editing.lastName} {editing.firstName}
+              </h2>
+              <p className="text-xs text-[var(--muted)]">
+                {editResponse ? "A répondu" : "Sans réponse pour l'instant"} · cochez les créneaux où l&apos;arbitre est
+                disponible. Possible même après la date limite.
+              </p>
+            </div>
+            <Link href={`/disponibilites/${id}`} className="btn-ghost text-xs">
+              Annuler
+            </Link>
+          </div>
+          <form action={saveRefereeAvailability} className="space-y-3">
+            <input type="hidden" name="refereeId" value={editing.id} />
+            <input type="hidden" name="refereeName" value={`${editing.firstName} ${editing.lastName}`} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {days.map((day) => (
+                <fieldset key={day} className="space-y-1">
+                  <legend className="text-sm font-medium mb-1">{formatDayFr(day)}</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SLOTS.map((sl) => (
+                      <label
+                        key={sl.id}
+                        className="flex items-center gap-2 border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm cursor-pointer has-[:checked]:bg-[var(--success-bg)] has-[:checked]:border-[var(--success)]"
+                      >
+                        <input
+                          type="checkbox"
+                          name="slot"
+                          value={`${day}|${sl.id}`}
+                          defaultChecked={editSlots?.has(`${day}|${sl.id}`) ?? false}
+                        />
+                        <span>
+                          {sl.label} <span className="text-[10px] text-[var(--muted)]">{sl.hint}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+            <div>
+              <label htmlFor="edit-comment" className="field-label">
+                Commentaire
+              </label>
+              <textarea
+                id="edit-comment"
+                name="comment"
+                rows={2}
+                maxLength={500}
+                defaultValue={(editResponse?.comment as string | null) ?? ""}
+                className="input w-full text-sm"
+              />
+            </div>
+            <button type="submit" className="btn btn-primary text-sm">
+              Enregistrer
+            </button>
+          </form>
+          {editResponse && (
+            <form action={clearRefereeAvailability}>
+              <input type="hidden" name="refereeId" value={editing.id} />
+              <ConfirmSubmitButton
+                className="btn-danger text-xs"
+                confirmMessage={`Effacer la réponse de ${editing.firstName} ${editing.lastName} ? Il redeviendra « sans réponse ».`}
+              >
+                Effacer la réponse
+              </ConfirmSubmitButton>
+            </form>
+          )}
+        </section>
+      )}
+
       <section>
         <div className="flex items-center gap-3 mb-2">
           <h2 className="text-sm font-semibold">Réponses par arbitre</h2>
@@ -189,6 +340,7 @@ export default async function AvailabilityPeriodPage({
                   </th>
                 ))}
                 <th className="px-3 py-2 font-medium">Commentaire</th>
+                <th className="px-3 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -220,6 +372,14 @@ export default async function AvailabilityPeriodPage({
                       })
                     )}
                     <td className="px-3 py-1.5 text-xs text-[var(--muted)]">{(response?.comment as string | null) ?? ""}</td>
+                    <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                      <Link
+                        href={`/disponibilites/${id}?modifier=${r.id}${filtre ? `&filtre=${filtre}` : ""}#modifier`}
+                        className="text-xs text-[var(--accent)] hover:underline"
+                      >
+                        Modifier
+                      </Link>
+                    </td>
                   </tr>
                 );
               })}
