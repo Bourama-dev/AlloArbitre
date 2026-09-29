@@ -40,6 +40,16 @@ const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
     if (error) throw error;
     if (!profile) return null;
 
+    // Le rôle posé côté serveur dans app_metadata fait foi : un compte
+    // arbitre n'est jamais traité comme du staff, même si son profil
+    // applicatif n'a pas encore été recalé.
+    if (user.app_metadata?.role === "ARBITRE") {
+      return {
+        ...(profile as SessionProfile),
+        role: "ARBITRE",
+        refereeId: (profile.refereeId as string | null) ?? ((user.app_metadata.refereeId as string | undefined) ?? null),
+      };
+    }
     return profile as SessionProfile;
   } catch (err) {
     // Bruit attendu : pendant `next build`, Next.js sonde certaines routes

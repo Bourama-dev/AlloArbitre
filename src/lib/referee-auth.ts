@@ -44,6 +44,15 @@ function loginEmailOf(r: RefereeRow): string {
   return (r.email ?? "").trim().toLowerCase() || `arbitre-${r.id}@alloarbitre.invalid`;
 }
 
+/**
+ * GoTrue pose app_metadata après l'insertion de l'utilisateur : le trigger
+ * de création du profil ne voit donc pas le rôle. On recale explicitement.
+ */
+async function markProfileAsReferee(userId: string, refereeId: string) {
+  const { error } = await supabaseAdmin.from("Profile").update({ role: "ARBITRE", refereeId }).eq("id", userId);
+  if (error) console.error("[referee-auth] profil arbitre :", error.message);
+}
+
 async function findAuthUserId(email: string): Promise<string | null> {
   const { data, error } = await supabaseAdmin.from("Profile").select("id").ilike("email", email).limit(1).maybeSingle();
   if (error) throw error;
@@ -87,17 +96,18 @@ export async function activateRefereeAccount(license: string, birthDate: string,
       error: "Ce compte est déjà activé : connectez-vous avec votre mot de passe. Oublié ? Demandez un lien personnel à votre répartiteur.",
     };
   }
-  const { error } = await supabaseAdmin.auth.admin.createUser({
+  const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
     app_metadata: { role: "ARBITRE", refereeId: referee.id },
     user_metadata: { name: `${referee.firstName} ${referee.lastName}` },
   });
-  if (error) {
-    console.error("[referee-auth] createUser :", error.message);
+  if (error || !created.user) {
+    console.error("[referee-auth] createUser :", error?.message);
     return { ok: false, error: "Activation impossible pour le moment. Contactez votre répartiteur." };
   }
+  await markProfileAsReferee(created.user.id, referee.id);
   return { ok: true, email };
 }
 
@@ -126,16 +136,17 @@ export async function createPersonalLink(refereeId: string, baseUrl: string): Pr
   const email = loginEmailOf(referee);
 
   if (!(await findAuthUserId(email))) {
-    const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       email_confirm: true,
       app_metadata: { role: "ARBITRE", refereeId: referee.id },
       user_metadata: { name: `${referee.firstName} ${referee.lastName}` },
     });
-    if (createError) {
-      console.error("[referee-auth] createUser :", createError.message);
+    if (createError || !created.user) {
+      console.error("[referee-auth] createUser :", createError?.message);
       return { ok: false, error: "Création du compte arbitre impossible." };
     }
+    await markProfileAsReferee(created.user.id, referee.id);
   }
   const { data: link, error: linkError } = await supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email });
   if (linkError || !link?.properties?.hashed_token) {

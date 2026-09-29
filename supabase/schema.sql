@@ -251,3 +251,9 @@ create table "RefereeActivationAttempt" (
   success boolean not null,
   "createdAt" timestamptz not null default now()
 );
+
+-- GoTrue pose app_metadata APRÈS l'insertion : handle_new_user ne voit pas
+-- role = ARBITRE. Ce trigger recale le profil (rôle + fiche) à chaque
+-- modification de raw_app_meta_data (migration profil_arbitre_sync_app_metadata).
+-- create trigger on_auth_user_app_metadata_updated after update of raw_app_meta_data
+--   on auth.users for each row execute function public.sync_profile_role_from_app_metadata();
