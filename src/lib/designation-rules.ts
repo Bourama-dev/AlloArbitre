@@ -75,7 +75,7 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     id: "disponibilites",
     label: "Disponibilités saisies par l'arbitre",
     description:
-      "Sur une période ouverte à la saisie (menu Disponibilités), un arbitre qui a répondu n'est proposé que sur les créneaux qu'il a cochés (matin avant 12 h, après-midi 12 h - 18 h, soir à partir de 18 h). Sans réponse, il reste proposé avec une mention, sauf si « Sans réponse = exclu » est activé (Admin > Paramètres) et que la saisie est close.",
+      "Sur une période ouverte à la saisie (menu Disponibilités), un arbitre qui a répondu n'est proposé que sur les créneaux qu'il a cochés (matin avant 12 h, début d'après-midi 12 h - 15 h, fin d'après-midi 15 h - 18 h, soir à partir de 18 h ; un match compte dans le créneau de son heure de début). Sans réponse, il reste proposé avec une mention, sauf si « Sans réponse = exclu » est activé (Admin > Paramètres) et que la saisie est close.",
     severity: "bloquant",
   },
   {

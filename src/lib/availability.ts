@@ -2,7 +2,9 @@
  * Disponibilités saisies par les arbitres dans leur espace (/espace), par
  * campagne (AvailabilityPeriod : un week-end, une semaine...) close à une
  * date limite. Un arbitre coche les créneaux où il est disponible :
- * matin (avant 12 h), après-midi (12 h - 18 h), soir (à partir de 18 h).
+ * matin (avant 12 h), début d'après-midi (12 h - 15 h), fin d'après-midi
+ * (15 h - 18 h), soir (à partir de 18 h). Un match est rattaché au créneau
+ * de son heure de début.
  *
  * Effet sur la désignation, pour un match couvert par une campagne :
  * - l'arbitre a répondu : il n'est proposé que sur les créneaux cochés ;
@@ -13,9 +15,10 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const SLOTS = [
-  { id: "matin", label: "Matin", hint: "avant 12 h" },
-  { id: "apres-midi", label: "Après-midi", hint: "12 h - 18 h" },
-  { id: "soir", label: "Soir", hint: "à partir de 18 h" },
+  { id: "matin", label: "Matin", short: "M", hint: "avant 12 h" },
+  { id: "debut-apres-midi", label: "Début d'après-midi", short: "A1", hint: "12 h - 15 h" },
+  { id: "fin-apres-midi", label: "Fin d'après-midi", short: "A2", hint: "15 h - 18 h" },
+  { id: "soir", label: "Soir", short: "S", hint: "à partir de 18 h" },
 ] as const;
 export type SlotId = (typeof SLOTS)[number]["id"];
 
@@ -27,7 +30,8 @@ export function slotLabel(id: string): string {
 export function slotOfMatch(date: Date): SlotId {
   const h = date.getUTCHours();
   if (h < 12) return "matin";
-  if (h < 18) return "apres-midi";
+  if (h < 15) return "debut-apres-midi";
+  if (h < 18) return "fin-apres-midi";
   return "soir";
 }
 
@@ -179,7 +183,7 @@ export async function loadAvailabilityIndex(
         const ok = answered.some((p) => available.has(`${p.id}|${refereeId}|${day}|${slot}`));
         return ok
           ? { block: null, note: `S'est déclaré disponible (${formatDayFr(day)}, ${slotLabel(slot).toLowerCase()})` }
-          : { block: `Non disponible ce ${slotLabel(slot).toLowerCase()} (disponibilités saisies)`, note: null };
+          : { block: `Non disponible sur le créneau « ${slotLabel(slot)} » (disponibilités saisies)`, note: null };
       }
       const closed = covering.some((p) => p.deadline.getTime() <= now);
       if (requireAvailability && closed) {

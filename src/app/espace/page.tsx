@@ -187,7 +187,7 @@ export default async function RefereeSpacePage({
             {daysBetween(p.startDate, p.endDate).map((day) => (
               <div key={day}>
                 <p className="text-sm font-medium mb-1">{formatDayFr(day)}</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {SLOTS.map((s) => {
                     const key = `${p.id}|${day}|${s.id}`;
                     return (

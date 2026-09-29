@@ -214,7 +214,7 @@ export default async function AvailabilityPeriodPage({
                               !response ? "text-[var(--muted)]" : on ? "text-[var(--success)]" : "text-[var(--danger)]"
                             }`}
                           >
-                            {!response ? "·" : on ? s.label.charAt(0) : "✕"}
+                            {!response ? "·" : on ? s.short : "✕"}
                           </td>
                         );
                       })
@@ -227,7 +227,8 @@ export default async function AvailabilityPeriodPage({
           </table>
         </div>
         <p className="text-[11px] text-[var(--muted)] mt-1">
-          M / A / S : disponible le matin, l&apos;après-midi, le soir · ✕ : pas disponible · « · » : pas de réponse
+          M : matin · A1 : début d&apos;après-midi (12 h - 15 h) · A2 : fin d&apos;après-midi (15 h - 18 h) · S : soir ·
+          ✕ : pas disponible · « · » : pas de réponse
         </p>
       </section>
     </div>

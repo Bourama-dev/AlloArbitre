@@ -236,7 +236,7 @@ create table "AvailabilitySlot" (
   "periodId" text not null references "AvailabilityPeriod"(id) on delete cascade,
   "refereeId" text not null references "Referee"(id) on delete cascade,
   day date not null,
-  slot text not null check (slot in ('matin', 'apres-midi', 'soir')),
+  slot text not null check (slot in ('matin', 'debut-apres-midi', 'fin-apres-midi', 'soir')),
   primary key ("periodId", "refereeId", day, slot)
 );
 alter table "Settings" add column "requireAvailability" boolean not null default false;
