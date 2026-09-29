@@ -12,10 +12,12 @@ import {
   mapPeriod,
   type AvailabilityPeriod,
 } from "@/lib/availability";
-import { formatDateTimeFr } from "@/lib/dates";
+import { formatDateOnlyFr, formatDateTimeFr } from "@/lib/dates";
 import { AlertToast } from "@/components/alert-toast";
 import { SubmitButton } from "@/components/submit-button";
 import { MIN_PASSWORD_LENGTH } from "@/lib/referee-auth";
+import { computeSeasonStats, currentSeasonStartYear, season } from "@/lib/stats";
+import { WEEKDAY_LABELS } from "@/lib/referees";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +97,39 @@ export default async function RefereeSpacePage({
     .map((d) => ({ position: d.position, match: one(d.match)! }))
     .filter((d) => d.match)
     .sort((a, b) => a.match.date.localeCompare(b.match.date));
+
+  // « Mon suivi » : saison en cours, indisponibilités et dossier (lecture seule).
+  const [seasonStats, { data: unavailabilityRows, error: uError }, { data: sheet, error: sheetError }] = await Promise.all([
+    computeSeasonStats(season(currentSeasonStartYear()), { cd45Only: false, refereeId: me.refereeId }),
+    supabaseAdmin
+      .from("Unavailability")
+      .select("id, recurring, startDate, endDate, dayOfWeek, startTime, endTime, note")
+      .eq("refereeId", me.refereeId),
+    supabaseAdmin
+      .from("Referee")
+      .select("qualificationDate, medicalFileDate, recyclingDate, level:RefereeLevel(label)")
+      .eq("id", me.refereeId)
+      .maybeSingle(),
+  ]);
+  if (uError) throw uError;
+  if (sheetError) throw sheetError;
+  const myStats = seasonStats.referees[0];
+  const pastLines = (myStats?.lines ?? []).filter((l) => l.date < new Date()).sort((a, b) => b.date.getTime() - a.date.getTime());
+  const myUnavailability = (
+    (unavailabilityRows ?? []) as {
+      id: string;
+      recurring: boolean;
+      startDate: string | null;
+      endDate: string | null;
+      dayOfWeek: number | null;
+      startTime: string | null;
+      endTime: string | null;
+      note: string | null;
+    }[]
+  )
+    .filter((u) => u.recurring || (u.endDate ?? "") >= today)
+    .sort((a, b) => Number(a.recurring) - Number(b.recurring) || (a.startDate ?? "").localeCompare(b.startDate ?? ""));
+  const myLevel = one((sheet?.level ?? null) as One<{ label: string }>)?.label ?? null;
 
   async function saveAvailability(formData: FormData) {
     "use server";
@@ -335,6 +370,91 @@ export default async function RefereeSpacePage({
             })}
           </ul>
         )}
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold">Mon suivi · saison {seasonStats.season.label}</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[
+            { label: "Matchs arbitrés", value: String(myStats?.played ?? 0) },
+            { label: "À venir", value: String(myStats?.upcoming ?? 0) },
+            {
+              label: "Disponibilités saisies",
+              value: myStats && myStats.periods > 0 ? `${myStats.responses} / ${myStats.periods}` : "-",
+            },
+            { label: "Niveau", value: myLevel ?? "-" },
+          ].map((k) => (
+            <div key={k.label} className="card p-3">
+              <p className="text-[11px] text-[var(--muted)]">{k.label}</p>
+              <p className="text-lg font-semibold">{k.value}</p>
+            </div>
+          ))}
+        </div>
+        {myStats && Object.keys(myStats.byDivision).length > 0 && (
+          <p className="text-xs text-[var(--muted)]">
+            Par division :{" "}
+            {Object.entries(myStats.byDivision)
+              .sort((a, b) => b[1] - a[1])
+              .map(([d, n]) => `${d} ${n}`)
+              .join(" · ")}
+          </p>
+        )}
+
+        <details className="card p-4">
+          <summary className="cursor-pointer text-sm font-medium">Mes matchs arbitrés ({pastLines.length})</summary>
+          {pastLines.length === 0 ? (
+            <p className="text-sm text-[var(--muted)] mt-2">Aucun match arbitré cette saison pour l&apos;instant.</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-[var(--border)] text-sm">
+              {pastLines.map((l) => (
+                <li key={l.matchId} className="py-2">
+                  <p className="font-medium">
+                    {l.homeTeam} <span className="text-[var(--muted)] font-normal">vs</span> {l.awayTeam}
+                  </p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {formatDateTimeFr(l.date)} · {l.division} · Arbitre {l.position}
+                    {l.venue ? ` · ${l.venue}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </details>
+
+        <details className="card p-4">
+          <summary className="cursor-pointer text-sm font-medium">
+            Mes indisponibilités enregistrées ({myUnavailability.length})
+          </summary>
+          {myUnavailability.length === 0 ? (
+            <p className="text-sm text-[var(--muted)] mt-2">Aucune indisponibilité enregistrée.</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-[var(--border)] text-sm">
+              {myUnavailability.map((u) => {
+                const hours = u.startTime && u.endTime ? ` de ${u.startTime} à ${u.endTime}` : " (journée entière)";
+                return (
+                  <li key={u.id} className="py-2">
+                    {u.recurring
+                      ? `Chaque ${(WEEKDAY_LABELS[u.dayOfWeek ?? 0] ?? "").toLowerCase()}${hours}`
+                      : u.startDate === u.endDate
+                        ? `Le ${formatDateOnlyFr(u.startDate)}${hours}`
+                        : `Du ${formatDateOnlyFr(u.startDate)} au ${formatDateOnlyFr(u.endDate)}${hours}`}
+                    {u.note && <span className="text-xs text-[var(--muted)]"> · {u.note}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="text-xs text-[var(--muted)] mt-2">
+            Une absence prolongée à signaler ou une erreur ? Contactez votre répartiteur.
+          </p>
+        </details>
+
+        <div className="card p-4 text-sm space-y-1">
+          <p className="text-xs font-medium text-[var(--muted)]">Mon dossier</p>
+          <p>Qualification : {formatDateOnlyFr((sheet?.qualificationDate as string | null) ?? null)}</p>
+          <p>Dossier médical : {formatDateOnlyFr((sheet?.medicalFileDate as string | null) ?? null)}</p>
+          <p>Recyclage : {formatDateOnlyFr((sheet?.recyclingDate as string | null) ?? null)}</p>
+        </div>
       </div>
     </div>
   );
