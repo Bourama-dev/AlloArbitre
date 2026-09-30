@@ -4,7 +4,23 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FbiPushMatchResult } from "@/lib/fbi/push";
 
-export function ImportFbiMatchesButton() {
+/**
+ * fetch + JSON, tolérant aux pages d'erreur HTML de Vercel (délai dépassé,
+ * crash...) qui faisaient afficher "Unexpected token 'A'... is not valid JSON".
+ */
+async function fetchJson(url: string): Promise<{ ok: boolean; data: Record<string, unknown> }> {
+  const res = await fetch(url);
+  const text = await res.text();
+  try {
+    return { ok: res.ok, data: JSON.parse(text) };
+  } catch {
+    const hint = res.status === 504 || /timeout/i.test(text) ? " (délai dépassé)" : "";
+    return { ok: false, data: { error: `Le serveur a renvoyé une erreur HTTP ${res.status}${hint}. Réessayez dans un instant.` } };
+  }
+}
+
+/** du / au : période du filtre de la page (AAAA-MM-JJ), importée depuis FBI. */
+export function ImportFbiMatchesButton({ du, au }: { du: string; au: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -14,18 +30,25 @@ export function ImportFbiMatchesButton() {
     setMessage(null);
     startTransition(async () => {
       try {
-        const res = await fetch(`/api/fbi-sync`);
-        const data = await res.json();
-        if (!res.ok) {
+        const { ok, data } = await fetchJson(`/api/fbi-sync?du=${du}&au=${au}`);
+        if (!ok) {
           setIsError(true);
-          setMessage(data.error ?? "Erreur inconnue");
+          setMessage(String(data.error ?? "Erreur inconnue"));
           return;
         }
-        const s = data.import;
+        const s = data.import as
+          | {
+              created: number;
+              updated: number;
+              duplicatesRemoved?: number;
+              competitionLevelsCreated: string[];
+              errors: string[];
+            }
+          | undefined;
         setIsError(false);
         setMessage(
           s
-            ? `${s.created} match(s) créé(s), ${s.updated} mis à jour.${s.competitionLevelsCreated.length ? ` Niveaux créés : ${s.competitionLevelsCreated.join(", ")}.` : ""}${s.errors.length ? ` Erreurs : ${s.errors.join(" | ")}` : ""}`
+            ? `${s.created} match(s) créé(s), ${s.updated} mis à jour.${s.duplicatesRemoved ? ` ${s.duplicatesRemoved} doublon(s) supprimé(s).` : ""}${s.competitionLevelsCreated.length ? ` Niveaux créés : ${s.competitionLevelsCreated.join(", ")}.` : ""}${s.errors.length ? ` Erreurs : ${s.errors.join(" | ")}` : ""}`
             : "Import non déclenché (droits insuffisants)."
         );
         router.refresh();
@@ -45,7 +68,9 @@ export function ImportFbiMatchesButton() {
         className="btn btn-secondary inline-flex items-center gap-2"
       >
         {isPending && <span className="spinner" aria-hidden />}
-        {isPending ? "Import en cours…" : "Importer le calendrier depuis FBI"}
+        {isPending
+          ? "Import en cours…"
+          : `Importer le calendrier FBI du ${du.slice(8, 10)}/${du.slice(5, 7)} au ${au.slice(8, 10)}/${au.slice(5, 7)}`}
       </button>
       {message && (
         <p className={`text-sm ${isError ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>{message}</p>
@@ -54,28 +79,60 @@ export function ImportFbiMatchesButton() {
   );
 }
 
-export function PushAllToFbiButton() {
+/**
+ * Pousse vers FBI uniquement les matchs affichés sur la page (filtres
+ * appliqués) : `matchIds` = matchs visibles ayant au moins une désignation.
+ */
+export function PushAllToFbiButton({ matchIds }: { matchIds: string[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [results, setResults] = useState<FbiPushMatchResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
+  // Le serveur traite les matchs par lots (~40 s max chacun) : on enchaîne
+  // les appels avec ?offset= jusqu'à ce qu'il n'y ait plus de nextOffset.
   function pushAll() {
     setResults(null);
     setError(null);
+    setProgress(null);
+    if (matchIds.length === 0) {
+      setResults([]);
+      return;
+    }
+    const ids = encodeURIComponent(matchIds.join(","));
     startTransition(async () => {
+      const all: FbiPushMatchResult[] = [];
       try {
-        const res = await fetch(`/api/fbi-sync?pushAll=1`);
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error ?? "Erreur inconnue");
-          return;
+        let offset: number | null = 0;
+        let retries = 0;
+        while (offset !== null) {
+          const { ok, data }: { ok: boolean; data: Record<string, unknown> } = await fetchJson(
+            `/api/fbi-sync?pushIds=${ids}&offset=${offset}`
+          );
+          if (!ok) {
+            // Lot interrompu (délai dépassé, FBI lent) : on rejoue le même lot.
+            // Sans risque - ce qui a déjà été poussé est reconnu ("Déjà
+            // désigné sur FBI") et jamais dupliqué.
+            if (retries < 2) {
+              retries++;
+              continue;
+            }
+            setError(String(data.error ?? "Erreur inconnue"));
+            break;
+          }
+          retries = 0;
+          all.push(...((data.results as FbiPushMatchResult[]) ?? []));
+          setResults([...all]);
+          const total = Number(data.total ?? all.length);
+          offset = typeof data.nextOffset === "number" ? data.nextOffset : null;
+          setProgress({ done: offset ?? total, total });
         }
-        setResults(data.results ?? []);
-        router.refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erreur réseau");
       }
+      setResults([...all]);
+      router.refresh();
     });
   }
 
@@ -88,16 +145,21 @@ export function PushAllToFbiButton() {
         className="btn btn-primary inline-flex items-center gap-2"
       >
         {isPending && <span className="spinner" aria-hidden />}
-        {isPending ? "Envoi en cours…" : "Tout pousser vers FBI"}
+        {isPending
+          ? `Envoi en cours…${progress ? ` (${progress.done}/${progress.total})` : ""}`
+          : `Pousser vers FBI les ${matchIds.length} match${matchIds.length > 1 ? "s" : ""} affiché${matchIds.length > 1 ? "s" : ""}`}
       </button>
       {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
       {results && (
         <div className="card p-3 text-sm space-y-2 max-h-72 overflow-y-auto">
-          {results.length === 0 && <p className="text-[var(--muted)]">Aucun match à pousser.</p>}
+          {results.length === 0 && !error && (
+            <p className="text-[var(--muted)]">Aucun match affiché avec des désignations à pousser.</p>
+          )}
           {results.map((r) => (
             <div key={r.matchId} className="border-b border-[var(--border)] last:border-0 pb-2 last:pb-0">
               <p className="font-medium">{r.matchLabel}</p>
               {r.error && <p className="text-[var(--danger)] text-xs">{r.error}</p>}
+              {r.observateurs && <p className="text-xs text-[var(--muted)]">{r.observateurs}</p>}
               {r.positions.map((p) => (
                 <p
                   key={p.position}

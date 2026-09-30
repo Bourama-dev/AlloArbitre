@@ -1,12 +1,15 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchDurationMinutes } from "@/lib/import-matches";
-import { geocodeAddress } from "@/lib/geocoding";
+import { cleanPlaceName, geocodeAddress } from "@/lib/geocoding";
+import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
 import type { FbiDesignationRow } from "./searchDesignations";
 import { parseFbiDateTime, teamNamesMatch } from "./sync";
 
 export type FbiImportSummary = {
   created: number;
   updated: number;
+  /** Copies en double d'une même rencontre FBI supprimées (sans désignation). */
+  duplicatesRemoved: number;
   competitionLevelsCreated: string[];
   errors: string[];
 };
@@ -21,7 +24,7 @@ export type FbiImportSummary = {
  * (même logique que l'import Excel, cf. import-matches.ts).
  */
 export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): Promise<FbiImportSummary> {
-  const summary: FbiImportSummary = { created: 0, updated: 0, competitionLevelsCreated: [], errors: [] };
+  const summary: FbiImportSummary = { created: 0, updated: 0, duplicatesRemoved: 0, competitionLevelsCreated: [], errors: [] };
 
   const { data: levels, error: levelsError } = await supabaseAdmin.from("CompetitionLevel").select("id, label");
   if (levelsError) throw levelsError;
@@ -38,12 +41,21 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
   // Un même gymnase revient sur beaucoup de rencontres du même import : ne le
   // géocode qu'une fois par exécution plutôt qu'une fois par rencontre.
   const geocodeCache = new Map<string, { lat: number; lng: number } | null>();
+  // Gymnases déjà géocodés : repris tels quels (ville tronquée par FBI,
+  // coordonnées corrigées à la main...), sans appel à Google.
+  const knownVenues = await loadKnownVenueCoords();
   async function resolveVenueCoords(venue: string | null, ville: string | null) {
-    const address = [venue, ville].filter(Boolean).join(", ");
+    const known = knownVenues.get(venueKey(venue, ville) ?? "");
+    if (known) return known;
+    // FBI tronque salle/ville ("GYMNASE JOSEPH MAURY (...") : nettoyées avant géocodage.
+    const address = [cleanPlaceName(venue), cleanPlaceName(ville)].filter(Boolean).join(", ");
     if (!address || !process.env.GOOGLE_MAPS_API_KEY) return null;
     const key = address.trim().toLowerCase();
     if (!geocodeCache.has(key)) geocodeCache.set(key, await geocodeAddress(address));
-    return geocodeCache.get(key) ?? null;
+    const coords = geocodeCache.get(key) ?? null;
+    const vk = venueKey(venue, ville);
+    if (coords && vk) knownVenues.set(vk, coords);
+    return coords;
   }
 
   for (const row of rows) {
@@ -67,17 +79,42 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const { data: candidates, error: findError } = await supabaseAdmin
-        .from("Match")
-        .select("id, homeTeam, awayTeam, lat, lng")
-        .gte("date", dayStart.toISOString())
-        .lt("date", dayEnd.toISOString())
-        .eq("competitionLevelId", competitionLevelId);
-      if (findError) throw findError;
+      // 1) Par identifiant FBI : il ne change pas quand FBI renumérote le
+      //    suffixe des équipes ("USM OLIVET (2)" -> "(1)") ni quand la
+      //    rencontre est reportée - la comparaison des noms recréait alors
+      //    la même rencontre en double.
+      let existing: { id: string; homeTeam: string; awayTeam: string; lat: number | null; lng: number | null } | undefined;
+      let matchedById = false;
+      if (row.idRencontre) {
+        const { data: byId, error: byIdError } = await supabaseAdmin
+          .from("Match")
+          .select("id, homeTeam, awayTeam, lat, lng")
+          .eq("fbiIdRencontre", row.idRencontre)
+          .order("createdAt", { ascending: true })
+          .limit(1);
+        if (byIdError) throw byIdError;
+        existing = byId?.[0];
+        matchedById = !!existing;
+      }
 
-      const existing = (candidates ?? []).find(
-        (m) => teamNamesMatch(row.equipe1, m.homeTeam) && teamNamesMatch(row.equipe2, m.awayTeam)
-      );
+      // 2) Sinon, même jour + même division + équipes compatibles, en
+      //    ignorant les matchs déjà rattachés à une AUTRE rencontre FBI
+      //    (deux rencontres distinctes aux noms proches ne doivent pas fusionner).
+      if (!existing) {
+        const { data: candidates, error: findError } = await supabaseAdmin
+          .from("Match")
+          .select("id, homeTeam, awayTeam, lat, lng, fbiIdRencontre")
+          .gte("date", dayStart.toISOString())
+          .lt("date", dayEnd.toISOString())
+          .eq("competitionLevelId", competitionLevelId);
+        if (findError) throw findError;
+        existing = (candidates ?? []).find(
+          (m) =>
+            (!m.fbiIdRencontre || !row.idRencontre || m.fbiIdRencontre === row.idRencontre) &&
+            teamNamesMatch(row.equipe1, m.homeTeam) &&
+            teamNamesMatch(row.equipe2, m.awayTeam)
+        );
+      }
 
       const durationMinutes = matchDurationMinutes(row.code);
       // Un match déjà géocodé n'est pas re-résolu à chaque import (le
@@ -95,6 +132,9 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
             poule: row.poule || null,
             durationMinutes,
             fbiIdRencontre: row.idRencontre,
+            // Rencontre retrouvée par son identifiant : libellés d'équipes
+            // réalignés sur FBI (suffixe renuméroté, nom corrigé).
+            ...(matchedById ? { homeTeam, awayTeam, competitionLevelId } : {}),
             ...(coords ? { lat: coords.lat, lng: coords.lng } : {}),
           })
           .eq("id", existing.id);
@@ -125,5 +165,57 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
     }
   }
 
+  await removeDuplicateRencontres(
+    rows.map((r) => r.idRencontre).filter((id): id is string => !!id),
+    summary
+  );
+
   return summary;
+}
+
+/**
+ * Doublons créés par les anciens imports (même idRencontre FBI sur plusieurs
+ * matchs, quand FBI renumérotait le suffixe des équipes) : on garde le match
+ * qui porte des désignations, sinon le plus ancien, et on supprime les copies
+ * SANS désignation. Deux copies désignées ne sont jamais supprimées : signalées.
+ */
+async function removeDuplicateRencontres(ids: string[], summary: FbiImportSummary) {
+  const unique = [...new Set(ids)];
+  for (let i = 0; i < unique.length; i += 100) {
+    const { data, error } = await supabaseAdmin
+      .from("Match")
+      .select("id, fbiIdRencontre, homeTeam, awayTeam, createdAt, designations:Designation(id)")
+      .in("fbiIdRencontre", unique.slice(i, i + 100));
+    if (error) throw error;
+
+    const byId = new Map<string, { id: string; homeTeam: string; awayTeam: string; createdAt: string; n: number }[]>();
+    for (const m of (data ?? []) as unknown as {
+      id: string;
+      fbiIdRencontre: string;
+      homeTeam: string;
+      awayTeam: string;
+      createdAt: string;
+      designations: { id: string }[];
+    }[]) {
+      const list = byId.get(m.fbiIdRencontre) ?? [];
+      list.push({ id: m.id, homeTeam: m.homeTeam, awayTeam: m.awayTeam, createdAt: m.createdAt, n: m.designations.length });
+      byId.set(m.fbiIdRencontre, list);
+    }
+
+    for (const [fbiId, list] of byId) {
+      if (list.length < 2) continue;
+      list.sort((a, b) => b.n - a.n || a.createdAt.localeCompare(b.createdAt));
+      const [keep, ...copies] = list;
+      if (copies.some((c) => c.n > 0)) {
+        summary.errors.push(
+          `Rencontre FBI ${fbiId} (${keep.homeTeam} - ${keep.awayTeam}) présente ${list.length} fois avec des désignations sur plusieurs copies : à fusionner à la main.`
+        );
+      }
+      const toDelete = copies.filter((c) => c.n === 0).map((c) => c.id);
+      if (toDelete.length === 0) continue;
+      const { error: delError } = await supabaseAdmin.from("Match").delete().in("id", toDelete);
+      if (delError) throw delError;
+      summary.duplicatesRemoved += toDelete.length;
+    }
+  }
 }

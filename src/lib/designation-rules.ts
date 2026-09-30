@@ -15,11 +15,25 @@ export type DesignationRule = {
  * correspondante (voir checkQuotaRules) si elle est de nature à bloquer ou
  * déconseiller une désignation.
  */
+/**
+ * Quotas (jour / semaine / week-end / TQR) : « avertissement » - une
+ * désignation manuelle qui les dépasse est enregistrée avec une alerte ;
+ * les suggestions et l'auto-désignation n'en proposent jamais.
+ * (checkQuotaRules renvoie toujours ces dépassements avec la sévérité
+ * « bloquant » pour que les suggestions les écartent.)
+ */
 export const DESIGNATION_RULES: DesignationRule[] = [
   {
     id: "max-2-jour",
     label: "Maximum 2 matchs par jour",
     description: "Un arbitre ne peut pas siffler plus de 2 matchs au cours d'une même journée.",
+    severity: "avertissement",
+  },
+  {
+    id: "presence-30-min",
+    label: "Présence 30 min avant le match (trajet compris)",
+    description:
+      "Un arbitre doit être au gymnase au moins 30 minutes avant le début du match. Pour deux matchs le même jour dans des gymnases différents, l'écart entre la fin du premier (durée comptée : 2 h) et le début du second doit couvrir le trajet (estimé à 50 km/h à vol d'oiseau) plus ces 30 minutes, ou 1 h si un des gymnases n'est pas géocodé. Dans le même gymnase, les matchs peuvent s'enchaîner.",
     severity: "bloquant",
   },
   {
@@ -27,27 +41,55 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     label: "Maximum 4 matchs TQR par jour",
     description:
       "Un TQR se jouant en format réduit (2 mi-temps), un arbitre peut en siffler jusqu'à 4 dans la même journée (soit l'équivalent de 2 matchs classiques), à condition de respecter un repos après 2 matchs d'affilée.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "repos-tqr",
     label: "Repos après 2 TQR d'affilée",
     description:
       "Après 2 matchs TQR joués sans interruption (dos à dos), un arbitre doit laisser passer au moins un match avant d'en resiffler un autre.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "max-3-semaine",
     label: "Maximum 3 désignations par semaine",
     description:
       "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'une même semaine (du lundi au dimanche). Ne s'applique pas aux TQR.",
-    severity: "bloquant",
+    severity: "avertissement",
   },
   {
     id: "max-3-weekend",
     label: "Maximum 3 désignations par week-end",
     description:
       "Un arbitre ne peut pas être désigné plus de 3 fois au cours d'un même week-end (samedi et dimanche). Ne s'applique pas aux TQR.",
+    severity: "avertissement",
+  },
+  {
+    id: "distance-max",
+    label: "Distance maximale fixée par le comité",
+    description:
+      "Si une distance maximale est fixée (Admin > Paramètres), un arbitre plus loin du gymnase (par la route quand la distance routière est connue, sinon à vol d'oiseau) n'est ni proposé ni désignable. Un 2e match le même jour dans le même gymnase n'est pas concerné.",
+    severity: "bloquant",
+  },
+  {
+    id: "age-min",
+    label: "Âge minimum par division",
+    description:
+      "Si un âge minimum est fixé pour une division (Admin > Niveaux), un arbitre plus jeune à la date du match ne peut pas y être désigné. Sans date de naissance, le contrôle ne bloque pas mais est signalé dans Contrôles.",
+    severity: "bloquant",
+  },
+  {
+    id: "disponibilites",
+    label: "Disponibilités saisies par l'arbitre",
+    description:
+      "Sur une période ouverte à la saisie (menu Disponibilités), un arbitre qui a répondu n'est proposé que sur les créneaux qu'il a cochés (matin avant 12 h, début d'après-midi 12 h - 15 h, fin d'après-midi 15 h - 18 h, soir à partir de 18 h ; un match compte dans le créneau de son heure de début). Sans réponse, il reste proposé avec une mention, sauf si « Sans réponse = exclu » est activé (Admin > Paramètres) et que la saisie est close. L'auto-désignation, elle, ne retient que les arbitres qui ont répondu et coché le créneau du match.",
+    severity: "bloquant",
+  },
+  {
+    id: "groupes",
+    label: "Groupes de désignation",
+    description:
+      "Une division rattachée à un ou plusieurs groupes (Admin > Groupes) n'est ouverte qu'aux arbitres membres de ces groupes. Une division sans groupe reste ouverte à tous.",
     severity: "bloquant",
   },
 ];

@@ -161,3 +161,99 @@ create table "Designation" (
   "position" smallint not null default 1 check ("position" in (1, 2)),
   unique ("matchId", "refereeId")
 );
+
+-- Division désignée par le CD45 (auto-désignation) ; false = à la main uniquement.
+-- alter table "CompetitionLevel" add column "autoDesignation" boolean not null default true;
+
+-- Âge minimum de l'arbitre (à la date du match) par division ; NULL = pas de contrôle.
+alter table "CompetitionLevel" add column "minRefereeAge" integer
+  check ("minRefereeAge" is null or "minRefereeAge" between 10 and 99);
+
+-- Paramètres du comité (une seule ligne, id = 1) - voir /admin/parametres.
+create table "Settings" (
+  id smallint primary key default 1 check (id = 1),
+  "maxDistanceKm" double precision check ("maxDistanceKm" is null or "maxDistanceKm" > 0),
+  "updatedAt" timestamp(3) not null default now()
+);
+
+-- Groupes de désignation (viviers) - voir /admin/groupes. Une division
+-- rattachée à au moins un groupe n'est ouverte qu'aux membres de ces groupes.
+create table "RefereeGroup" (
+  id text primary key default gen_random_uuid()::text,
+  label text not null unique,
+  "createdAt" timestamp(3) not null default current_timestamp
+);
+create table "RefereeGroupMember" (
+  "groupId" text not null references "RefereeGroup"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  primary key ("groupId", "refereeId")
+);
+create table "RefereeGroupDivision" (
+  "groupId" text not null references "RefereeGroup"(id) on delete cascade,
+  "competitionLevelId" text not null references "CompetitionLevel"(id) on delete cascade,
+  primary key ("groupId", "competitionLevelId")
+);
+
+-- Cache des distances routières Google Routes (src/lib/routing.ts) ; clés =
+-- coordonnées arrondies à 4 décimales "lat,lng".
+create table "RouteDistance" (
+  "originKey" text not null,
+  "destKey" text not null,
+  "distanceKm" double precision not null,
+  "durationMinutes" double precision not null,
+  "createdAt" timestamp(3) not null default now(),
+  primary key ("originKey", "destKey")
+);
+
+-- Espace arbitre : rôle ARBITRE (fixé via auth app_metadata.role par
+-- src/lib/referee-auth.ts) et rattachement du profil à la fiche arbitre.
+-- handle_new_user() lit app_metadata.role / refereeId (voir migration
+-- espace_arbitre_disponibilites).
+alter type "UserRole" add value 'ARBITRE';
+alter table "Profile" add column "refereeId" text unique references "Referee"(id) on delete set null;
+
+-- Campagnes de saisie des disponibilités (voir src/lib/availability.ts).
+create table "AvailabilityPeriod" (
+  id text primary key default gen_random_uuid()::text,
+  label text not null,
+  "startDate" date not null,
+  "endDate" date not null,
+  deadline timestamptz not null,
+  "invitationSentAt" timestamptz,
+  "reminderSentAt" timestamptz,
+  "reportSentAt" timestamptz,
+  "createdAt" timestamptz not null default now(),
+  check ("endDate" >= "startDate")
+);
+create table "AvailabilityResponse" (
+  "periodId" text not null references "AvailabilityPeriod"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  "respondedAt" timestamptz not null default now(),
+  comment text,
+  primary key ("periodId", "refereeId")
+);
+create table "AvailabilitySlot" (
+  "periodId" text not null references "AvailabilityPeriod"(id) on delete cascade,
+  "refereeId" text not null references "Referee"(id) on delete cascade,
+  day date not null,
+  slot text not null check (slot in ('matin', 'debut-apres-midi', 'fin-apres-midi', 'soir')),
+  primary key ("periodId", "refereeId", day, slot)
+);
+alter table "Settings" add column "requireAvailability" boolean not null default false;
+-- (invitationSentAt / reminderSentAt / reportSentAt d'AvailabilityPeriod :
+-- inutilisés depuis l'abandon des e-mails, annonces et relances via WhatsApp.)
+
+-- Tentatives d'activation du compte arbitre (licence + date de naissance) :
+-- 5 échecs en 1 h sur une licence bloquent l'activation (src/lib/referee-auth.ts).
+create table "RefereeActivationAttempt" (
+  id bigint generated always as identity primary key,
+  "licenseKey" text not null,
+  success boolean not null,
+  "createdAt" timestamptz not null default now()
+);
+
+-- GoTrue pose app_metadata APRÈS l'insertion : handle_new_user ne voit pas
+-- role = ARBITRE. Ce trigger recale le profil (rôle + fiche) à chaque
+-- modification de raw_app_meta_data (migration profil_arbitre_sync_app_metadata).
+-- create trigger on_auth_user_app_metadata_updated after update of raw_app_meta_data
+--   on auth.users for each row execute function public.sync_profile_role_from_app_metadata();

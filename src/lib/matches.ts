@@ -2,6 +2,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { matchStatus } from "@/lib/match-status";
 import type { MatchStatus } from "@/lib/match-status";
 import { MAX_PER_DAY } from "@/lib/designation-rules";
+import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
+import { formatDateTimeFr, hasSchedulingConflict, isLaterMatchSameVenueSameDay, type MatchSlot } from "@/lib/dates";
 
 export type { MatchStatus } from "@/lib/match-status";
 export { matchStatus } from "@/lib/match-status";
@@ -35,14 +37,23 @@ export type MatchWithRelations = {
       lat: number | null;
       lng: number | null;
       nationalNumber: string | null;
+      zone: string | null;
     };
+    /**
+     * Désignation déjà enregistrée mais incompatible avec un autre match du
+     * même arbitre (chevauchement, ou trajet + présence 30 min impossible) -
+     * typiquement créée avant l'arrivée d'une règle. Message lisible, sinon null.
+     */
+    conflict?: string | null;
+    /** 2e match du jour de cet arbitre dans la même salle : pas de frais kilométriques. */
+    sameVenueEarlier?: boolean;
   }[];
 };
 
 const MATCH_SELECT = `
   id, date, durationMinutes, homeTeam, awayTeam, venue, city, venueAddress, lat, lng, poule, notes, refereesRequired, cancelled, competitionLevelId, fbiIdRencontre,
   competitionLevel:CompetitionLevel(id, label),
-  designations:Designation(id, refereeId, position, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber))
+  designations:Designation(id, refereeId, position, referee:Referee(id, firstName, lastName, lat, lng, nationalNumber, zone))
 `;
 
 function mapMatch(row: {
@@ -70,6 +81,55 @@ function mapMatch(row: {
     date: new Date(row.date),
     designations: (row.designations ?? []).slice().sort((a, b) => a.position - b.position),
   };
+}
+
+/**
+ * Renseigne `conflict` sur chaque désignation : une seule requête pour
+ * toutes les désignations des arbitres concernés autour de ces dates, puis
+ * même contrôle qu'à la désignation (hasSchedulingConflict). Les règles
+ * évoluent (durée 2 h, trajet, présence 30 min) sans revalider les
+ * désignations existantes : c'est ce qui permet de les repérer.
+ */
+async function annotateDesignationConflicts(matches: MatchWithRelations[]): Promise<void> {
+  const active = matches.filter((m) => !m.cancelled && m.designations.length > 0);
+  if (active.length === 0) return;
+
+  const refereeIds = Array.from(new Set(active.flatMap((m) => m.designations.map((d) => d.refereeId))));
+  const times = active.map((m) => m.date.getTime());
+  const from = new Date(Math.min(...times) - 86_400_000);
+  const to = new Date(Math.max(...times) + 86_400_000);
+
+  const { data, error } = await supabaseAdmin
+    .from("Designation")
+    .select("refereeId, match:Match!inner(id, date, durationMinutes, cancelled, venue, city, lat, lng)")
+    .in("refereeId", refereeIds)
+    .eq("match.cancelled", false)
+    .gte("match.date", from.toISOString())
+    .lte("match.date", to.toISOString());
+  if (error) throw error;
+
+  type Other = { id: string; date: Date; durationMinutes: number; venue: string | null; city: string | null; lat: number | null; lng: number | null };
+  const byReferee = new Map<string, Other[]>();
+  for (const row of (data ?? []) as unknown as { refereeId: string; match: Omit<Other, "date"> & { date: string } }[]) {
+    const list = byReferee.get(row.refereeId) ?? [];
+    list.push({ ...row.match, date: new Date(row.match.date) });
+    byReferee.set(row.refereeId, list);
+  }
+
+  for (const m of active) {
+    const slot: MatchSlot = { date: m.date, durationMinutes: m.durationMinutes, venue: m.venue, lat: m.lat, lng: m.lng };
+    for (const d of m.designations) {
+      const others = (byReferee.get(d.refereeId) ?? []).filter((o) => o.id !== m.id);
+      d.sameVenueEarlier = isLaterMatchSameVenueSameDay(slot, others);
+      const other = others.find((o) => hasSchedulingConflict(slot, o));
+      const ownTeam = refereeOwnClubTeam(d.referee?.zone, m.homeTeam, m.awayTeam);
+      d.conflict = ownTeam
+        ? ownClubMessage(ownTeam)
+        : other
+        ? `Incompatible avec son autre match du ${formatDateTimeFr(other.date)} (${[other.venue, other.city].filter(Boolean).join(" - ") || "lieu inconnu"}) : chevauchement, ou pas le temps de faire le trajet et d'être présent 30 min avant.`
+        : null;
+    }
+  }
 }
 
 export async function listCompetitionLevels() {
@@ -183,7 +243,9 @@ export async function getMatchById(id: string): Promise<MatchWithRelations | nul
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return mapMatch(data as unknown as Parameters<typeof mapMatch>[0]);
+  const match = mapMatch(data as unknown as Parameters<typeof mapMatch>[0]);
+  await annotateDesignationConflicts([match]);
+  return match;
 }
 
 export async function findMatches({
@@ -221,6 +283,7 @@ export async function findMatches({
   if (status && status !== "toutes") {
     matches = matches.filter((m) => matchStatus(m) === status);
   }
+  await annotateDesignationConflicts(matches);
 
   matches.sort((a, b) => {
     switch (sort) {

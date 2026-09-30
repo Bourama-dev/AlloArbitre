@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
 
 type ParsedRow = {
   homeTeam: string;
@@ -173,6 +174,9 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
     summary.competitionLevelsCreated.push(label);
   }
 
+  // Gymnases déjà géocodés : coordonnées reprises directement.
+  const knownVenues = await loadKnownVenueCoords();
+
   for (const row of rows) {
     try {
       const competitionLevelId = levelIdByLabel.get(row.competitionLevel);
@@ -191,7 +195,7 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
       // horaire absent/mal lu la première fois) sans créer de doublon.
       const { data: existing, error: findError } = await supabaseAdmin
         .from("Match")
-        .select("id")
+        .select("id, lat")
         .gte("date", dayStart.toISOString())
         .lt("date", dayEnd.toISOString())
         .eq("homeTeam", row.homeTeam)
@@ -201,6 +205,8 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
       if (findError) throw findError;
 
       const durationMinutes = matchDurationMinutes(row.competitionLevel);
+      // Jamais d'écrasement de coordonnées déjà connues.
+      const known = existing?.lat != null ? undefined : knownVenues.get(venueKey(row.venue, row.city) ?? "");
 
       if (existing) {
         const { error } = await supabaseAdmin
@@ -212,6 +218,7 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
             poule: row.poule,
             refereesRequired: row.refereesRequired,
             durationMinutes,
+            ...(known ? { lat: known.lat, lng: known.lng } : {}),
           })
           .eq("id", existing.id);
         if (error) throw error;
@@ -227,6 +234,8 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
           refereesRequired: row.refereesRequired,
           competitionLevelId,
           durationMinutes,
+          lat: known?.lat ?? null,
+          lng: known?.lng ?? null,
         });
         if (error) throw error;
         summary.created++;

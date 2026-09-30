@@ -30,7 +30,7 @@ export function MobileNav({
   }, [open]);
 
   return (
-    <div className="lg:hidden" ref={panelRef}>
+    <div className="xl:hidden" ref={panelRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import ExcelJS from "exceljs";
 import { FbiClient } from "./client";
 
 export type FbiDesignationRow = {
@@ -73,16 +74,15 @@ export function parseDataTablesRows(aaData: unknown[]): FbiDesignationRow[] {
   });
 }
 
-export async function searchDesignations(
-  client: FbiClient,
-  params: {
-    dateDebut: string; // DD/MM/YYYY
-    dateFin: string; // DD/MM/YYYY
-    idSaison?: string;
-  }
-): Promise<FbiDesignationRow[]> {
+type SearchParams = {
+  dateDebut: string; // DD/MM/YYYY
+  dateFin: string; // DD/MM/YYYY
+  idSaison?: string;
+};
+
+function searchForm(params: SearchParams): Record<string, string> {
   const prefix = "rechercherRepartitionDesignationForm.rechercherRepartitionDesignationBean.";
-  const form: Record<string, string> = {
+  return {
     [`${prefix}idDivision`]: "",
     [`${prefix}idPoule`]: "",
     [`${prefix}numeroJournee`]: "",
@@ -98,6 +98,79 @@ export async function searchDesignations(
     [`${prefix}villeLibelle`]: "",
     [`${prefix}idSaison`]: params.idSaison ?? process.env.FBI_ID_SAISON ?? "1037",
   };
+}
+
+export type FbiExportRow = {
+  code: string;
+  numero: string;
+  equipe1: string;
+  equipe2: string;
+  salle: string;
+  ville: string;
+  date: string; // DD/MM/YYYY
+  heure: string; // HH:mm
+  etat: string;
+  officiels: { nom: string; prenom: string; fonction: string }[];
+};
+
+/**
+ * Export "Excel" de la recherche de désignations (bouton de la page FBI,
+ * action=executeCsv) : une ligne par rencontre avec ses officiels désignés
+ * (vérifié le 24/09 : colonnes Code, N°, Equipe 1, Equipe 2, Poule, Salle,
+ * Ville, Date, Heure, Rem., État, puis par officiel Nom / Prénom / Fonction
+ * / Distance / Indemn Km). Donne toutes les désignations d'une période en
+ * une seule requête, là où il fallait ouvrir la fiche de chaque rencontre.
+ * Noms d'équipes et villes complets (non tronqués, contrairement au tableau).
+ */
+export async function fetchDesignationsExportRows(client: FbiClient, params: SearchParams): Promise<FbiExportRow[]> {
+  const [header, ...lines] = await fetchDesignationsExport(client, params);
+  if (!header || String(header[0]).trim() !== "Code" || String(header[11] ?? "").trim() !== "Nom") {
+    throw new Error(`FBI : format d'export inattendu (en-têtes : ${JSON.stringify(header).slice(0, 200)})`);
+  }
+  const text = (v: unknown) => (v === null || v === undefined ? "" : String(v).trim());
+  return lines.map((cells) => {
+    const officiels: FbiExportRow["officiels"] = [];
+    for (let i = 11; i + 2 < cells.length; i += 5) {
+      const nom = text(cells[i]);
+      const prenom = text(cells[i + 1]);
+      if (nom || prenom) officiels.push({ nom, prenom, fonction: text(cells[i + 2]) });
+    }
+    return {
+      code: text(cells[0]),
+      numero: text(cells[1]),
+      equipe1: text(cells[2]),
+      equipe2: text(cells[3]),
+      salle: text(cells[5]),
+      ville: text(cells[6]),
+      date: text(cells[7]),
+      heure: text(cells[8]),
+      etat: text(cells[10]),
+      officiels,
+    };
+  });
+}
+
+/** Export brut (lignes de cellules) : utilisé par fetchDesignationsExportRows et la sonde ?export=. */
+export async function fetchDesignationsExport(client: FbiClient, params: SearchParams): Promise<unknown[][]> {
+  const form = searchForm(params);
+  await client.get("rechercherDesignation.fbi");
+  await client.post("rechercherDesignation.fbi?action=controleRecherche", form);
+  const buffer = await client.getBuffer(`rechercherDesignation.fbi?action=executeCsv&${new URLSearchParams(form).toString()}`);
+
+  // Malgré son nom (executeCsv), FBI renvoie un classeur .xlsx.
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+  const sheet = workbook.worksheets[0];
+  const rows: unknown[][] = [];
+  sheet?.eachRow({ includeEmpty: false }, (row) => {
+    const values = Array.isArray(row.values) ? row.values.slice(1) : [];
+    rows.push(values.map((v) => (v && typeof v === "object" && "text" in v ? (v as { text: unknown }).text : v)));
+  });
+  return rows;
+}
+
+export async function searchDesignations(client: FbiClient, params: SearchParams): Promise<FbiDesignationRow[]> {
+  const form = searchForm(params);
 
   // Charge la page pour obtenir un cookie de session à jour avant l'action ajax.
   await client.get("rechercherDesignation.fbi");

@@ -7,6 +7,30 @@ const FBI_BASE_URL = "https://extranet.ffbb.com/fbi";
  */
 const LOGIN_FORM_MARKER = "identificationForm.identificationBean.mdp";
 
+// FBI coupe par moments une connexion au milieu d'un envoi groupé ("fetch
+// failed", aucune réponse reçue) alors que la requête suivante passe : un
+// seul raté faisait échouer tout un match. On retente les erreurs réseau
+// (jamais une réponse HTTP reçue, même en erreur). Sans risque pour
+// l'enregistrement d'une désignation : il renvoie l'état complet de la fiche.
+// Une page FBI simplement lente (15-25 s aux heures chargées) n'est PAS
+// retentée : l'abandonner puis la relancer ne faisait que doubler l'attente.
+const NETWORK_RETRIES = 3;
+// 90 s : la recherche des désignations sur 14 jours dépasse parfois 45 s
+// quand FBI est chargé ; les routes FBI disposent de 300 s au total.
+const REQUEST_TIMEOUT_MS = 90_000;
+
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    } catch (error) {
+      const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+      if (timedOut || attempt >= NETWORK_RETRIES - 1) throw error;
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+}
+
 /**
  * Client HTTP "à la main" pour FBI (FranceBasket Informations) : ce n'est pas
  * une API publique, juste le site de la fédération dont on rejoue les
@@ -56,12 +80,16 @@ export class FbiClient {
    * Requête brute, redirections suivies à la main (pour garder les cookies
    * posés à chaque saut, ce que `redirect: "follow"` ne permet pas).
    */
-  private async request(path: string, init: RequestInit = {}): Promise<{ res: Response; body: string; finalPath: string }> {
+  private async request(
+    path: string,
+    init: RequestInit = {},
+    binary = false
+  ): Promise<{ res: Response; body: string; buffer?: ArrayBuffer; finalPath: string }> {
     let url = `${FBI_BASE_URL}/${path}`;
     let currentInit = init;
 
     for (let hop = 0; hop < 5; hop++) {
-      const res = await fetch(url, {
+      const res = await fetchWithRetry(url, {
         ...currentInit,
         redirect: "manual",
         headers: {
@@ -77,6 +105,12 @@ export class FbiClient {
         url = new URL(location, url).toString();
         currentInit = {}; // un 302 après un POST se rejoue en GET
         continue;
+      }
+
+      if (binary) {
+        const buffer = await res.arrayBuffer();
+        await this.dump(url.slice(FBI_BASE_URL.length + 1), res, `[binaire, ${buffer.byteLength} octets]`);
+        return { res, body: "", buffer, finalPath: url };
       }
 
       const body = await res.text();
@@ -116,6 +150,9 @@ export class FbiClient {
       body: body.toString(),
     });
 
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      throw new Error(`FBI est momentanément indisponible (HTTP ${res.status}) - réessayez dans quelques minutes.`);
+    }
     if (res.status >= 400) {
       throw new Error(`FBI login failed: HTTP ${res.status}`);
     }
@@ -143,6 +180,15 @@ export class FbiClient {
     });
     this.assertLoggedIn(path, finalPath, body);
     return body;
+  }
+
+  /** Téléchargement binaire (ex. export Excel) ; une redirection vers la connexion = session perdue. */
+  async getBuffer(path: string): Promise<ArrayBuffer> {
+    const { finalPath, buffer } = await this.request(path, {}, true);
+    if (finalPath.includes("connexion.fbi")) {
+      throw new Error(`FBI : session non connectée en appelant ${path} (renvoyé vers la page de connexion)`);
+    }
+    return buffer ?? new ArrayBuffer(0);
   }
 
   async get(path: string): Promise<string> {

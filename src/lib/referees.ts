@@ -60,9 +60,9 @@ export type RefereeAvailabilityFilter = "toutes" | "disponibles" | "indisponible
 /**
  * Arbitres dont une indisponibilité (récurrente ou ponctuelle) couvre
  * `dateStr` (YYYY-MM-DD) - au niveau de la journée entière, sans tenir
- * compte des horaires précis d'une indisponibilité récurrente partielle
- * (contrairement à la vérification faite au moment de désigner un arbitre
- * sur un match précis, voir getMatchCandidates).
+ * compte des horaires précis d'une indisponibilité partielle, récurrente ou
+ * ponctuelle (contrairement à la vérification faite au moment de désigner
+ * un arbitre sur un match précis, voir getMatchCandidates).
  */
 async function computeUnavailableRefereeIds(dateStr: string): Promise<Set<string>> {
   const weekday = new Date(`${dateStr}T00:00:00Z`).getUTCDay();
@@ -230,11 +230,13 @@ export async function addPunctualUnavailability(
   refereeId: string,
   startDate: string,
   endDate: string,
-  note: string | null
+  note: string | null,
+  startTime: string | null = null,
+  endTime: string | null = null
 ) {
   const { error } = await supabaseAdmin
     .from("Unavailability")
-    .insert({ refereeId, recurring: false, startDate, endDate, note });
+    .insert({ refereeId, recurring: false, startDate, endDate, startTime, endTime, note });
   if (error) throw error;
 }
 

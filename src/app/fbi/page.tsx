@@ -3,6 +3,7 @@ import { matchStatus } from "@/lib/match-status";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
 import { PushAllToFbiButton, ImportFbiMatchesButton } from "@/components/push-all-to-fbi-button";
 import { FbiMatchesPanel } from "@/components/fbi-matches-panel";
+import type { DesignateState } from "@/components/fbi-match-row";
 import { getCurrentUser } from "@/lib/current-user";
 import { designateReferee } from "@/lib/suggestions";
 import { revalidatePath } from "next/cache";
@@ -54,7 +55,12 @@ export default async function FbiPage({
   const maxAu = new Date(du.getTime() + (MAX_DAYS - 1) * 86_400_000);
   const clamped = au > maxAu;
   if (clamped) au = maxAu;
-  const auExclusive = new Date(au.getTime() + 86_400_000);
+  // du/au sont à midi UTC (cf. parseIsoDay) : la requête doit partir de
+  // minuit du premier jour et s'arrêter à minuit après le dernier, sinon les
+  // matchs du matin du premier jour disparaissent (et ceux du lendemain matin
+  // du dernier jour s'invitent).
+  const duStart = new Date(`${toIsoDay(du)}T00:00:00Z`);
+  const auExclusive = new Date(new Date(`${toIsoDay(au)}T00:00:00Z`).getTime() + 86_400_000);
 
   const groupe = params.groupe && GROUPES[params.groupe] ? params.groupe : "";
   const code = params.code || "";
@@ -63,7 +69,7 @@ export default async function FbiPage({
 
   const [referees, matchesRaw] = await Promise.all([
     listActiveReferees(),
-    findMatches({ from: du, to: auExclusive, status: "toutes", search: search || undefined, sort: "date_asc" as MatchSort }),
+    findMatches({ from: duStart, to: auExclusive, status: "toutes", search: search || undefined, sort: "date_asc" as MatchSort }),
   ]);
 
   const inGroupe = (label: string) => !groupe || GROUPES[groupe].match(label);
@@ -84,23 +90,28 @@ export default async function FbiPage({
 
   const byDayMap = new Map<string, typeof filtered>();
   for (const m of filtered) {
-    const key = m.date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
+    // Heure du gymnase stockée sans fuseau : regroupement en UTC (cf. formatDateTimeFr).
+    const key = m.date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
     byDayMap.set(key, [...(byDayMap.get(key) ?? []), m]);
   }
   const byDay = Array.from(byDayMap.entries());
 
-  async function designate(formData: FormData) {
+  // Renvoie le motif d'un refus à la ligne concernée (affiché sous le menu
+  // « Désigner… ») : l'ancienne redirection vers /fbi?error= n'était lue
+  // nulle part et faisait perdre les filtres - la désignation semblait
+  // simplement ne rien faire.
+  async function designate(_prev: DesignateState, formData: FormData): Promise<DesignateState> {
     "use server";
     const user = await getCurrentUser();
     if (!user) redirect("/login");
     const matchId = String(formData.get("matchId"));
-    const refereeId = String(formData.get("refereeId"));
+    const refereeId = String(formData.get("refereeId") ?? "");
+    if (!refereeId) return { error: "Choisissez un arbitre." };
     const result = await designateReferee(matchId, refereeId, user.id);
     revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
-    if (!result.ok) {
-      redirect(`/fbi?error=${encodeURIComponent(result.error)}`);
-    }
+    if (!result.ok) return { error: result.error };
+    return { error: null, warning: result.warnings.length ? result.warnings.join(" ") : null };
   }
 
   return (
@@ -115,16 +126,16 @@ export default async function FbiPage({
         </div>
         <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 items-end card p-3 w-full lg:w-auto">
           <div>
-            <label className="field-label">Du</label>
-            <input type="date" name="du" defaultValue={toIsoDay(du)} className="input w-full" />
+            <label htmlFor="fbi-du" className="field-label">Du</label>
+            <input type="date" id="fbi-du" name="du" defaultValue={toIsoDay(du)} className="input w-full" />
           </div>
           <div>
-            <label className="field-label">Au</label>
-            <input type="date" name="au" defaultValue={toIsoDay(au)} className="input w-full" />
+            <label htmlFor="fbi-au" className="field-label">Au</label>
+            <input type="date" id="fbi-au" name="au" defaultValue={toIsoDay(au)} className="input w-full" />
           </div>
           <div>
-            <label className="field-label">Groupe</label>
-            <select name="groupe" defaultValue={groupe} className="input w-full">
+            <label htmlFor="fbi-groupe" className="field-label">Groupe</label>
+            <select id="fbi-groupe" name="groupe" defaultValue={groupe} className="input w-full">
               <option value="">Tous</option>
               {Object.entries(GROUPES).map(([key, g]) => (
                 <option key={key} value={key}>
@@ -134,8 +145,8 @@ export default async function FbiPage({
             </select>
           </div>
           <div>
-            <label className="field-label">Division</label>
-            <select name="code" defaultValue={code} className="input w-full">
+            <label htmlFor="fbi-code" className="field-label">Division</label>
+            <select id="fbi-code" name="code" defaultValue={code} className="input w-full">
               <option value="">Toutes</option>
               {codes.map((c) => (
                 <option key={c} value={c}>
@@ -145,8 +156,8 @@ export default async function FbiPage({
             </select>
           </div>
           <div>
-            <label className="field-label">Statut</label>
-            <select name="etat" defaultValue={status} className="input w-full">
+            <label htmlFor="fbi-etat" className="field-label">Statut</label>
+            <select id="fbi-etat" name="etat" defaultValue={status} className="input w-full">
               <option value="toutes">Tous</option>
               <option value="incomplet">Incomplet</option>
               <option value="complet">Complet</option>
@@ -154,8 +165,8 @@ export default async function FbiPage({
             </select>
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <label className="field-label">Équipe</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Domicile ou extérieur" className="input w-full" />
+            <label htmlFor="fbi-search" className="field-label">Équipe</label>
+            <input type="text" id="fbi-search" name="search" defaultValue={search} placeholder="Domicile ou extérieur" className="input w-full" />
           </div>
           <button type="submit" className="btn btn-secondary w-full sm:w-auto">
             Afficher
@@ -167,22 +178,23 @@ export default async function FbiPage({
         <div>
           <h2 className="text-sm font-semibold">Calendrier AlloArbitre</h2>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Importé automatiquement chaque matin depuis FBI (cron). En cas de besoin immédiat (nouvelle rencontre FBI pas
-            encore reprise ici), relancez l&apos;import maintenant.
+            Importé automatiquement chaque matin depuis FBI (14 prochains jours). En cas de besoin immédiat (nouvelle
+            rencontre FBI pas encore reprise ici), relancez l&apos;import : il porte sur la période choisie dans le filtre
+            ci-dessus (plus la période est longue, plus FBI met de temps à répondre).
           </p>
         </div>
-        <ImportFbiMatchesButton />
+        <ImportFbiMatchesButton du={toIsoDay(du)} au={toIsoDay(au)} />
       </section>
 
       <section className="space-y-2">
         <div>
           <h2 className="text-sm font-semibold">Envoi vers FBI</h2>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Pousse toutes les désignations AlloArbitre à venir vers FBI en une fois. Ne touche jamais une position déjà
-            occupée sur FBI par quelqu&apos;un d&apos;autre.
+            Pousse vers FBI les désignations des matchs affichés ci-dessous (filtres appliqués), et seulement eux. Une
+            position déjà occupée sur FBI par un autre arbitre est remplacée par celui d&apos;AlloArbitre.
           </p>
         </div>
-        <PushAllToFbiButton />
+        <PushAllToFbiButton matchIds={filtered.filter((m) => m.designations.length > 0).map((m) => m.id)} />
       </section>
 
       {clamped && (

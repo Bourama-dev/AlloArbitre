@@ -11,6 +11,8 @@ import {
 import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr, formatDateOnlyFr } from "@/lib/dates";
 import { SubmitButton } from "@/components/submit-button";
+import { computeSeasonStats, currentSeasonStartYear, season } from "@/lib/stats";
+import { PersonalLinkButton } from "@/components/personal-link-button";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,8 @@ export default async function RefereeSheetPage({
   if (!sheet) notFound();
 
   const { referee, upcoming, past, currentLoad, unavailability } = sheet;
+  const seasonStats = await computeSeasonStats(season(currentSeasonStartYear()), { cd45Only: false, refereeId: id });
+  const mine = seasonStats.referees[0];
 
   async function addPunctualAction(formData: FormData) {
     "use server";
@@ -33,9 +37,19 @@ export default async function RefereeSheetPage({
     const startDate = String(formData.get("startDate") ?? "");
     const endDate = String(formData.get("endDate") ?? startDate);
     const note = String(formData.get("note") ?? "").trim() || null;
+    // Créneau facultatif : sans heures, toute la journée est bloquée.
+    const startTime = String(formData.get("startTime") ?? "").trim() || null;
+    const endTime = String(formData.get("endTime") ?? "").trim() || null;
     if (!startDate) return;
 
-    await addPunctualUnavailability(id, startDate, endDate || startDate, note);
+    await addPunctualUnavailability(
+      id,
+      startDate,
+      endDate || startDate,
+      note,
+      startTime && endTime ? startTime : null,
+      startTime && endTime ? endTime : null
+    );
     revalidatePath(`/arbitres/${id}`);
   }
 
@@ -156,6 +170,54 @@ export default async function RefereeSheetPage({
         </div>
       </div>
 
+      <section className="card p-4">
+        <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">Accès à l&apos;espace arbitre</h2>
+        <PersonalLinkButton refereeId={referee.id} firstName={referee.firstName} />
+      </section>
+
+      {mine && (
+        <section>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              Statistiques saison {seasonStats.season.label}
+            </h2>
+            <Link href="/statistiques" className="text-xs text-[var(--accent)] hover:underline">
+              Toutes les statistiques
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: "Matchs", value: String(mine.total) },
+              { label: "Joués / à venir", value: `${mine.played} / ${mine.upcoming}` },
+              {
+                label: "Dispos saisies",
+                value: mine.periods > 0 ? `${mine.responses} / ${mine.periods}` : "-",
+              },
+              { label: "Retraits", value: String(mine.removals) },
+              { label: "Km A/R estimés", value: Math.round(mine.km).toLocaleString("fr-FR") },
+              {
+                label: "Indemnités estimées",
+                value: mine.estimatedPayment.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }),
+              },
+            ].map((k) => (
+              <div key={k.label} className="card p-3">
+                <p className="field-label mb-1">{k.label}</p>
+                <p className="text-lg font-semibold">{k.value}</p>
+              </div>
+            ))}
+          </div>
+          {Object.keys(mine.byDivision).length > 0 && (
+            <p className="text-xs text-[var(--muted)] mt-2">
+              Par division :{" "}
+              {Object.entries(mine.byDivision)
+                .sort((a, b) => b[1] - a[1])
+                .map(([d, n]) => `${d} ${n}`)
+                .join(" · ")}
+            </p>
+          )}
+        </section>
+      )}
+
       <section>
         <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">
           Indisponibilités
@@ -187,6 +249,9 @@ export default async function RefereeSheetPage({
                   ) : (
                     <span>
                       Du {u.startDate} au {u.endDate}
+                      {u.startTime && u.endTime
+                        ? `, de ${u.startTime} à ${u.endTime}`
+                        : " (journée entière)"}
                       {u.note ? ` · ${u.note}` : ""}
                     </span>
                   )}
@@ -215,6 +280,14 @@ export default async function RefereeSheetPage({
             <div>
               <label className="field-label">Au</label>
               <input type="date" name="endDate" className="input" />
+            </div>
+            <div>
+              <label className="field-label">De (optionnel)</label>
+              <input type="time" name="startTime" className="input" />
+            </div>
+            <div>
+              <label className="field-label">À (optionnel)</label>
+              <input type="time" name="endTime" className="input" />
             </div>
             <div className="flex-1 min-w-[8rem]">
               <label className="field-label">Note</label>

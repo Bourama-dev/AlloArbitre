@@ -3,7 +3,7 @@ import { FbiClient } from "./client";
 import { formatDateFr } from "./fetch";
 import { searchDesignations } from "./searchDesignations";
 import { matchesFbiRow } from "./sync";
-import { assignRefereeToFbiRencontre } from "./write";
+import { assignRefereeToFbiRencontre, FbiAlreadyDesignatedError, removeEmptyObserverRows } from "./write";
 
 type MatchForPush = {
   id: string;
@@ -11,7 +11,12 @@ type MatchForPush = {
   homeTeam: string;
   awayTeam: string;
   fbiIdRencontre: string | null;
-  designations: { position: number; referee: { firstName: string; lastName: string; nationalNumber: string | null } }[];
+  designations: {
+    position: number;
+    referee: { firstName: string; lastName: string; nationalNumber: string | null };
+    /** Conflit d'horaire côté AlloArbitre (cf. annotateDesignationConflicts) : jamais poussé vers FBI. */
+    conflict?: string | null;
+  }[];
 };
 
 /**
@@ -57,36 +62,63 @@ export type FbiPushMatchResult = {
   idRencontre: string | null;
   positions: FbiPushPositionResult[];
   error?: string;
+  /** Lignes "Observateur" vides retirées de la fiche FBI, ou message d'échec. */
+  observateurs?: string;
 };
 
-const OCCUPIED_RE = /^Position \d+ déjà occupée sur FBI par .* \(licence (.+?)\)/;
+const OCCUPIED_RE = /^Position \d+ déjà occupée sur FBI par /;
 
 async function pushOnePosition(
   client: FbiClient,
   idRencontre: string,
   position: number,
-  refereeLabel: string,
-  nationalNumber: string | null
+  referee: { firstName: string; lastName: string; nationalNumber: string | null },
+  /** Autres arbitres AlloArbitre du match : jamais retirés de FBI. */
+  keep: { nom: string; prenom: string }[]
 ): Promise<FbiPushPositionResult> {
+  const refereeLabel = `${referee.firstName} ${referee.lastName}`;
+  const nationalNumber = referee.nationalNumber;
   if (!nationalNumber) {
     return { position, referee: refereeLabel, status: "error", message: "Numéro national manquant côté AlloArbitre" };
   }
   try {
-    await assignRefereeToFbiRencontre(client, idRencontre, { position, numeroNational: nationalNumber, dryRun: false });
-    return { position, referee: refereeLabel, status: "ok", message: "Désigné sur FBI" };
+    const result = await assignRefereeToFbiRencontre(client, idRencontre, {
+      position,
+      numeroNational: nationalNumber,
+      dryRun: false,
+      referee: { nom: referee.lastName, prenom: referee.firstName },
+      // AlloArbitre remplace la désignation FBI existante sur cette position.
+      replace: true,
+      keep,
+    });
+    return {
+      position,
+      referee: refereeLabel,
+      status: "ok",
+      message:
+        (result.remplace ? `Désigné sur FBI (remplace ${result.remplace})` : "Désigné sur FBI") +
+        (result.frais.deuxiemeMatchMemeSalle ? " - 0 km : 2e match du jour dans la même salle" : ""),
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const occupied = message.match(OCCUPIED_RE);
-    if (occupied) {
-      return occupied[1] === nationalNumber
-        ? { position, referee: refereeLabel, status: "skip", message: "Déjà désigné sur FBI" }
-        : { position, referee: refereeLabel, status: "conflict", message };
+    // Déjà sur FBI (même arbitre, reconnu à son nom) : rien à faire.
+    if (err instanceof FbiAlreadyDesignatedError) {
+      return { position, referee: refereeLabel, status: "skip", message };
+    }
+    // Position prise par un autre arbitre AlloArbitre du match (inversion A1/A2).
+    if (OCCUPIED_RE.test(message)) {
+      return { position, referee: refereeLabel, status: "conflict", message };
     }
     return { position, referee: refereeLabel, status: "error", message };
   }
 }
 
-/** Pousse toutes les désignations AlloArbitre d'un match vers FBI (une position à la fois, jamais d'écrasement). */
+/**
+ * Pousse toutes les désignations AlloArbitre d'un match vers FBI, une
+ * position à la fois : AlloArbitre remplace l'officiel qui occuperait la
+ * position sur FBI (sauf s'il est lui-même désigné sur ce match dans
+ * AlloArbitre : inversion A1/A2, signalée sans rien retirer).
+ */
 export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Promise<FbiPushMatchResult> {
   const matchLabel = `${match.homeTeam} - ${match.awayTeam} (${formatDateFr(new Date(match.date))})`;
   if (match.designations.length === 0) {
@@ -109,8 +141,30 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
   const positions: FbiPushPositionResult[] = [];
   for (const d of match.designations) {
     const refereeLabel = `${d.referee.firstName} ${d.referee.lastName}`;
-    positions.push(await pushOnePosition(client, idRencontre, d.position, refereeLabel, d.referee.nationalNumber));
+    if (d.conflict) {
+      positions.push({
+        position: d.position,
+        referee: refereeLabel,
+        status: "conflict",
+        message: `Non poussé : à corriger dans AlloArbitre. ${d.conflict}`,
+      });
+      continue;
+    }
+    const keep = match.designations
+      .filter((o) => o !== d)
+      .map((o) => ({ nom: o.referee.lastName, prenom: o.referee.firstName }));
+    positions.push(await pushOnePosition(client, idRencontre, d.position, d.referee, keep));
   }
 
-  return { matchId: match.id, matchLabel, idRencontre, positions };
+  // Fiche touchée par AlloArbitre : ligne(s) Observateur vide(s) retirée(s)
+  // (demande CD45). Un échec ici n'annule pas les désignations poussées.
+  let observateurs: string | undefined;
+  try {
+    const removed = await removeEmptyObserverRows(client, idRencontre);
+    if (removed > 0) observateurs = `${removed} ligne${removed > 1 ? "s" : ""} Observateur vide${removed > 1 ? "s" : ""} supprimée${removed > 1 ? "s" : ""}`;
+  } catch (err) {
+    observateurs = `Ligne Observateur non supprimée : ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  return { matchId: match.id, matchLabel, idRencontre, positions, ...(observateurs ? { observateurs } : {}) };
 }

@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { matchStatus } from "@/lib/match-status";
 import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
+import { ConflictBadge } from "@/components/conflict-badge";
 import { SubmitButton } from "@/components/submit-button";
 import { PushToFbiButton } from "@/components/push-to-fbi-button";
 import { removeDesignation } from "@/lib/actions/designation-actions";
 import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 import type { FbiRencontreDetail } from "@/lib/fbi/detail";
+
+/** Résultat de la désignation directe d'une ligne : motif du refus éventuel. */
+export type DesignateState = { error: string | null; warning?: string | null } | null;
+export type DesignateAction = (prev: DesignateState, formData: FormData) => Promise<DesignateState>;
 
 const presenceStyles: Record<string, string> = {
   "Présent": "text-[var(--success)] bg-[var(--success-bg)]",
@@ -32,9 +37,12 @@ export function FbiMatchRow({
 }: {
   m: MatchWithRelations;
   referees: ActiveReferee[];
-  designateAction: (formData: FormData) => void | Promise<void>;
+  designateAction: DesignateAction;
   selectable?: boolean;
 }) {
+  // Le motif d'un refus (indisponible, conflit, quota, club...) s'affiche sous
+  // la ligne, sans recharger la page ni perdre les filtres.
+  const [designState, designFormAction] = useActionState(designateAction, null);
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<FbiRencontreDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +71,9 @@ export function FbiMatchRow({
       <tr className="cursor-pointer hover:bg-[var(--neutral-bg)]" onClick={toggle}>
         {selectable && (
           <td onClick={(e) => e.stopPropagation()}>
-            {status === "incomplet" && <input type="checkbox" name="matchIds" value={m.id} />}
+            {status === "incomplet" && (
+              <input type="checkbox" name="matchIds" value={m.id} aria-label={`Sélectionner ${m.homeTeam} - ${m.awayTeam}`} />
+            )}
           </td>
         )}
         <td className="whitespace-nowrap">{formatDateTimeFr(m.date)}</td>
@@ -95,6 +105,7 @@ export function FbiMatchRow({
                     {d.referee.firstName} {d.referee.lastName}
                     <span className="text-[var(--muted)] text-xs">(A{d.position})</span>
                   </Link>
+                  <ConflictBadge conflict={d.conflict} />
                   <form action={removeDesignation}>
                     <input type="hidden" name="designationId" value={d.id} />
                     <input type="hidden" name="matchId" value={m.id} />
@@ -116,9 +127,15 @@ export function FbiMatchRow({
             </div>
           )}
           {status === "incomplet" && (
-            <form action={designateAction} className="flex items-center gap-1 mt-1">
+            <form action={designFormAction} className="flex items-center gap-1 mt-1">
               <input type="hidden" name="matchId" value={m.id} />
-              <select name="refereeId" required defaultValue="" className="input text-xs py-1">
+              <select
+                name="refereeId"
+                required
+                defaultValue=""
+                aria-label="Arbitre à désigner"
+                className="input text-xs py-1"
+              >
                 <option value="" disabled>
                   Désigner…
                 </option>
@@ -134,6 +151,16 @@ export function FbiMatchRow({
                 OK
               </SubmitButton>
             </form>
+          )}
+          {designState?.error && (
+            <p role="alert" className="text-xs text-[var(--danger)] mt-1 max-w-xs whitespace-normal">
+              {designState.error}
+            </p>
+          )}
+          {designState?.warning && (
+            <p role="status" className="text-xs text-[var(--warning)] mt-1 max-w-xs whitespace-normal">
+              ⚠ Désigné malgré : {designState.warning}
+            </p>
           )}
         </td>
         <td>

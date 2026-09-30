@@ -50,6 +50,17 @@ async function geocode() {
   let params: URLSearchParams;
   try {
     const summary = await backfillMissingCoordinates();
+    // Compteurs + quelques lieux seulement : la liste complète dépassait la
+    // taille max d'URL (URI_TOO_LONG), et les adresses d'arbitres (données
+    // personnelles) n'ont rien à faire dans une URL.
+    const MAX_VENUES_SHOWN = 10;
+    const venues = summary.venuesFailed.slice(0, MAX_VENUES_SHOWN).join(" | ");
+    const more = summary.venuesFailed.length - MAX_VENUES_SHOWN;
+    params = new URLSearchParams({
+      geoReferees: String(summary.refereesGeocoded),
+      geoMatches: String(summary.matchesGeocoded),
+      geoRefFailed: String(summary.refereesFailed),
+      geoVenuesFailed: more > 0 ? `${venues} | … et ${more} autre(s)` : venues,
     // Une liste d'échecs illimitée dans l'URL de redirection dépasse la
     // limite de longueur d'URI de la plateforme (URI_TOO_LONG) dès que
     // beaucoup d'adresses ne sont pas géocodables : on tronque à quelques
@@ -86,6 +97,8 @@ export default async function ImportMatchsPage({
     error?: string;
     geoReferees?: string;
     geoMatches?: string;
+    geoRefFailed?: string;
+    geoVenuesFailed?: string;
     geoFailedCount?: string;
     geoFailed?: string;
   }>;
@@ -155,6 +168,14 @@ export default async function ImportMatchsPage({
             <p>
               {params.geoReferees} arbitre(s) et {params.geoMatches} match(s) géocodé(s).
             </p>
+            {params.geoRefFailed && params.geoRefFailed !== "0" && (
+              <p className="text-[var(--danger)]">
+                {params.geoRefFailed} arbitre(s) avec une adresse non géocodable (à corriger sur leur fiche).
+              </p>
+            )}
+            {params.geoVenuesFailed && (
+              <p className="text-[var(--danger)]">Lieux de match non géocodables : {params.geoVenuesFailed}</p>
+            )}
             {params.geoFailed && (
               <p className="text-[var(--danger)]">
                 Non géocodables{params.geoFailedCount ? ` (${params.geoFailedCount})` : ""} : {params.geoFailed}

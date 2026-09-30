@@ -77,6 +77,12 @@ export default async function LoginPage({
             S&apos;inscrire
           </a>
         </p>
+        <p className="mt-2 text-sm text-[var(--muted)] text-center">
+          Vous êtes arbitre ?{" "}
+          <a href="/espace/connexion" className="text-[var(--accent)] underline">
+            Espace arbitre
+          </a>
+        </p>
       </div>
     </div>
   );
