@@ -1,6 +1,8 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { hasSchedulingConflict } from "@/lib/dates";
-import type { FbiOfficiel } from "./detail";
+import { parseFbiDateTime } from "./sync";
+import { geocodeAddress } from "@/lib/geocoding";
+import type { FbiOfficiel, FbiRencontreInfo } from "./detail";
 
 /**
  * Reprend dans AlloArbitre les officiels déjà désignés sur FBI (saisis
@@ -99,4 +101,60 @@ export async function syncFbiOfficielsToDesignations(
   }
 
   return { created };
+}
+
+function findInfo(infos: FbiRencontreInfo[], label: string): string | undefined {
+  return infos.find((i) => i.label.toLowerCase() === label.toLowerCase())?.value;
+}
+
+/**
+ * Une rencontre FBI peut être reprogrammée (date/heure/salle) après avoir été
+ * importée dans AlloArbitre : sans reprise, le match affiché ici reste figé
+ * sur l'ancien créneau (constaté en prod - date affichée différente de la
+ * fiche détail FBI dépliée juste en dessous), ce qui fausse aussi bien
+ * l'agenda visible que le calcul de conflit d'horaire (hasSchedulingConflict
+ * travaillant sur le Match.date d'AlloArbitre). Appelé à chaque ouverture du
+ * détail FBI d'un match ; ne touche rien si rien n'a changé.
+ */
+export async function syncMatchScheduleFromFbiDetail(
+  matchId: string,
+  infos: FbiRencontreInfo[]
+): Promise<{ updated: boolean }> {
+  const dateStr = findInfo(infos, "Date");
+  const heureStr = findInfo(infos, "Heure");
+  const salle = findInfo(infos, "Salle");
+  const ville = findInfo(infos, "Ville");
+  const fbiDate = dateStr && heureStr ? parseFbiDateTime(dateStr, heureStr) : null;
+
+  const { data: match, error: matchError } = await supabaseAdmin
+    .from("Match")
+    .select("date, venue, city, lat, lng")
+    .eq("id", matchId)
+    .single();
+  if (matchError) throw matchError;
+
+  const update: Record<string, unknown> = {};
+  if (fbiDate && fbiDate.getTime() !== new Date(match.date).getTime()) {
+    update.date = fbiDate.toISOString();
+  }
+  const venueChanged = salle !== undefined && salle !== "" && salle !== match.venue;
+  const cityChanged = ville !== undefined && ville !== "" && ville !== match.city;
+  if (venueChanged) update.venue = salle;
+  if (cityChanged) update.city = ville;
+
+  if (Object.keys(update).length === 0) return { updated: false };
+
+  // Le gymnase a changé : les coordonnées connues ne sont plus valables, il
+  // faut les re-géocoder (sinon le calcul de trajet entre deux matchs
+  // utiliserait l'ancien lieu).
+  if (venueChanged || cityChanged) {
+    const address = [update.venue ?? match.venue, update.city ?? match.city].filter(Boolean).join(", ");
+    const coords = address ? await geocodeAddress(address) : null;
+    update.lat = coords?.lat ?? null;
+    update.lng = coords?.lng ?? null;
+  }
+
+  const { error } = await supabaseAdmin.from("Match").update(update).eq("id", matchId);
+  if (error) throw error;
+  return { updated: true };
 }
