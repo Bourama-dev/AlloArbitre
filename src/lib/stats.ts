@@ -138,41 +138,66 @@ export async function computeSeasonStats(
   const cd45Only = opts.cd45Only ?? true;
   const now = new Date();
 
-  const matches = await fetchAll<RawMatch>((from, to) =>
-    supabaseAdmin
-      .from("Match")
-      .select(
-        `id, date, durationMinutes, homeTeam, awayTeam, venue, lat, lng, refereesRequired,
-         competitionLevel:CompetitionLevel(label, autoDesignation),
-         designations:Designation(refereeId, position)`
+  const refereeId = opts.refereeId;
+  // Un seul arbitre (fiche arbitre, « Mon suivi ») : uniquement SES matchs de
+  // la saison, au lieu de tous les matchs de toutes les divisions.
+  const matches = refereeId
+    ? (
+        await fetchAll<{
+          position: number;
+          match: RawMatch | RawMatch[] | null;
+        }>((from, to) =>
+          supabaseAdmin
+            .from("Designation")
+            .select(
+              `position, match:Match!inner(id, date, durationMinutes, homeTeam, awayTeam, venue, lat, lng, refereesRequired,
+               competitionLevel:CompetitionLevel(label, autoDesignation))`
+            )
+            .eq("refereeId", refereeId)
+            .eq("match.cancelled", false)
+            .gte("match.date", s.from.toISOString())
+            .lt("match.date", s.to.toISOString())
+            .order("id")
+            .range(from, to)
+        )
       )
-      .eq("cancelled", false)
-      .gte("date", s.from.toISOString())
-      .lt("date", s.to.toISOString())
-      .order("date")
-      .order("id")
-      .range(from, to)
-  );
+        .map((d) => {
+          const m = one(d.match);
+          return m ? { ...m, designations: [{ refereeId, position: d.position }] } : null;
+        })
+        .filter((m): m is RawMatch => m !== null)
+        .sort((a, b) => a.date.localeCompare(b.date))
+    : await fetchAll<RawMatch>((from, to) =>
+        supabaseAdmin
+          .from("Match")
+          .select(
+            `id, date, durationMinutes, homeTeam, awayTeam, venue, lat, lng, refereesRequired,
+             competitionLevel:CompetitionLevel(label, autoDesignation),
+             designations:Designation(refereeId, position)`
+          )
+          .eq("cancelled", false)
+          .gte("date", s.from.toISOString())
+          .lt("date", s.to.toISOString())
+          .order("date")
+          .order("id")
+          .range(from, to)
+      );
 
   const [referees, removals, periods] = await Promise.all([
-    fetchAll<RawReferee>((from, to) =>
-      supabaseAdmin
-        .from("Referee")
-        .select("id, firstName, lastName, zone, active, lat, lng, level:RefereeLevel(label)")
-        .order("lastName")
-        .order("id")
-        .range(from, to)
-    ),
-    fetchAll<{ refereeId: string }>((from, to) =>
-      supabaseAdmin
+    fetchAll<RawReferee>((from, to) => {
+      let q = supabaseAdmin.from("Referee").select("id, firstName, lastName, zone, active, lat, lng, level:RefereeLevel(label)");
+      if (refereeId) q = q.eq("id", refereeId);
+      return q.order("lastName").order("id").range(from, to);
+    }),
+    fetchAll<{ refereeId: string }>((from, to) => {
+      let q = supabaseAdmin
         .from("DesignationRemoval")
         .select("refereeId")
         .gte("removedAt", s.from.toISOString())
-        .lt("removedAt", s.to.toISOString())
-        .order("matchId")
-        .order("refereeId")
-        .range(from, to)
-    ),
+        .lt("removedAt", s.to.toISOString());
+      if (refereeId) q = q.eq("refereeId", refereeId);
+      return q.order("matchId").order("refereeId").range(from, to);
+    }),
     fetchAll<{ id: string }>((from, to) =>
       supabaseAdmin
         .from("AvailabilityPeriod")
@@ -185,9 +210,11 @@ export async function computeSeasonStats(
   ]);
   const periodIds = periods.map((p) => p.id);
   const responses = periodIds.length
-    ? await fetchAll<{ refereeId: string }>((from, to) =>
-        supabaseAdmin.from("AvailabilityResponse").select("refereeId").in("periodId", periodIds).order("periodId").order("refereeId").range(from, to)
-      )
+    ? await fetchAll<{ refereeId: string }>((from, to) => {
+        let q = supabaseAdmin.from("AvailabilityResponse").select("refereeId").in("periodId", periodIds);
+        if (refereeId) q = q.eq("refereeId", refereeId);
+        return q.order("periodId").order("refereeId").range(from, to);
+      })
     : [];
 
   const inScope = (m: RawMatch) => !cd45Only || one(m.competitionLevel)?.autoDesignation !== false || m.designations.length > 0;
