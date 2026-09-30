@@ -4,7 +4,7 @@ import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, withFbiSes
 import { assignRefereeToFbiRencontre, checkFbiOfficielEligibility, removeArbitresFromFbiRencontre } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
 import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
-import { syncFbiOfficielsToDesignations, syncMatchScheduleFromFbiDetail } from "@/lib/fbi/designation-sync";
+import { syncFbiOfficielsToDesignations } from "@/lib/fbi/designation-sync";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -301,7 +301,6 @@ export async function GET(request: Request) {
     try {
       const detail = await fetchFbiDesignationDetail(detailId, onDump);
       let designationsSynced = 0;
-      let scheduleUpdated = false;
       if (currentUser) {
         const { data: match } = await supabaseAdmin
           .from("Match")
@@ -309,8 +308,6 @@ export async function GET(request: Request) {
           .eq("fbiIdRencontre", detailId)
           .maybeSingle();
         if (match) {
-          const { updated } = await syncMatchScheduleFromFbiDetail(match.id, detail.infos);
-          scheduleUpdated = updated;
           const { created } = await syncFbiOfficielsToDesignations(match.id, detail.officiels, currentUser.id);
           designationsSynced = created;
         }
@@ -320,7 +317,6 @@ export async function GET(request: Request) {
         idRencontre: detailId,
         ...detail,
         designationsSynced,
-        scheduleUpdated,
       });
     } catch (error) {
       return NextResponse.json(
