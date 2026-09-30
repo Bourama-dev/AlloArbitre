@@ -19,7 +19,8 @@ async function fetchJson(url: string): Promise<{ ok: boolean; data: Record<strin
   }
 }
 
-export function ImportFbiMatchesButton() {
+/** du / au : période du filtre de la page (AAAA-MM-JJ), importée depuis FBI. */
+export function ImportFbiMatchesButton({ du, au }: { du: string; au: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export function ImportFbiMatchesButton() {
     setMessage(null);
     startTransition(async () => {
       try {
-        const { ok, data } = await fetchJson(`/api/fbi-sync`);
+        const { ok, data } = await fetchJson(`/api/fbi-sync?du=${du}&au=${au}`);
         if (!ok) {
           setIsError(true);
           setMessage(String(data.error ?? "Erreur inconnue"));
@@ -67,7 +68,9 @@ export function ImportFbiMatchesButton() {
         className="btn btn-secondary inline-flex items-center gap-2"
       >
         {isPending && <span className="spinner" aria-hidden />}
-        {isPending ? "Import en cours…" : "Importer le calendrier depuis FBI"}
+        {isPending
+          ? "Import en cours…"
+          : `Importer le calendrier FBI du ${du.slice(8, 10)}/${du.slice(5, 7)} au ${au.slice(8, 10)}/${au.slice(5, 7)}`}
       </button>
       {message && (
         <p className={`text-sm ${isError ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>{message}</p>

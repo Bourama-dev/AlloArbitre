@@ -66,6 +66,16 @@ export async function GET(request: Request) {
   const today = new Date();
   const in14Days = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
+  // Période de l'import : celle du filtre de la page /fbi (?du=&au=,
+  // AAAA-MM-JJ, 31 jours maximum) ; à défaut (cron), aujourd'hui + 14 jours.
+  const searchUrl = new URL(request.url);
+  const parseDay = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? new Date(`${v}T12:00:00Z`) : null);
+  let periodStart = parseDay(searchUrl.searchParams.get("du")) ?? today;
+  let periodEnd = parseDay(searchUrl.searchParams.get("au")) ?? in14Days;
+  if (periodEnd < periodStart) [periodStart, periodEnd] = [periodEnd, periodStart];
+  const maxEnd = new Date(periodStart.getTime() + 30 * 86_400_000);
+  if (periodEnd > maxEnd) periodEnd = maxEnd;
+
   // ?debug=1 : chaque page renvoyée par FBI est stockée dans la table
   // (temporaire) FbiDebugDump, lisible uniquement en service_role.
   const debugRunId = new URL(request.url).searchParams.get("debug") === "1" ? crypto.randomUUID() : null;
@@ -317,13 +327,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const rows = await fetchFbiRencontres({ du: today, au: in14Days }, onDump);
+    const rows = await fetchFbiRencontres({ du: periodStart, au: periodEnd }, onDump);
     const importSummary = canImportMatches ? await importFbiRencontresAsMatches(rows) : null;
     const mismatches = await compareWithAlloArbitre(rows);
 
     return NextResponse.json({
       ...(debugRunId ? { debugRunId } : {}),
-      periode: { du: formatDateFr(today), au: formatDateFr(in14Days) },
+      periode: { du: formatDateFr(periodStart), au: formatDateFr(periodEnd) },
       rencontresFbi: rows.length,
       import: importSummary,
       ecarts: mismatches.length,
