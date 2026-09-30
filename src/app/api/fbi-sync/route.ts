@@ -31,6 +31,22 @@ export const maxDuration = 300;
  * que la page /fbi, qui appelle `?detail=` pour la fiche dépliée sous chaque
  * rencontre) ; seuls le cron et les admins déclenchent l'import de matchs.
  */
+/**
+ * Message lisible pour l'interface : une coupure réseau vers FBI remonte de
+ * Node sous la forme brute « fetch failed », incompréhensible pour un
+ * répartiteur.
+ */
+function readableError(error: unknown): string {
+  const message = error instanceof Error ? error.message : "Erreur inconnue";
+  if (/fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|socket hang up/i.test(message)) {
+    return "FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI, malgré 3 essais). Réessayez dans quelques minutes.";
+  }
+  if (/timeout|aborted/i.test(message)) {
+    return "FBI met trop de temps à répondre (site surchargé). Réessayez dans quelques minutes.";
+  }
+  return message;
+}
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   const hasValidSecret = Boolean(process.env.CRON_SECRET) && authHeader === `Bearer ${process.env.CRON_SECRET}`;
@@ -94,7 +110,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), ...result });
     } catch (error) {
       return NextResponse.json(
-        { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+        { ...(debugRunId ? { debugRunId } : {}), error: readableError(error) },
         { status: 500 }
       );
     }
@@ -128,7 +144,7 @@ export async function GET(request: Request) {
       }, onDump);
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), dryRun, results });
     } catch (error) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
+      return NextResponse.json({ error: readableError(error) }, { status: 500 });
     }
   }
 
@@ -175,7 +191,7 @@ export async function GET(request: Request) {
       }, onDump);
       return NextResponse.json({ total: items.length, nextOffset: next < items.length ? next : null, results });
     } catch (error) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
+      return NextResponse.json({ error: readableError(error) }, { status: 500 });
     }
   }
 
@@ -239,7 +255,7 @@ export async function GET(request: Request) {
       });
     } catch (error) {
       return NextResponse.json(
-        { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+        { ...(debugRunId ? { debugRunId } : {}), error: readableError(error) },
         { status: 500 }
       );
     }
@@ -266,7 +282,7 @@ export async function GET(request: Request) {
       const rows = await withFbiSession((client) => fetchDesignationsExport(client, params), onDump);
       return NextResponse.json({ ...(debugRunId ? { debugRunId } : {}), lignes: rows.length, apercu: rows.slice(0, 12) });
     } catch (error) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Erreur inconnue" }, { status: 500 });
+      return NextResponse.json({ error: readableError(error) }, { status: 500 });
     }
   }
 
@@ -294,7 +310,7 @@ export async function GET(request: Request) {
       });
     } catch (error) {
       return NextResponse.json(
-        { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+        { ...(debugRunId ? { debugRunId } : {}), error: readableError(error) },
         { status: 500 }
       );
     }
@@ -315,7 +331,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { ...(debugRunId ? { debugRunId } : {}), error: error instanceof Error ? error.message : "Erreur inconnue" },
+      { ...(debugRunId ? { debugRunId } : {}), error: readableError(error) },
       { status: 500 }
     );
   }
