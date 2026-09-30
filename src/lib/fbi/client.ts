@@ -15,7 +15,9 @@ const LOGIN_FORM_MARKER = "identificationForm.identificationBean.mdp";
 // Une page FBI simplement lente (15-25 s aux heures chargées) n'est PAS
 // retentée : l'abandonner puis la relancer ne faisait que doubler l'attente.
 const NETWORK_RETRIES = 3;
-const REQUEST_TIMEOUT_MS = 45_000;
+// 90 s : la recherche des désignations sur 14 jours dépasse parfois 45 s
+// quand FBI est chargé ; les routes FBI disposent de 300 s au total.
+const REQUEST_TIMEOUT_MS = 90_000;
 
 async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
