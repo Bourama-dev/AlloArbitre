@@ -1,12 +1,15 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { hasSchedulingConflict, formatDateTimeFr, type MatchSlot } from "@/lib/dates";
+import { formatDateTimeFr } from "@/lib/dates";
 import {
   getMatchForSuggestion,
-  suggestReferees,
   designateReferee,
   explainSuggestion,
+  evaluateMatchCandidates,
+  loadCandidateContext,
+  type CandidateDesignation,
+  type MatchForSuggestion,
 } from "@/lib/suggestions";
 
 export type PlanItem = {
@@ -30,12 +33,23 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   const user = await getCurrentUser();
   if (!user) throw new Error("Non authentifié.");
 
+  // Tous les matchs du lot, puis UN seul chargement des arbitres, de leurs
+  // désignations autour de la période, des indisponibilités et des
+  // disponibilités - au lieu d'un rechargement complet par place vacante.
+  const matches = (await Promise.all(matchIds.map((id) => getMatchForSuggestion(id)))).filter(
+    (m): m is MatchForSuggestion => m !== null
+  );
   const plan: PlanItem[] = [];
-  const pendingByReferee = new Map<string, MatchSlot[]>();
+  if (matches.length === 0) return plan;
 
-  for (const matchId of matchIds) {
-    const match = await getMatchForSuggestion(matchId);
-    if (!match) continue;
+  const times = matches.map((m) => m.date.getTime());
+  const ctx = await loadCandidateContext(new Date(Math.min(...times)), new Date(Math.max(...times)));
+  // Désignations retenues dans ce lot, comptées comme déjà enregistrées pour
+  // la suite du calcul (conflits d'horaire, quotas, doublés, équité).
+  const planned = new Map<string, CandidateDesignation[]>();
+
+  for (const match of matches) {
+    const matchId = match.id;
     const slotsToFill = match.refereesRequired - match.designations.length;
     if (match.cancelled || slotsToFill <= 0) continue;
 
@@ -53,28 +67,16 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       });
       continue;
     }
-    const slot: MatchSlot = {
-      date: match.date,
-      durationMinutes: match.durationMinutes,
-      venue: match.venue,
-      lat: match.lat,
-      lng: match.lng,
-    };
 
+    const alsoAssigned = new Set<string>();
     for (let i = 0; i < slotsToFill; i++) {
-      const { suggestions: allSuggestions } = await suggestReferees(matchId);
+      const { eligible: allSuggestions } = await evaluateMatchCandidates(match, ctx, { planned, alsoAssigned });
       // Auto-désignation : uniquement les arbitres qui ont répondu à la
       // campagne de disponibilités ET coché le créneau du match. Les autres
       // (sans réponse, jour hors campagne) restent désignables à la main.
       const suggestions = allSuggestions.filter((s) => s.availabilityStatus === "disponible");
-      const pickIndex = suggestions.findIndex((s) => {
-        const pending = pendingByReferee.get(s.id) ?? [];
-        // Même contrôle qu'à l'enregistrement (trajet + présence 30 min),
-        // pour ne pas proposer un arbitre que designateReferee refuserait.
-        return !pending.some((p) => hasSchedulingConflict(slot, p));
-      });
 
-      if (pickIndex === -1) {
+      if (suggestions.length === 0) {
         const noCampaign = allSuggestions.length > 0 && allSuggestions.every((s) => s.availabilityStatus === "hors-campagne");
         const withoutAnswer = allSuggestions.filter((s) => s.availabilityStatus === "sans-reponse").length;
         plan.push({
@@ -90,7 +92,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
         continue;
       }
 
-      const pick = suggestions[pickIndex];
+      const pick = suggestions[0];
       plan.push({
         matchId,
         matchLabel,
@@ -99,9 +101,18 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
         reason: explainSuggestion(pick, suggestions.length),
       });
 
-      const list = pendingByReferee.get(pick.id) ?? [];
-      list.push(slot);
-      pendingByReferee.set(pick.id, list);
+      alsoAssigned.add(pick.id);
+      planned.set(pick.id, [
+        ...(planned.get(pick.id) ?? []),
+        {
+          matchId,
+          date: match.date,
+          durationMinutes: match.durationMinutes,
+          venue: match.venue,
+          lat: match.lat,
+          lng: match.lng,
+        },
+      ]);
     }
   }
 
