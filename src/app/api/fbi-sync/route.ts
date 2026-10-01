@@ -38,8 +38,14 @@ export const maxDuration = 300;
  */
 function readableError(error: unknown): string {
   const message = error instanceof Error ? error.message : "Erreur inconnue";
+  // Code technique de la coupure (ECONNRESET, UND_ERR_CONNECT_TIMEOUT...) :
+  // affiché pour pouvoir distinguer un blocage côté FBI d'une simple coupure.
+  const cause = (error as { cause?: { code?: string } } | null)?.cause?.code;
+  console.error("[fbi-sync]", message, cause ?? "");
   if (/fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|socket hang up/i.test(message)) {
-    return "FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI, malgré 3 essais). Réessayez dans quelques minutes.";
+    return `FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI, malgré 3 essais${
+      cause ? ` - code ${cause}` : ""
+    }). Réessayez dans quelques minutes.`;
   }
   if (/timeout|aborted/i.test(message)) {
     return "FBI met trop de temps à répondre (site surchargé). Réessayez dans quelques minutes.";
