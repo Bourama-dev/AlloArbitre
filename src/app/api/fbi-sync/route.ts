@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 /**
- * Cron (déclaré dans vercel.json, tous les jours à 7h) : se logue sur FBI,
+ * Import du calendrier FBI (bouton de /fbi ; plus de cron depuis le 01/10/2026) : se logue sur FBI,
  * récupère les rencontres des 14 prochains jours, importe/complète les
  * matchs AlloArbitre correspondants (import.ts - idempotent, jamais de
  * doublon), puis compare l'état des désignations entre les deux systèmes.

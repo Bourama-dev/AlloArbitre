@@ -178,9 +178,9 @@ export default async function FbiPage({
         <div>
           <h2 className="text-sm font-semibold">Calendrier AlloArbitre</h2>
           <p className="text-xs text-[var(--muted)] mt-0.5">
-            Importé automatiquement chaque matin depuis FBI (14 prochains jours). En cas de besoin immédiat (nouvelle
-            rencontre FBI pas encore reprise ici), relancez l&apos;import : il porte sur la période choisie dans le filtre
-            ci-dessus (plus la période est longue, plus FBI met de temps à répondre).
+            Aucun import automatique : les rencontres FBI sont reprises dans AlloArbitre uniquement quand vous lancez
+            l&apos;import ci-dessous, sur la période choisie dans le filtre (plus la période est longue, plus FBI met de
+            temps à répondre).
           </p>
         </div>
         <ImportFbiMatchesButton du={toIsoDay(du)} au={toIsoDay(au)} />
