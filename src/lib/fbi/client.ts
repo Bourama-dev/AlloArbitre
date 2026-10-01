@@ -19,14 +19,30 @@ const NETWORK_RETRIES = 3;
 // quand FBI est chargé ; les routes FBI disposent de 300 s au total.
 const REQUEST_TIMEOUT_MS = 90_000;
 
+// Espacement minimal entre deux requêtes vers FBI (par instance) : FBI
+// coupe puis refuse les connexions d'une adresse qui l'interroge en rafale
+// (« terminated », puis UND_ERR_CONNECT_TIMEOUT pendant un moment).
+const MIN_INTERVAL_MS = 350;
+let nextRequestAt = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const wait = Math.max(0, nextRequestAt - now);
+  nextRequestAt = Math.max(now, nextRequestAt) + MIN_INTERVAL_MS;
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+}
+
 async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
+    await throttle();
     try {
       return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     } catch (error) {
       const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
       if (timedOut || attempt >= NETWORK_RETRIES - 1) throw error;
-      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      // Pause croissante (3 s, puis 6 s) : relancer aussitôt une adresse que
+      // FBI vient de couper prolonge le blocage.
+      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
     }
   }
 }
