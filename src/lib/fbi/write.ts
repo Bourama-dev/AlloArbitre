@@ -72,12 +72,14 @@ async function loadFicheState(client: FbiClient, idRencontre: string) {
 
 // Données FBI d'une journée (recherche + export), mises en cache par client
 // FBI : les deux positions d'un match, puis tous les matchs du même jour d'un
-// "Tout pousser", les réutilisent. La session FBI étant désormais partagée
-// entre appels (withFbiSession), le cache expire vite (DAY_CACHE_MS) et est
-// vidé après chaque écriture/suppression sur FBI, pour ne jamais contrôler
-// un conflit sur un état FBI périmé.
+// "Tout pousser", les réutilisent. Après chaque écriture ou suppression faite
+// par AlloArbitre, le cache est MIS À JOUR en mémoire (recordDayChange)
+// plutôt que vidé : le retéléchargement de toute la journée après chaque
+// arbitre (recherche + export, l'appel le plus lourd de FBI) rendait l'envoi
+// très lent. Il expire après DAY_CACHE_MS pour reprendre les changements
+// faits directement sur FBI entre-temps.
 type DayData = { rows: FbiDesignationRow[]; exportRows: FbiExportRow[] };
-const DAY_CACHE_MS = 60_000;
+const DAY_CACHE_MS = 5 * 60_000;
 const dayCache = new WeakMap<FbiClient, Map<string, { at: number; data: Promise<DayData> }>>();
 
 function loadDay(client: FbiClient, dateFr: string): Promise<DayData> {
@@ -96,9 +98,42 @@ function loadDay(client: FbiClient, dateFr: string): Promise<DayData> {
   return data;
 }
 
-/** À appeler après toute écriture sur FBI : l'état du jour a changé. */
+/** À appeler après une écriture FBI dont l'effet n'est pas connu précisément. */
 function invalidateDayCache(client: FbiClient) {
   dayCache.delete(client);
+}
+
+/**
+ * Reporte dans le cache du jour un officiel ajouté (ou retiré) sur une
+ * rencontre par AlloArbitre, sans retélécharger la journée. Sans cache pour
+ * ce jour, rien à faire : il sera chargé à jour au prochain besoin.
+ */
+function recordDayChange(
+  client: FbiClient,
+  dateFr: string,
+  idRencontre: string,
+  change: { add?: { nom: string; prenom: string }; remove?: { nom: string; prenom: string } }
+) {
+  const cached = dayCache.get(client)?.get(dateFr);
+  if (!cached) return;
+  const same = (a: { nom: string; prenom: string }, b: { nom: string; prenom: string }) =>
+    normName(a.nom) === normName(b.nom) && normName(a.prenom) === normName(b.prenom);
+  cached.data = cached.data.then((day) => {
+    const target = day.rows.find((r) => r.idRencontre === idRencontre);
+    if (!target) return day;
+    return {
+      rows: day.rows,
+      exportRows: day.exportRows.map((row) => {
+        if (row.code !== target.code || row.numero !== target.numero) return row;
+        let officiels = row.officiels;
+        if (change.remove) officiels = officiels.filter((o) => !same(o, change.remove!));
+        if (change.add && !officiels.some((o) => same(o, change.add!))) {
+          officiels = [...officiels, { nom: change.add.nom, prenom: change.add.prenom, fonction: LABEL_ARBITRE }];
+        }
+        return { ...row, officiels };
+      }),
+    };
+  });
 }
 
 const FICHE_ID_RENCONTRE_CRYPTE = "repartitionDesignationForm.repartitionDesignationRencontreBean.idRencontre";
@@ -124,7 +159,13 @@ async function deleteOfficielRow(
     `supprimerRepartitionDesignationOfficielRencontre.fbi?idOfficielRencontre=${row.idOfficielRencontre ?? ""}&idRencontre=${idRencontreCrypte}&idLicence=${row.numeroNational ?? ""}`,
     {}
   );
-  invalidateDayCache(client);
+  const dateFr = ficheFields["repartitionDesignationForm.repartitionDesignationRencontreBean.date"] ?? "";
+  // Ligne vide (ex. Observateur sans officiel) : rien ne change dans les
+  // désignations du jour, le cache reste valable.
+  if (row.nom) {
+    if (dateFr) recordDayChange(client, dateFr, idRencontre, { remove: { nom: row.nom, prenom: row.prenom ?? "" } });
+    else invalidateDayCache(client);
+  }
   const label = `${row.prenom ?? ""} ${row.nom ?? ""}`.trim() || `ligne ${row.fonction ?? row.idFonction ?? ""}`.trim();
   if (res.trim() !== "") {
     throw new Error(`FBI n'a pas supprimé ${label} : ${(fbiErrorText(res) ?? res).slice(0, 200)}`);
@@ -535,7 +576,8 @@ export async function assignRefereeToFbiRencontre(
       body = buildBody(fresh.ficheFields, withNewRow(fresh.rows));
     }
     const saveResponse = await client.post(`enregistrerRepartitionDesignation.fbi?avecHistorisation=true`, Object.fromEntries(body));
-    invalidateDayCache(client);
+    if (dateRencontre) recordDayChange(client, dateRencontre, idRencontre, { add: { nom, prenom } });
+    else invalidateDayCache(client);
     // La réponse de l'enregistrement contient un bloc d'erreur générique même
     // quand tout s'est bien passé ("Une erreur s'est produite lors du
     // chargement de la page") : seule la relecture de la fiche fait foi.
