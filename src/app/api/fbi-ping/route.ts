@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/current-user";
 import { loggedInClient } from "@/lib/fbi/fetch";
+import { fetchDesignationsExportRows, searchDesignations } from "@/lib/fbi/searchDesignations";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -55,11 +56,32 @@ export async function GET(request: Request) {
   });
   if (client) {
     const c = client as Awaited<ReturnType<typeof loggedInClient>>;
-    for (let i = 1; i <= 8; i++) {
-      await timed(steps, `page recherche désignations #${i}`, async () => {
-        const html = await c.get("rechercherDesignation.fbi");
-        return `${html.length} caractères`;
+    // Mêmes lectures que l'envoi d'une désignation (aucune écriture) :
+    // recherche de la journée, export de la journée, fiche d'une rencontre.
+    const dateParam = new URL(request.url).searchParams.get("date");
+    const date =
+      dateParam && /^\d{2}\/\d{2}\/\d{4}$/.test(dateParam)
+        ? dateParam
+        : new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Paris" });
+    let idRencontre: string | null = null;
+    for (let round = 1; round <= 2; round++) {
+      await timed(steps, `recherche des désignations du ${date} #${round}`, async () => {
+        const rows = await searchDesignations(c, { dateDebut: date, dateFin: date });
+        idRencontre = idRencontre ?? rows.find((r) => r.idRencontre)?.idRencontre ?? null;
+        return `${rows.length} rencontre(s)`;
       });
+      await timed(steps, `export de la journée #${round}`, async () => {
+        const rows = await fetchDesignationsExportRows(c, { dateDebut: date, dateFin: date });
+        return `${rows.length} ligne(s)`;
+      });
+      if (idRencontre) {
+        const id: string = idRencontre;
+        await timed(steps, `fiche rencontre ${id} #${round}`, async () => {
+          await c.get("rechercherDesignation.fbi");
+          const fiche = await c.post(`afficherRepartitionDesignationAjax.fbi?idRencontre=${id}`, {});
+          return `${fiche.length} caractères`;
+        });
+      }
     }
   }
   return NextResponse.json({ region, at: new Date().toISOString(), steps });

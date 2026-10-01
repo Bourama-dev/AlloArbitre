@@ -39,7 +39,19 @@ async function fetchWithRetry(url: string, init: RequestInit): Promise<Response>
       return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     } catch (error) {
       const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
-      if (timedOut || attempt >= NETWORK_RETRIES - 1) throw error;
+      if (timedOut || attempt >= NETWORK_RETRIES - 1) {
+        // Message enrichi : page FBI concernée + code réseau (ECONNRESET,
+        // UND_ERR_CONNECT_TIMEOUT...), sans les paramètres de l'URL. Commence
+        // toujours par le message d'origine (« fetch failed »...).
+        const e = error as Error & { cause?: { code?: string; message?: string } };
+        const page = new URL(url).pathname.split("/").pop();
+        const code = e.cause?.code ?? e.cause?.message;
+        const wrapped = new Error(`${e.message} [${page}${code ? ` - ${code}` : ""}, ${attempt + 1} essai(s)]`, {
+          cause: e.cause,
+        });
+        wrapped.name = e.name;
+        throw wrapped;
+      }
       // Pause croissante (3 s, puis 6 s) : relancer aussitôt une adresse que
       // FBI vient de couper prolonge le blocage.
       await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
