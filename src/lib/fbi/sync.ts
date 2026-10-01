@@ -24,7 +24,10 @@ export function parseFbiDateTime(dateStr: string, heureStr: string): Date | null
   if (!m || !h) return null;
   const [, dd, mm, yyyy] = m;
   const [, hh, min] = h;
-  return new Date(`${yyyy}-${mm}-${dd}T${hh}:${min}:00`);
+  // Heure du gymnase stockée telle quelle en UTC (convention de toute
+  // l'application) : jamais le fuseau de la machine, sinon un import lancé
+  // depuis un poste à l'heure de Paris décalait les horaires de 1 à 2 h.
+  return new Date(`${yyyy}-${mm}-${dd}T${hh}:${min}:00Z`);
 }
 
 export function normalize(s: string): string {

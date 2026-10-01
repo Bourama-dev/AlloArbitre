@@ -75,9 +75,9 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
       const homeTeam = row.equipe1.replace(/\.{3}$/, "").trim();
       const awayTeam = row.equipe2.replace(/\.{3}$/, "").trim();
       const dayStart = new Date(fbiDate);
-      dayStart.setHours(0, 0, 0, 0);
+      dayStart.setUTCHours(0, 0, 0, 0);
       const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+      dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
 
       // 1) Par identifiant FBI : il ne change pas quand FBI renumérote le
       //    suffixe des équipes ("USM OLIVET (2)" -> "(1)") ni quand la

@@ -138,8 +138,15 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
     };
   }
 
+  // Positions FBI attribuées dans l'ordre (1, puis 2), sans trou : FBI ne
+  // retient pas un arbitre 2 quand la place d'arbitre 1 est vide (vu sur un
+  // match avec un seul arbitre en A2, ou dont l'A1 a été refusé). Un arbitre
+  // seul, ou dont le collègue A1 n'a pas pu être poussé, part donc en
+  // position 1 sur FBI.
   const positions: FbiPushPositionResult[] = [];
-  for (const d of match.designations) {
+  const ordered = [...match.designations].sort((a, b) => a.position - b.position);
+  let nextFbiPosition = 1;
+  for (const d of ordered) {
     const refereeLabel = `${d.referee.firstName} ${d.referee.lastName}`;
     if (d.conflict) {
       positions.push({
@@ -153,7 +160,18 @@ export async function pushMatchToFbi(client: FbiClient, match: MatchForPush): Pr
     const keep = match.designations
       .filter((o) => o !== d)
       .map((o) => ({ nom: o.referee.lastName, prenom: o.referee.firstName }));
-    positions.push(await pushOnePosition(client, idRencontre, d.position, d.referee, keep));
+    const fbiPosition = nextFbiPosition;
+    const result = await pushOnePosition(client, idRencontre, fbiPosition, d.referee, keep);
+    // La place n'est occupée que si l'arbitre est (désormais) sur la fiche.
+    if (result.status === "ok" || result.status === "skip") nextFbiPosition++;
+    positions.push({
+      ...result,
+      position: d.position,
+      message:
+        result.status === "ok" && fbiPosition !== d.position
+          ? `${result.message} (en position ${fbiPosition} sur FBI)`
+          : result.message,
+    });
   }
 
   // Fiche touchée par AlloArbitre : ligne(s) Observateur vide(s) retirée(s)
