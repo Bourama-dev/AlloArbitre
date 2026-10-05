@@ -2,6 +2,7 @@
 
 import { getCurrentUser } from "@/lib/current-user";
 import { formatDateTimeFr } from "@/lib/dates";
+import { divisionAgeCategory } from "@/lib/algo-rules";
 import {
   getMatchForSuggestion,
   designateReferee,
@@ -13,17 +14,15 @@ import {
 } from "@/lib/suggestions";
 
 /**
- * Ordre de priorité des niveaux de compétition (règle CD45) : les créneaux
- * les plus exigeants sont pourvus en premier pour ne pas épuiser, sur des
- * matchs de niveau inférieur, les arbitres qualifiés qui se font rares.
- * Comparaison sur le libellé (ex. "PRF", "PNM", "DM2 - A"...) : premier motif
- * qui matche, sinon priorité la plus basse.
+ * Ordre de priorité des divisions (règle CD45) : les catégories jeunes (U9 à
+ * U21, TQR compris) sont pourvues avant les seniors, puis les divisions dont
+ * le libellé n'est pas reconnu. Catégorie lue dans le libellé (voir
+ * divisionAgeCategory) ; à l'intérieur d'un groupe, ordre chronologique.
  */
-const LEVEL_PRIORITY = ["PRF", "PNM", "DM2", "DM3", "DM4"];
-function levelPriorityRank(label: string): number {
-  const upper = label.toUpperCase();
-  const idx = LEVEL_PRIORITY.findIndex((p) => upper.includes(p));
-  return idx === -1 ? LEVEL_PRIORITY.length : idx;
+function divisionPriorityRank(label: string): number {
+  const category = divisionAgeCategory(label);
+  if (category == null) return 2;
+  return category >= 99 ? 1 : 0;
 }
 
 export type PlanItem = {
@@ -56,12 +55,11 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   const plan: PlanItem[] = [];
   if (matches.length === 0) return plan;
 
-  // Les matchs de niveau prioritaire (PRF/PNM en tête) sont pourvus avant les
-  // autres : les arbitres qualifiés disponibles en nombre limité leur sont
-  // affectés en priorité plutôt qu'à des matchs de niveau inférieur.
+  // Les matchs jeunes sont pourvus avant les seniors : les arbitres
+  // disponibles en nombre limité leur sont affectés en priorité.
   matches.sort(
     (a, b) =>
-      levelPriorityRank(a.competitionLevel.label) - levelPriorityRank(b.competitionLevel.label) ||
+      divisionPriorityRank(a.competitionLevel.label) - divisionPriorityRank(b.competitionLevel.label) ||
       a.date.getTime() - b.date.getTime()
   );
 
