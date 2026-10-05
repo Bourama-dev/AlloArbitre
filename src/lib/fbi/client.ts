@@ -19,14 +19,42 @@ const NETWORK_RETRIES = 3;
 // quand FBI est chargé ; les routes FBI disposent de 300 s au total.
 const REQUEST_TIMEOUT_MS = 90_000;
 
+// Espacement minimal entre deux requêtes vers FBI (par instance) : FBI
+// coupe puis refuse les connexions d'une adresse qui l'interroge en rafale
+// (« terminated », puis UND_ERR_CONNECT_TIMEOUT pendant un moment).
+const MIN_INTERVAL_MS = 350;
+let nextRequestAt = 0;
+
+async function throttle() {
+  const now = Date.now();
+  const wait = Math.max(0, nextRequestAt - now);
+  nextRequestAt = Math.max(now, nextRequestAt) + MIN_INTERVAL_MS;
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+}
+
 async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
+    await throttle();
     try {
       return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     } catch (error) {
       const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
-      if (timedOut || attempt >= NETWORK_RETRIES - 1) throw error;
-      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      if (timedOut || attempt >= NETWORK_RETRIES - 1) {
+        // Message enrichi : page FBI concernée + code réseau (ECONNRESET,
+        // UND_ERR_CONNECT_TIMEOUT...), sans les paramètres de l'URL. Commence
+        // toujours par le message d'origine (« fetch failed »...).
+        const e = error as Error & { cause?: { code?: string; message?: string } };
+        const page = new URL(url).pathname.split("/").pop();
+        const code = e.cause?.code ?? e.cause?.message;
+        const wrapped = new Error(`${e.message} [${page}${code ? ` - ${code}` : ""}, ${attempt + 1} essai(s)]`, {
+          cause: e.cause,
+        });
+        wrapped.name = e.name;
+        throw wrapped;
+      }
+      // Pause croissante (3 s, puis 6 s) : relancer aussitôt une adresse que
+      // FBI vient de couper prolonge le blocage.
+      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
     }
   }
 }

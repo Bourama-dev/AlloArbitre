@@ -38,7 +38,7 @@ TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
   page `/reglement`) : quotas par arbitre du CD45 (max 2/jour, 3/semaine,
   3/week-end) et du Règlement des officiels FFBB 2026-2027 (max 4 rencontres
   sur 3 jours glissants, âge minimum de 15 ans, pas de match U20/U21/senior à
-  15 ans, mineur toujours accompagné d'un majeur) vérifiés avant toute
+  15 ans) vérifiés avant toute
   désignation (manuelle ou auto), avec pop-up d'alerte en cas de blocage.
   Liste vouée à être complétée au fur et à mesure des règles du CD45
 

@@ -62,7 +62,7 @@ export default async function MatchesPage({
   }
 
   const weekEnd = new Date(end);
-  weekEnd.setDate(weekEnd.getDate() - 1);
+  weekEnd.setUTCDate(weekEnd.getUTCDate() - 1);
 
   return (
     <div className="space-y-4">

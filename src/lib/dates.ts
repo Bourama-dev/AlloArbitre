@@ -2,20 +2,22 @@ import { distanceKm } from "./geocoding";
 
 /** Semaine ISO (lundi -> dimanche) contenant `date`. */
 export function weekRange(date: Date): { start: Date; end: Date } {
+  // En UTC (heure du gymnase stockée sans fuseau) : identique sur Vercel et
+  // sur un poste à l'heure de Paris.
   const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const day = d.getDay(); // 0 = dimanche
+  d.setUTCHours(0, 0, 0, 0);
+  const day = d.getUTCDay(); // 0 = dimanche
   const diffToMonday = day === 0 ? -6 : 1 - day;
   const start = new Date(d);
-  start.setDate(d.getDate() + diffToMonday);
+  start.setUTCDate(d.getUTCDate() + diffToMonday);
   const end = new Date(start);
-  end.setDate(start.getDate() + 7);
+  end.setUTCDate(start.getUTCDate() + 7);
   return { start, end };
 }
 
 export function addWeeks(date: Date, weeks: number): Date {
   const d = new Date(date);
-  d.setDate(d.getDate() + weeks * 7);
+  d.setUTCDate(d.getUTCDate() + weeks * 7);
   return d;
 }
 

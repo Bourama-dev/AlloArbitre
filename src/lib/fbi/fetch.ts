@@ -45,20 +45,25 @@ export async function loggedInClient(onDump?: (dump: FbiDump) => Promise<void>):
  * session est réutilisée tant qu'elle a servi récemment - moins d'appels à
  * FBI, et plus rapide.
  *
- * Une seule opération à la fois par session : les pages FBI gardent un état
- * côté serveur (fiche ouverte, recherche en cours), deux opérations
- * entremêlées pourraient se mélanger - dangereux pour une écriture. Si la
- * session partagée est occupée, l'opération ouvre sa propre session
- * temporaire au lieu d'attendre. Une session inactive depuis plus de SESSION_IDLE_MS, ou trop
- * ancienne, est remplacée par une nouvelle connexion (FBI les fait expirer) ;
- * une erreur "session non connectée" l'invalide aussi.
+ * Une seule opération à la fois par session (les pages FBI gardent un état
+ * côté serveur : deux opérations entremêlées pourraient se mélanger,
+ * dangereux pour une écriture). Les opérations suivantes ATTENDENT leur tour
+ * (file d'attente) : ouvrir une session temporaire à chaque fiche dépliée
+ * multipliait les connexions simultanées et FBI finissait par ne plus les
+ * accepter (UND_ERR_CONNECT_TIMEOUT). Ce n'est qu'au-delà de QUEUE_MAX_WAIT_MS
+ * d'attente qu'une opération prend sa propre session temporaire.
+ *
+ * Une session inactive depuis plus de SESSION_IDLE_MS, ou trop ancienne, est
+ * remplacée par une nouvelle connexion (FBI les fait expirer) ; une erreur
+ * "session non connectée" ou réseau l'invalide aussi.
  *
  * Avec onDump (mode ?debug=1), toujours une session neuve et dédiée.
  */
 const SESSION_IDLE_MS = 5 * 60_000;
 const SESSION_MAX_AGE_MS = 20 * 60_000;
+const QUEUE_MAX_WAIT_MS = 60_000;
 let shared: { client: FbiClient; createdAt: number; lastUsedAt: number } | null = null;
-let busy = false;
+let queueTail: Promise<void> = Promise.resolve();
 
 export async function withFbiSession<T>(
   fn: (client: FbiClient) => Promise<T>,
@@ -66,13 +71,23 @@ export async function withFbiSession<T>(
 ): Promise<T> {
   if (onDump) return fn(await loggedInClient(onDump));
 
-  // Session partagée déjà occupée par une autre opération : plutôt que
-  // d'attendre son tour (plusieurs clics "Pousser vers FBI" à la suite
-  // s'empilaient et dépassaient la minute -> HTTP 504), cette opération
-  // prend sa propre session, jetée ensuite.
-  if (busy) return fn(await loggedInClient());
+  // File d'attente : chaque opération attend la fin de la précédente.
+  const previous = queueTail;
+  let release!: () => void;
+  const mine = new Promise<void>((resolve) => (release = resolve));
+  queueTail = previous.then(() => mine);
 
-  busy = true;
+  const gotTurn = await Promise.race([
+    previous.then(() => true),
+    new Promise<boolean>((resolve) => setTimeout(() => resolve(false), QUEUE_MAX_WAIT_MS)),
+  ]);
+  if (!gotTurn) {
+    // Attente trop longue (opération précédente très lente) : on libère notre
+    // place et on travaille sur une session temporaire, jetée ensuite.
+    release();
+    return fn(await loggedInClient());
+  }
+
   try {
     const now = Date.now();
     if (!shared || now - shared.lastUsedAt > SESSION_IDLE_MS || now - shared.createdAt > SESSION_MAX_AGE_MS) {
@@ -90,7 +105,7 @@ export async function withFbiSession<T>(
       if (shared === session) session.lastUsedAt = Date.now();
     }
   } finally {
-    busy = false;
+    release();
   }
 }
 

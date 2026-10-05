@@ -4,7 +4,7 @@ import { fetchFbiDesignationDetail, fetchFbiRencontres, formatDateFr, withFbiSes
 import { assignRefereeToFbiRencontre, checkFbiOfficielEligibility, removeArbitresFromFbiRencontre } from "@/lib/fbi/write";
 import { pushMatchToFbi } from "@/lib/fbi/push";
 import { importFbiRencontresAsMatches } from "@/lib/fbi/import";
-import { syncFbiOfficielsToDesignations, syncMatchScheduleFromFbiDetail } from "@/lib/fbi/designation-sync";
+import { syncFbiOfficielsToDesignations } from "@/lib/fbi/designation-sync";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compareWithAlloArbitre } from "@/lib/fbi/sync";
 import { getCurrentUser } from "@/lib/current-user";
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 /**
- * Cron (déclaré dans vercel.json, tous les jours à 7h) : se logue sur FBI,
+ * Import du calendrier FBI (bouton de /fbi ; plus de cron depuis le 01/10/2026) : se logue sur FBI,
  * récupère les rencontres des 14 prochains jours, importe/complète les
  * matchs AlloArbitre correspondants (import.ts - idempotent, jamais de
  * doublon), puis compare l'état des désignations entre les deux systèmes.
@@ -38,8 +38,14 @@ export const maxDuration = 300;
  */
 function readableError(error: unknown): string {
   const message = error instanceof Error ? error.message : "Erreur inconnue";
+  // Code technique de la coupure (ECONNRESET, UND_ERR_CONNECT_TIMEOUT...) :
+  // affiché pour pouvoir distinguer un blocage côté FBI d'une simple coupure.
+  const cause = (error as { cause?: { code?: string } } | null)?.cause?.code;
+  console.error("[fbi-sync]", message, cause ?? "");
   if (/fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|socket hang up/i.test(message)) {
-    return "FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI, malgré 3 essais). Réessayez dans quelques minutes.";
+    return `FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI, malgré 3 essais${
+      cause ? ` - code ${cause}` : ""
+    }). Réessayez dans quelques minutes.`;
   }
   if (/timeout|aborted/i.test(message)) {
     return "FBI met trop de temps à répondre (site surchargé). Réessayez dans quelques minutes.";
@@ -301,7 +307,6 @@ export async function GET(request: Request) {
     try {
       const detail = await fetchFbiDesignationDetail(detailId, onDump);
       let designationsSynced = 0;
-      let scheduleUpdated = false;
       if (currentUser) {
         const { data: match } = await supabaseAdmin
           .from("Match")
@@ -309,8 +314,6 @@ export async function GET(request: Request) {
           .eq("fbiIdRencontre", detailId)
           .maybeSingle();
         if (match) {
-          const { updated } = await syncMatchScheduleFromFbiDetail(match.id, detail.infos);
-          scheduleUpdated = updated;
           const { created } = await syncFbiOfficielsToDesignations(match.id, detail.officiels, currentUser.id);
           designationsSynced = created;
         }
@@ -320,7 +323,6 @@ export async function GET(request: Request) {
         idRencontre: detailId,
         ...detail,
         designationsSynced,
-        scheduleUpdated,
       });
     } catch (error) {
       return NextResponse.json(

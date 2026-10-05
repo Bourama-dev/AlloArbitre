@@ -36,12 +36,6 @@ export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
 // répartiteur (ex. en binôme avec un arbitre confirmé).
 export const MANUAL_ONLY_LEVELS = ["DEP-STG"];
 
-/** Mineur au sens de la règle CD45 (jamais deux mineurs ensemble, toujours accompagné d'un majeur). */
-function isMinorAt(birthDate: string | null, at: Date): boolean {
-  const age = ageAt(birthDate, at);
-  return age != null && age < 18;
-}
-
 type RawMatchForSuggestion = {
   id: string;
   date: string;
@@ -187,6 +181,190 @@ function buildWhy(s: RefereeSuggestion, minLevelLabel: string | null, maxDistanc
 }
 
 /**
+ * Désignation d'un arbitre déjà enregistrée (ou prévue dans un lot
+ * d'auto-désignation), telle que l'utilisent les contrôles : conflits
+ * d'horaire, quotas, doublé dans la même salle.
+ */
+export type CandidateDesignation = {
+  matchId: string;
+  date: Date;
+  durationMinutes: number;
+  venue: string | null;
+  lat: number | null;
+  lng: number | null;
+};
+
+type CandidateReferee = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  zone: string | null;
+  phone: string | null;
+  lat: number | null;
+  lng: number | null;
+  birthDate: string | null;
+  level: { id: string; label: string; rank: number };
+  groupIds: string[];
+  groupLabels: string[];
+  unavailability: UnavailabilitySlot[];
+};
+
+/**
+ * Tout ce qu'il faut pour évaluer les arbitres sur les matchs d'une période,
+ * chargé une seule fois : l'auto-désignation d'un lot de matchs ne recharge
+ * plus tout l'effectif (et tout son historique) pour chaque place vacante.
+ */
+export type CandidateContext = {
+  referees: CandidateReferee[];
+  /** Désignations (matchs non annulés) autour de la période, par arbitre. */
+  designationsByReferee: Map<string, CandidateDesignation[]>;
+  /** Nombre de désignations à venir par arbitre (équité). */
+  upcomingByReferee: Map<string, number>;
+  settings: Awaited<ReturnType<typeof getSettings>>;
+  availability: Awaited<ReturnType<typeof loadAvailabilityIndex>>;
+  divisionRules: Map<string, Promise<Awaited<ReturnType<typeof getDivisionRules>>>>;
+  now: Date;
+};
+
+/** Marge autour de la période : quotas à la semaine / au week-end, conflits de la veille ou du lendemain. */
+const CONTEXT_MARGIN_MS = 8 * 86_400_000;
+
+async function fetchPaged<T>(build: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>): Promise<T[]> {
+  const PAGE = 1000;
+  const out: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build(from, from + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < PAGE) return out;
+  }
+}
+
+type One<T> = T | T[] | null;
+const firstOf = <T,>(v: One<T>): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
+
+export async function loadCandidateContext(from: Date, to: Date): Promise<CandidateContext> {
+  const now = new Date();
+  const windowStart = new Date(from.getTime() - CONTEXT_MARGIN_MS).toISOString();
+  const windowEnd = new Date(to.getTime() + CONTEXT_MARGIN_MS).toISOString();
+
+  const [refereeRows, windowRows, upcomingRows, unavailabilityRows, settings] = await Promise.all([
+    fetchPaged<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      zone: string | null;
+      phone: string | null;
+      lat: number | null;
+      lng: number | null;
+      birthDate: string | null;
+      level: One<{ id: string; label: string; rank: number }>;
+      groups: { groupId: string; group: One<{ label: string }> }[];
+    }>((f, t) =>
+      supabaseAdmin
+        .from("Referee")
+        .select(
+          `id, firstName, lastName, zone, phone, lat, lng, birthDate,
+           level:RefereeLevel(id, label, rank),
+           groups:RefereeGroupMember(groupId, group:RefereeGroup(label))`
+        )
+        .eq("active", true)
+        .order("id")
+        .range(f, t)
+    ),
+    fetchPaged<{
+      refereeId: string;
+      matchId: string;
+      match: One<{ date: string; durationMinutes: number; venue: string | null; lat: number | null; lng: number | null }>;
+    }>((f, t) =>
+      supabaseAdmin
+        .from("Designation")
+        .select("refereeId, matchId, match:Match!inner(date, durationMinutes, venue, lat, lng)")
+        .eq("match.cancelled", false)
+        .gte("match.date", windowStart)
+        .lt("match.date", windowEnd)
+        .order("id")
+        .range(f, t)
+    ),
+    fetchPaged<{ refereeId: string }>((f, t) =>
+      supabaseAdmin
+        .from("Designation")
+        .select("refereeId, match:Match!inner(date)")
+        .eq("match.cancelled", false)
+        .gte("match.date", now.toISOString())
+        .order("id")
+        .range(f, t)
+    ),
+    fetchPaged<UnavailabilitySlot & { refereeId: string }>((f, t) =>
+      supabaseAdmin
+        .from("Unavailability")
+        .select("refereeId, recurring, startDate, endDate, dayOfWeek, startTime, endTime")
+        .order("id")
+        .range(f, t)
+    ),
+    getSettings(),
+  ]);
+
+  const availability = await loadAvailabilityIndex(
+    from.toISOString().slice(0, 10),
+    to.toISOString().slice(0, 10),
+    settings.requireAvailability
+  );
+
+  const unavailabilityByReferee = new Map<string, UnavailabilitySlot[]>();
+  for (const u of unavailabilityRows) {
+    unavailabilityByReferee.set(u.refereeId, [...(unavailabilityByReferee.get(u.refereeId) ?? []), u]);
+  }
+  const designationsByReferee = new Map<string, CandidateDesignation[]>();
+  for (const d of windowRows) {
+    const m = firstOf(d.match);
+    if (!m) continue;
+    const list = designationsByReferee.get(d.refereeId) ?? [];
+    list.push({ matchId: d.matchId, date: new Date(m.date), durationMinutes: m.durationMinutes, venue: m.venue, lat: m.lat, lng: m.lng });
+    designationsByReferee.set(d.refereeId, list);
+  }
+  const upcomingByReferee = new Map<string, number>();
+  for (const d of upcomingRows) upcomingByReferee.set(d.refereeId, (upcomingByReferee.get(d.refereeId) ?? 0) + 1);
+
+  const referees: CandidateReferee[] = refereeRows.map((r) => ({
+    id: r.id,
+    firstName: r.firstName,
+    lastName: r.lastName,
+    zone: r.zone,
+    phone: r.phone,
+    lat: r.lat,
+    lng: r.lng,
+    birthDate: r.birthDate,
+    level: firstOf(r.level) ?? { id: "", label: "?", rank: 999 },
+    groupIds: r.groups.map((g) => g.groupId),
+    groupLabels: r.groups.map((g) => firstOf(g.group)?.label).filter((l): l is string => !!l),
+    unavailability: unavailabilityByReferee.get(r.id) ?? [],
+  }));
+
+  return {
+    referees,
+    designationsByReferee,
+    upcomingByReferee,
+    settings,
+    availability,
+    divisionRules: new Map(),
+    now,
+  };
+}
+
+function divisionRulesFor(ctx: CandidateContext, competitionLevelId: string) {
+  let rules = ctx.divisionRules.get(competitionLevelId);
+  if (!rules) {
+    rules = getDivisionRules(competitionLevelId);
+    ctx.divisionRules.set(competitionLevelId, rules);
+  }
+  return rules;
+}
+
+export type MatchForSuggestion = NonNullable<Awaited<ReturnType<typeof getMatchForSuggestion>>>;
+
+/**
  * Candidats pour un match, en deux groupes : les arbitres compatibles
  * (respectant tous les critères - niveau requis si configuré, groupe de
  * désignation, âge minimum, distance maximale, pas de conflit d'horaire, pas
@@ -196,173 +374,99 @@ function buildWhy(s: RefereeSuggestion, minLevelLabel: string | null, maxDistanc
  * incompatibilité, pour rester sélectionnables manuellement si besoin. Ne
  * crée jamais de désignation - la validation manuelle (voir designateReferee)
  * est toujours requise.
+ *
+ * `planned` (auto-désignation) : désignations déjà retenues dans le lot en
+ * cours, comptées comme si elles étaient enregistrées (conflits, quotas,
+ * doublés, équité) ; `alsoAssigned` : arbitres déjà retenus sur CE match.
  */
-export async function getMatchCandidates(matchId: string): Promise<{
+export async function evaluateMatchCandidates(
+  match: MatchForSuggestion,
+  ctx: CandidateContext,
+  opts: { planned?: Map<string, CandidateDesignation[]>; alsoAssigned?: Set<string> } = {}
+): Promise<{
   minLevelLabel: string | null;
   eligible: RefereeSuggestion[];
   ineligible: IneligibleReferee[];
 }> {
-  const match = await getMatchForSuggestion(matchId);
-  if (!match) return { minLevelLabel: null, eligible: [], ineligible: [] };
-
   const minRank = match.competitionLevel.mapping?.minRefereeLevel?.rank;
   const minLevelLabel = match.competitionLevel.mapping?.minRefereeLevel?.label ?? null;
-  const alreadyAssignedIds = match.designations.map((d) => d.refereeId);
-
-  let query = supabaseAdmin
-    .from("Referee")
-    .select(
-      `id, firstName, lastName, zone, phone, lat, lng, birthDate,
-       level:RefereeLevel(id, label, rank),
-       groups:RefereeGroupMember(groupId, group:RefereeGroup(label)),
-       designations:Designation(id, match:Match(date, durationMinutes, cancelled, venue, lat, lng)),
-       unavailability:Unavailability(recurring, startDate, endDate, dayOfWeek, startTime, endTime)`
-    )
-    .eq("active", true);
-
-  if (alreadyAssignedIds.length > 0) {
-    query = query.not("id", "in", `(${alreadyAssignedIds.join(",")})`);
-  }
-
-  const [{ data, error }, settings, divisionRules, { data: assignedReferees, error: assignedError }] = await Promise.all([
-    query,
-    getSettings(),
-    getDivisionRules(match.competitionLevelId),
-    alreadyAssignedIds.length > 0
-      ? supabaseAdmin.from("Referee").select(`id, "birthDate"`).in("id", alreadyAssignedIds)
-      : Promise.resolve({ data: [] as { id: string; birthDate: string | null }[], error: null }),
-  ]);
-  if (error) throw error;
-  if (assignedError) throw assignedError;
-
-  // Un mineur doit toujours être accompagné d'un majeur, jamais d'un autre
-  // mineur : si un mineur est déjà désigné sur ce match, tout autre mineur
-  // devient inéligible pour le(s) créneau(x) restant(s).
-  const matchAlreadyHasMinor = (assignedReferees ?? []).some((r) => isMinorAt(r.birthDate, match.date));
-  const matchDay = match.date.toISOString().slice(0, 10);
-  const availability = await loadAvailabilityIndex(matchDay, matchDay, settings.requireAvailability);
-
-  type RawCandidate = {
-    id: string;
-    firstName: string;
-    lastName: string;
-    zone: string | null;
-    phone: string | null;
-    lat: number | null;
-    lng: number | null;
-    birthDate: string | null;
-    level: { id: string; label: string; rank: number };
-    groups: { groupId: string; group: { label: string } | { label: string }[] | null }[];
-    designations: {
-      id: string;
-      match: {
-        date: string;
-        durationMinutes: number;
-        cancelled: boolean;
-        venue: string | null;
-        lat: number | null;
-        lng: number | null;
-      };
-    }[];
-    unavailability: {
-      recurring: boolean;
-      startDate: string | null;
-      endDate: string | null;
-      dayOfWeek: number | null;
-      startTime: string | null;
-      endTime: string | null;
-    }[];
-  };
-
-  const now = new Date();
-  const isUnavailable = (u: RawCandidate["unavailability"][number]) =>
-    unavailabilityBlocksMatch(u, match.date, match.durationMinutes);
+  const assigned = new Set([...match.designations.map((d) => d.refereeId), ...(opts.alsoAssigned ?? [])]);
+  const { settings, availability, now } = ctx;
+  const divisionRules = await divisionRulesFor(ctx, match.competitionLevelId);
 
   const hasMatchCoords = match.lat != null && match.lng != null;
   const matchSlot = { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue };
+  const isTqr = match.competitionLevel.label.trim().toUpperCase().startsWith("TQR");
 
-  const candidates = ((data ?? []) as unknown as RawCandidate[]).map((c) => {
-    const activeDesignations = c.designations
-      .filter((d) => !d.match.cancelled)
-      .map((d) => ({
-        date: new Date(d.match.date),
-        durationMinutes: d.match.durationMinutes,
-        venue: d.match.venue,
-        lat: d.match.lat,
-        lng: d.match.lng,
-      }));
-    const groupIds = c.groups.map((g) => g.groupId);
-    const groupLabels = c.groups
-      .map((g) => (Array.isArray(g.group) ? g.group[0]?.label : g.group?.label))
-      .filter((l): l is string => !!l);
+  const candidates = ctx.referees
+    .filter((c) => !assigned.has(c.id))
+    .map((c) => {
+      const planned = opts.planned?.get(c.id) ?? [];
+      const activeDesignations = [...(ctx.designationsByReferee.get(c.id) ?? []), ...planned].filter(
+        (d) => d.matchId !== match.id
+      );
 
-    const reasons: string[] = [];
-    if (MANUAL_ONLY_LEVELS.includes(c.level.label)) {
-      reasons.push(`Stagiaire (${c.level.label}) : désignation manuelle uniquement`);
-    }
-    if (minRank !== undefined && c.level.rank > minRank) {
-      reasons.push("Niveau insuffisant");
-    }
-    reasons.push(...divisionReasons(divisionRules, { birthDate: c.birthDate, groupIds }, match.date));
-    const ownTeam = refereeOwnClubTeam(c.zone, match.homeTeam, match.awayTeam);
-    if (ownTeam) reasons.push(ownClubMessage(ownTeam));
-    if (
-      activeDesignations.some((d) =>
-        hasSchedulingConflict(
-          { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
-          d
+      const reasons: string[] = [];
+      if (MANUAL_ONLY_LEVELS.includes(c.level.label)) {
+        reasons.push(`Stagiaire (${c.level.label}) : désignation manuelle uniquement`);
+      }
+      if (minRank !== undefined && c.level.rank > minRank) {
+        reasons.push("Niveau insuffisant");
+      }
+      reasons.push(...divisionReasons(divisionRules, { birthDate: c.birthDate, groupIds: c.groupIds }, match.date));
+      const ownTeam = refereeOwnClubTeam(c.zone, match.homeTeam, match.awayTeam);
+      if (ownTeam) reasons.push(ownClubMessage(ownTeam));
+      if (
+        activeDesignations.some((d) =>
+          hasSchedulingConflict(
+            { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
+            d
+          )
         )
-      )
-    ) {
-      reasons.push("Conflit d'horaire (ou trajet insuffisant entre les deux gymnases)");
-    }
-    if (c.unavailability.some(isUnavailable)) {
-      reasons.push("Indisponible");
-    }
-    const availabilityVerdict = availability.verdict(c.id, match.date);
-    if (availabilityVerdict.block) reasons.push(availabilityVerdict.block);
-    if (matchAlreadyHasMinor && isMinorAt(c.birthDate, match.date)) {
-      reasons.push("Mineur : un autre mineur est déjà désigné sur ce match");
-    }
-    const quotaViolations = checkQuotaRules(
-      match.date,
-      match.durationMinutes,
-      activeDesignations,
-      match.competitionLevel.label.trim().toUpperCase().startsWith("TQR")
-    ).filter((v) => v.severity === "bloquant");
-    for (const v of quotaViolations) reasons.push(v.message);
+      ) {
+        reasons.push("Conflit d'horaire (ou trajet insuffisant entre les deux gymnases)");
+      }
+      if (c.unavailability.some((u) => unavailabilityBlocksMatch(u, match.date, match.durationMinutes))) {
+        reasons.push("Indisponible");
+      }
+      const availabilityVerdict = availability.verdict(c.id, match.date);
+      if (availabilityVerdict.block) reasons.push(availabilityVerdict.block);
+      const quotaViolations = checkQuotaRules(match.date, match.durationMinutes, activeDesignations, isTqr).filter(
+        (v) => v.severity === "bloquant"
+      );
+      for (const v of quotaViolations) reasons.push(v.message);
 
-    const oneWayKm =
-      hasMatchCoords && c.lat != null && c.lng != null
-        ? distanceKm({ lat: match.lat!, lng: match.lng! }, { lat: c.lat, lng: c.lng })
-        : null;
-    // 2e match du jour dans la même salle : pas de frais kilométriques
-    // (règle CD45) - la distance reste affichée pour le classement.
-    const laterSameVenue = isLaterMatchSameVenueSameDay(matchSlot, activeDesignations);
-    const sameVenueDouble = isSameVenueSameDay(matchSlot, activeDesignations);
+      const oneWayKm =
+        hasMatchCoords && c.lat != null && c.lng != null
+          ? distanceKm({ lat: match.lat!, lng: match.lng! }, { lat: c.lat, lng: c.lng })
+          : null;
+      // 2e match du jour dans la même salle : pas de frais kilométriques
+      // (règle CD45) - la distance reste affichée pour le classement.
+      const laterSameVenue = isLaterMatchSameVenueSameDay(matchSlot, activeDesignations);
+      const sameVenueDouble = isSameVenueSameDay(matchSlot, activeDesignations);
 
-    return {
-      id: c.id,
-      firstName: c.firstName,
-      lastName: c.lastName,
-      zone: c.zone,
-      phone: c.phone,
-      levelLabel: c.level.label,
-      currentLoad: activeDesignations.filter((d) => d.date >= now).length,
-      distanceKm: oneWayKm,
-      distanceByRoad: false,
-      estimatedPayment: null as number | null,
-      sameVenueDouble,
-      groupLabels,
-      age: ageAt(c.birthDate, match.date),
-      why: [] as string[],
-      availabilityNote: availabilityVerdict.note,
-      availabilityStatus: availabilityVerdict.status,
-      reasons,
-      coords: c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null,
-      laterSameVenue,
-    };
-  });
+      return {
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        zone: c.zone,
+        phone: c.phone,
+        levelLabel: c.level.label,
+        currentLoad: (ctx.upcomingByReferee.get(c.id) ?? 0) + planned.filter((d) => d.date >= now).length,
+        distanceKm: oneWayKm,
+        distanceByRoad: false,
+        estimatedPayment: null as number | null,
+        sameVenueDouble,
+        groupLabels: c.groupLabels,
+        age: ageAt(c.birthDate, match.date),
+        why: [] as string[],
+        availabilityNote: availabilityVerdict.note,
+        availabilityStatus: availabilityVerdict.status,
+        reasons,
+        coords: c.lat != null && c.lng != null ? { lat: c.lat, lng: c.lng } : null,
+        laterSameVenue,
+      };
+    });
 
   // Distance routière réelle pour les arbitres compatibles les plus proches.
   // La route étant toujours plus longue que le vol d'oiseau, un arbitre déjà
@@ -426,6 +530,18 @@ export async function getMatchCandidates(matchId: string): Promise<{
     .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
 
   return { minLevelLabel, eligible, ineligible };
+}
+
+/** Candidats d'un seul match (fiche match) : contexte chargé pour son jour uniquement. */
+export async function getMatchCandidates(matchId: string): Promise<{
+  minLevelLabel: string | null;
+  eligible: RefereeSuggestion[];
+  ineligible: IneligibleReferee[];
+}> {
+  const match = await getMatchForSuggestion(matchId);
+  if (!match) return { minLevelLabel: null, eligible: [], ineligible: [] };
+  const ctx = await loadCandidateContext(match.date, match.date);
+  return evaluateMatchCandidates(match, ctx);
 }
 
 /** Compat : ne renvoie que les arbitres compatibles (utilisé par l'auto-désignation). */
@@ -492,20 +608,6 @@ export async function designateReferee(
   }
 
   const matchDate = new Date(match.date);
-
-  if (isMinorAt((referee.birthDate as string | null) ?? null, matchDate) && designations.length > 0) {
-    const { data: partners, error: partnersError } = await supabaseAdmin
-      .from("Referee")
-      .select(`id, "birthDate"`)
-      .in(
-        "id",
-        designations.map((d) => d.refereeId)
-      );
-    if (partnersError) throw partnersError;
-    if ((partners ?? []).some((p) => isMinorAt(p.birthDate, matchDate))) {
-      return { ok: false, error: "Un arbitre mineur ne peut pas être associé à un autre mineur." };
-    }
-  }
 
   // Même règle que les suggestions : la désignation directe ("Désigner…")
   // ne vérifiait pas les indisponibilités et laissait passer un arbitre

@@ -28,7 +28,7 @@ export default async function MultiDesignatePage({
   const sort = (sp.sort as MatchSort | undefined) ?? "date_asc";
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
 
   const [matches, levels] = await Promise.all([
     findMatches({ from: today, status: "incomplet", competitionLevelId, search, sort }),

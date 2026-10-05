@@ -185,10 +185,11 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
         continue;
       }
 
-      const date = new Date(`${row.date}T${row.heure}:00`);
-      const dayStart = new Date(`${row.date}T00:00:00`);
+      // Heure du gymnase stockée en UTC, quel que soit le fuseau de la machine.
+      const date = new Date(`${row.date}T${row.heure}:00Z`);
+      const dayStart = new Date(`${row.date}T00:00:00Z`);
       const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+      dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
 
       // Un même match est identifié par jour (pas l'horaire exact) + équipes +
       // niveau : l'horaire peut être corrigé d'un import à l'autre (ex :

@@ -89,13 +89,6 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     severity: "bloquant",
   },
   {
-    id: "mineur-accompagne",
-    label: "Mineur : jamais seul, jamais avec un autre mineur",
-    description:
-      "Règlement des officiels 2026-2027, art. 5.6 : un arbitre mineur ne doit pas officier seul et, pour le CD45, n'est jamais associé à un autre mineur : un mineur est toujours accompagné d'un arbitre majeur.",
-    severity: "bloquant",
-  },
-  {
     id: "distance-max",
     label: "Distance maximale fixée par le comité",
     description:

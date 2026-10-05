@@ -1,10 +1,4 @@
 {
   "regions": ["cdg1"],
-  "fluid": true,
-  "crons": [
-    {
-      "path": "/api/fbi-sync",
-      "schedule": "0 7 * * *"
-    }
-  ]
+  "fluid": true
 }

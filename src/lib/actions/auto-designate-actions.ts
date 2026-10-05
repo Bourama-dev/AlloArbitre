@@ -1,27 +1,16 @@
 "use server";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { hasSchedulingConflict, formatDateTimeFr, type MatchSlot } from "@/lib/dates";
+import { formatDateTimeFr } from "@/lib/dates";
 import {
   getMatchForSuggestion,
-  suggestReferees,
   designateReferee,
   explainSuggestion,
+  evaluateMatchCandidates,
+  loadCandidateContext,
+  type CandidateDesignation,
+  type MatchForSuggestion,
 } from "@/lib/suggestions";
-
-/**
- * Ordre de priorité des niveaux de compétition (règle CD45) : les créneaux
- * les plus exigeants doivent être pourvus en premier pour ne pas épuiser sur
- * des matchs de niveau inférieur les arbitres qualifiés qui se font rares.
- * Comparaison sur le libellé (ex. "PRF", "PNM", "DM2 - A"...) : premier motif
- * qui matche, sinon priorité la plus basse.
- */
-const LEVEL_PRIORITY = ["PRF", "PNM", "DM2", "DM3", "DM4"];
-function levelPriorityRank(label: string): number {
-  const upper = label.toUpperCase();
-  const idx = LEVEL_PRIORITY.findIndex((p) => upper.includes(p));
-  return idx === -1 ? LEVEL_PRIORITY.length : idx;
-}
 
 export type PlanItem = {
   matchId: string;
@@ -44,25 +33,25 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   const user = await getCurrentUser();
   if (!user) throw new Error("Non authentifié.");
 
-  const plan: PlanItem[] = [];
-  const pendingByReferee = new Map<string, MatchSlot[]>();
-
-  const matches = (
-    await Promise.all(matchIds.map((id) => getMatchForSuggestion(id)))
-  ).filter((m): m is NonNullable<typeof m> => !!m && !m.cancelled && m.refereesRequired > m.designations.length);
-
-  // Les matchs de niveau prioritaire (PRF/PNM en tête) sont pourvus avant les
-  // autres, pour que les arbitres qualifiés disponibles en nombre limité leur
-  // soient affectés en priorité plutôt qu'à des matchs de niveau inférieur.
-  matches.sort(
-    (a, b) =>
-      levelPriorityRank(a.competitionLevel.label) - levelPriorityRank(b.competitionLevel.label) ||
-      a.date.getTime() - b.date.getTime()
+  // Tous les matchs du lot, puis UN seul chargement des arbitres, de leurs
+  // désignations autour de la période, des indisponibilités et des
+  // disponibilités - au lieu d'un rechargement complet par place vacante.
+  const matches = (await Promise.all(matchIds.map((id) => getMatchForSuggestion(id)))).filter(
+    (m): m is MatchForSuggestion => m !== null
   );
+  const plan: PlanItem[] = [];
+  if (matches.length === 0) return plan;
+
+  const times = matches.map((m) => m.date.getTime());
+  const ctx = await loadCandidateContext(new Date(Math.min(...times)), new Date(Math.max(...times)));
+  // Désignations retenues dans ce lot, comptées comme déjà enregistrées pour
+  // la suite du calcul (conflits d'horaire, quotas, doublés, équité).
+  const planned = new Map<string, CandidateDesignation[]>();
 
   for (const match of matches) {
     const matchId = match.id;
     const slotsToFill = match.refereesRequired - match.designations.length;
+    if (match.cancelled || slotsToFill <= 0) continue;
 
     const matchLabel = `${match.homeTeam} vs ${match.awayTeam} · ${formatDateTimeFr(match.date)}`;
 
@@ -78,28 +67,16 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       });
       continue;
     }
-    const slot: MatchSlot = {
-      date: match.date,
-      durationMinutes: match.durationMinutes,
-      venue: match.venue,
-      lat: match.lat,
-      lng: match.lng,
-    };
 
+    const alsoAssigned = new Set<string>();
     for (let i = 0; i < slotsToFill; i++) {
-      const { suggestions: allSuggestions } = await suggestReferees(matchId);
+      const { eligible: allSuggestions } = await evaluateMatchCandidates(match, ctx, { planned, alsoAssigned });
       // Auto-désignation : uniquement les arbitres qui ont répondu à la
       // campagne de disponibilités ET coché le créneau du match. Les autres
       // (sans réponse, jour hors campagne) restent désignables à la main.
       const suggestions = allSuggestions.filter((s) => s.availabilityStatus === "disponible");
-      const pickIndex = suggestions.findIndex((s) => {
-        const pending = pendingByReferee.get(s.id) ?? [];
-        // Même contrôle qu'à l'enregistrement (trajet + présence 30 min),
-        // pour ne pas proposer un arbitre que designateReferee refuserait.
-        return !pending.some((p) => hasSchedulingConflict(slot, p));
-      });
 
-      if (pickIndex === -1) {
+      if (suggestions.length === 0) {
         const noCampaign = allSuggestions.length > 0 && allSuggestions.every((s) => s.availabilityStatus === "hors-campagne");
         const withoutAnswer = allSuggestions.filter((s) => s.availabilityStatus === "sans-reponse").length;
         plan.push({
@@ -115,7 +92,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
         continue;
       }
 
-      const pick = suggestions[pickIndex];
+      const pick = suggestions[0];
       plan.push({
         matchId,
         matchLabel,
@@ -124,9 +101,18 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
         reason: explainSuggestion(pick, suggestions.length),
       });
 
-      const list = pendingByReferee.get(pick.id) ?? [];
-      list.push(slot);
-      pendingByReferee.set(pick.id, list);
+      alsoAssigned.add(pick.id);
+      planned.set(pick.id, [
+        ...(planned.get(pick.id) ?? []),
+        {
+          matchId,
+          date: match.date,
+          durationMinutes: match.durationMinutes,
+          venue: match.venue,
+          lat: match.lat,
+          lng: match.lng,
+        },
+      ]);
     }
   }
 
