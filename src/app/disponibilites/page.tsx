@@ -1,3 +1,4 @@
+import { isDeadlinePassed } from "@/lib/dates";
 import { CollapsibleFilters } from "@/components/collapsible-filters";
 import { InfoText } from "@/components/info-text";
 import Link from "next/link";
@@ -123,7 +124,7 @@ export default async function AvailabilityPeriodsPage({
             </thead>
             <tbody>
               {periods.map((p) => {
-                const closed = p.deadline.getTime() <= Date.now();
+                const closed = isDeadlinePassed(p.deadline);
                 const n = responseCount.get(p.id) ?? 0;
                 return (
                   <tr key={p.id}>

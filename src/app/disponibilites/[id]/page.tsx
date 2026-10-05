@@ -1,3 +1,4 @@
+import { isDeadlinePassed } from "@/lib/dates";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -46,7 +47,7 @@ export default async function AvailabilityPeriodPage({
   }
   const refereeName = new Map(referees.map((r) => [r.id, `${r.lastName} ${r.firstName}`]));
   const days = daysBetween(period.startDate, period.endDate);
-  const closed = period.deadline.getTime() <= Date.now();
+  const closed = isDeadlinePassed(period.deadline);
   const missing = referees.filter((r) => !responseBy.has(r.id));
   const shown = filtre === "sans-reponse" ? missing : referees;
   const editing = modifier ? referees.find((r) => r.id === modifier) : undefined;

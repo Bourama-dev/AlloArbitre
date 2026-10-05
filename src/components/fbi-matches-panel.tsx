@@ -53,8 +53,11 @@ export function FbiMatchesPanel({
     });
   }, [boxes]);
 
+  // Lit l'état des cases dans le DOM une fois l'affichage terminé (le DOM est
+  // le système externe synchronisé ici, d'où le décalage d'une image).
   useEffect(() => {
-    syncSelection();
+    const frame = requestAnimationFrame(syncSelection);
+    return () => cancelAnimationFrame(frame);
   }, [byDay, syncSelection]);
 
   function setAll(checked: boolean, root: ParentNode | null = containerRef.current) {

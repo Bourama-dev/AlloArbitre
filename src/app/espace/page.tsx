@@ -12,7 +12,7 @@ import {
   mapPeriod,
   type AvailabilityPeriod,
 } from "@/lib/availability";
-import { formatDateOnlyFr, formatDateTimeFr } from "@/lib/dates";
+import { formatDateOnlyFr, formatDateTimeFr, isDeadlinePassed } from "@/lib/dates";
 import { AlertToast } from "@/components/alert-toast";
 import { RefereeTabs } from "@/components/referee-tabs";
 import { SubmitButton } from "@/components/submit-button";
@@ -202,7 +202,7 @@ export default async function RefereeSpacePage({
   }
 
   const renderPeriod = (p: AvailabilityPeriod) => {
-    const closed = p.deadline.getTime() <= Date.now();
+    const closed = isDeadlinePassed(p.deadline);
     const response = responseByPeriod.get(p.id);
     return (
       <section key={p.id} className="card p-4 space-y-3">

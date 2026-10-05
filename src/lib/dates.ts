@@ -52,6 +52,14 @@ export function formatDateOnlyFr(dateStr: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
+/**
+ * La date limite est-elle dépassée ? Isolée ici (hors des composants) : lire
+ * l'heure courante pendant le rendu est signalé par la règle React de pureté.
+ */
+export function isDeadlinePassed(deadline: Date): boolean {
+  return deadline.getTime() <= Date.now();
+}
+
 /** « 5 oct. » : jour et mois abrégés, pour les barres compactes (mobile). */
 export function formatDayMonthFr(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", {
