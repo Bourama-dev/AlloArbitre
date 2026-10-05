@@ -34,7 +34,7 @@ export default async function SignupPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+    <div className="min-h-dvh flex items-center justify-center bg-[var(--background)]">
       <div className="w-full max-w-sm card p-6">
         <h1 className="text-xl font-semibold tracking-tight mb-1">AlloArbitre</h1>
         <p className="text-sm text-[var(--muted)] mb-6">

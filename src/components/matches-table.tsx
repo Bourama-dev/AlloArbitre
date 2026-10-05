@@ -29,7 +29,7 @@ export function MatchesTable({
   }
 
   return (
-    <div className="table-shell overflow-x-auto">
+    <div className="table-shell table-cards overflow-x-auto">
       <table>
         <thead>
           <tr>
@@ -51,20 +51,20 @@ export function MatchesTable({
             return (
               <tr key={m.id}>
                 {selectable && (
-                  <td>
+                  <td className="tc-check">
                     {status === "incomplet" && (
                       <input type="checkbox" name="matchIds" value={m.id} />
                     )}
                   </td>
                 )}
-                <td className="whitespace-nowrap">{formatDateTimeFr(m.date)}</td>
-                <td className="whitespace-nowrap text-[var(--muted)]">
+                <td className="whitespace-nowrap tc-date tc-head">{formatDateTimeFr(m.date)}</td>
+                <td className="whitespace-nowrap text-[var(--muted)] tc-head text-xs">
                   {m.competitionLevel.label}
                 </td>
-                <td className="font-medium whitespace-nowrap">{m.homeTeam}</td>
-                <td className="font-medium whitespace-nowrap">{m.awayTeam}</td>
-                <td className="whitespace-nowrap text-[var(--muted)]">{m.venue ?? "-"}</td>
-                <td className="min-w-[10rem]">
+                <td className="font-medium whitespace-nowrap tc-team">{m.homeTeam}</td>
+                <td className="font-medium whitespace-nowrap tc-team tc-away">{m.awayTeam}</td>
+                <td className="whitespace-nowrap text-[var(--muted)] tc-venue">{m.venue ?? "-"}</td>
+                <td className="min-w-[10rem]" data-label="Arbitres">
                   {m.designations.length === 0 ? (
                     <span className="text-[var(--muted)]">
                       Aucun arbitre ({0}/{m.refereesRequired})
@@ -131,7 +131,7 @@ export function MatchesTable({
                     </form>
                   )}
                 </td>
-                <td className="whitespace-nowrap text-[var(--muted)]">
+                <td className="whitespace-nowrap text-[var(--muted)] tc-hide-sm">
                   {m.designations.length === 0 ? (
                     "-"
                   ) : (
@@ -142,10 +142,10 @@ export function MatchesTable({
                     </div>
                   )}
                 </td>
-                <td>
+                <td className="tc-status">
                   <StatusBadge status={status} />
                 </td>
-                <td className="text-right whitespace-nowrap">
+                <td className="text-right whitespace-nowrap tc-actions">
                   <div className="inline-flex flex-col items-end gap-1">
                     <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
                       Détails

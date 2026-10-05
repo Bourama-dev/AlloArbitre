@@ -52,6 +52,15 @@ export function formatDateOnlyFr(dateStr: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
+/** « 5 oct. » : jour et mois abrégés, pour les barres compactes (mobile). */
+export function formatDayMonthFr(date: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    timeZone: STORED_WALL_CLOCK_TZ,
+  }).format(date);
+}
+
 export function formatDateFr(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",

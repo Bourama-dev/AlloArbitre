@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CollapsibleFilters } from "@/components/collapsible-filters";
 import { listRefereesWithLoad, listRefereeLevels, listZones } from "@/lib/referees";
 import type { RefereeAvailabilityFilter, RefereeSort, RefereeStatusFilter } from "@/lib/referees";
 
@@ -36,18 +37,31 @@ export default async function RefereesPage({
     listZones(),
   ]);
 
+  const activeFilters = [
+    search,
+    levelId,
+    zone,
+    status !== "actifs" ? status : "",
+    params.date,
+    availability !== "toutes" ? availability : "",
+    params.sort,
+  ].filter(Boolean).length;
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-xl font-semibold tracking-tight">Arbitres</h1>
-        <Link
-          href="/arbitres/nouveau"
-          className="btn btn-primary text-sm"
-        >
+    <div className="space-y-3 lg:space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Arbitres</h1>
+          <p className="text-xs text-[var(--muted)]">
+            {referees.length} arbitre{referees.length > 1 ? "s" : ""}
+          </p>
+        </div>
+        <Link href="/arbitres/nouveau" className="btn btn-primary text-sm hidden lg:inline-flex">
           + Nouvel arbitre
         </Link>
       </div>
 
+      <CollapsibleFilters activeCount={activeFilters}>
       <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 items-end card p-4">
         <div className="col-span-2 sm:col-span-1">
           <label className="field-label">Nom</label>
@@ -123,8 +137,9 @@ export default async function RefereesPage({
           Filtrer
         </button>
       </form>
+      </CollapsibleFilters>
 
-      <div className="table-shell overflow-x-auto">
+      <div className="table-shell table-cards overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr>
@@ -140,20 +155,20 @@ export default async function RefereesPage({
           <tbody>
             {referees.map((r) => (
               <tr key={r.id}>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="px-3 py-2 whitespace-nowrap tc-team">
                   {r.firstName} {r.lastName}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">{r.level.label}</td>
-                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">
+                <td className="px-3 py-2 whitespace-nowrap" data-label="Niveau">{r.level.label}</td>
+                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="Club">
                   {r.zone ?? "-"}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">
+                <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="Contact">
                   {r.phone ?? r.email ?? "-"}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="px-3 py-2 whitespace-nowrap" data-label="Charge actuelle">
                   {r.currentLoad} désignation{r.currentLoad > 1 ? "s" : ""}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="px-3 py-2 whitespace-nowrap" data-label="Disponibilité">
                   {r.availableOnDate === null ? (
                     "-"
                   ) : r.availableOnDate ? (
@@ -166,12 +181,12 @@ export default async function RefereesPage({
                     </span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">
+                <td className="px-3 py-2 text-right whitespace-nowrap tc-actions">
                   <Link
                     href={`/arbitres/${r.id}`}
-                    className="text-[var(--accent)] hover:underline"
+                    className="text-[var(--accent)] hover:underline font-semibold"
                   >
-                    Fiche
+                    Voir la fiche →
                   </Link>
                 </td>
               </tr>
@@ -186,6 +201,10 @@ export default async function RefereesPage({
           </tbody>
         </table>
       </div>
+
+      <Link href="/arbitres/nouveau" className="fab" aria-label="Nouvel arbitre">
+        <span className="text-xl leading-none">＋</span> Arbitre
+      </Link>
     </div>
   );
 }

@@ -24,6 +24,10 @@
   --neutral-bg: #f2f4f7;
 
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+
+  --bottom-nav-h: 4.25rem;
+  --side-nav-w: 14.5rem;
+  --radius-card: 1.25rem;
 }
 
 @theme inline {
@@ -53,10 +57,295 @@
   border-color: var(--border);
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  /* Pas de rebond ni de zoom au double-tap : comportement d'application. */
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+/* --- Coque d'application ---------------------------------------------- */
+
+/* Contenu : plein écran sur mobile (marges latérales minimales, safe areas
+   iOS), puis décalé du rail latéral à partir des écrans larges. */
+.app-main {
+  flex: 1;
+  width: 100%;
+  padding: calc(env(safe-area-inset-top) + 0.75rem) max(0.875rem, env(safe-area-inset-right))
+    calc(env(safe-area-inset-bottom) + 1rem) max(0.875rem, env(safe-area-inset-left));
+}
+.app-main[data-shell="staff"] {
+  padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 1.25rem);
+}
+@media (min-width: 640px) {
+  .app-main {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+}
+@media (min-width: 1024px) {
+  .app-main {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  .app-main[data-shell="staff"] {
+    margin-left: var(--side-nav-w);
+    width: auto;
+    padding-right: 2.5rem;
+    padding-left: 2.5rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Barre du bas (mobile / tablette) */
+.bottom-nav {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+  padding: 0.25rem max(0.5rem, env(safe-area-inset-right)) env(safe-area-inset-bottom)
+    max(0.5rem, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border-top: 1px solid var(--border);
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 1.9rem;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.tab:active .tab-icon {
+  transform: scale(0.88);
+}
+.tab[data-active="true"] {
+  color: var(--brand);
+}
+.tab[data-active="true"] .tab-icon {
+  background: var(--brand-tint);
+}
+.tab-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Rail latéral (ordinateur) : masqué sur mobile */
+.side-nav {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+  .side-nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: var(--side-nav-w);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0.75rem;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+  }
+}
+.side-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.side-link:hover {
+  background: var(--neutral-bg);
+  color: var(--foreground);
+}
+.side-link[data-active="true"] {
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+/* Feuille du bas (menu « Plus ») */
+.sheet-backdrop {
+  background: rgba(8, 10, 15, 0.5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease both;
+}
+.sheet {
+  position: absolute;
+  inset: auto 0 0 0;
+  max-height: 88dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border-radius: 1.75rem 1.75rem 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -12px 40px rgba(8, 10, 15, 0.25);
+  animation: sheetUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: transform 0.2s ease;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 5.25rem;
+  padding: 0.75rem 0.25rem;
+  border-radius: 1.1rem;
+  background: var(--neutral-bg);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.12s ease, background-color 0.15s ease;
+}
+.tile:active {
+  transform: scale(0.95);
+}
+.tile[data-active="true"] {
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+/* Bouton d'action flottant (mobile) */
+.fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 1rem);
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 3.5rem;
+  padding: 0 1.25rem;
+  border-radius: 9999px;
+  background: var(--brand);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  box-shadow: 0 10px 24px rgba(234, 88, 12, 0.4);
+  transition: transform 0.12s ease, background-color 0.15s ease;
+}
+.fab:active {
+  transform: scale(0.94);
+}
+@media (min-width: 1024px) {
+  .fab {
+    display: none;
+  }
+}
+
+/* Barre de semaine collante (navigation par semaine) */
+.week-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 -0.875rem;
+  padding: calc(env(safe-area-inset-top) + 0.5rem) 0.875rem 0.5rem;
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+@media (min-width: 640px) {
+  .week-bar {
+    margin: 0 -1.5rem;
+    padding-inline: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .week-bar {
+    justify-content: flex-start;
+    gap: 0.75rem;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+.week-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform 0.12s ease;
+}
+.week-arrow:active {
+  transform: scale(0.9);
+}
+
+/* Filtres repliables (dans @layer components : les utilitaires Tailwind, ex. lg:hidden, restent prioritaires) */
+@layer components {
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.5rem;
+  padding: 0 0.9rem;
+  border-radius: 9999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.chip-btn[data-on="true"] {
+  background: var(--brand-tint);
+  border-color: transparent;
+  color: var(--brand);
+}
 }
 
 /* --- Système de composants partagés --- */
@@ -64,7 +353,7 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 
@@ -174,7 +463,7 @@ body {
 .table-shell {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 .table-shell table {
@@ -300,5 +589,195 @@ body {
   }
   .btn:active:not(:disabled) {
     transform: scale(0.96);
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-page {
+    animation: pageIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .sheet-backdrop {
+    animation: none;
+  }
+}
+
+/* --- Confort tactile ---------------------------------------------------- */
+
+/* Écrans tactiles : cibles de 44 px minimum, champs à 16 px (iOS ne zoome
+   plus à la saisie), retour visuel à l'appui. */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 2.75rem;
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+    border-radius: 0.9rem;
+    font-size: 0.875rem;
+  }
+  .input,
+  select.input {
+    min-height: 2.75rem;
+    font-size: 1rem;
+    border-radius: 0.9rem;
+  }
+  .btn-ghost,
+  .btn-danger {
+    min-height: 2.5rem;
+  }
+  .btn-primary:active:not(:disabled) {
+    background: var(--brand-hover);
+  }
+}
+
+/* --- Tableaux -> cartes sur mobile ----------------------------------------
+   Une même structure HTML (formulaires, cases à cocher et actions inclus)
+   s'affiche en tableau sur grand écran et en liste de cartes sur mobile :
+   ajouter .table-cards au conteneur et data-label aux cellules. */
+@media (max-width: 1023px) {
+  .table-cards {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .table-cards table,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards td {
+    display: block;
+    width: 100%;
+  }
+  .table-cards thead {
+    display: none;
+  }
+  .table-cards tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .table-cards tbody tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 0.9rem 1rem;
+  }
+  .table-cards tbody tr:hover {
+    background: var(--surface);
+  }
+  .table-cards td {
+    padding: 0.15rem 0;
+    white-space: normal !important;
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+  .table-cards td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.1rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .table-cards .tc-date {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--brand);
+  }
+  .table-cards .tc-team {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .table-cards .tc-venue {
+    font-size: 0.8125rem;
+  }
+  .table-cards .tc-away::before {
+    content: "contre ";
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .table-cards .tc-hide-sm {
+    display: none;
+  }
+  .table-cards .tc-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+  }
+  .table-cards .tc-actions > div {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+  .table-cards .tc-status {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    width: auto;
+    padding: 0;
+  }
+  .table-cards tbody tr:has(.tc-status) {
+    position: relative;
+  }
+  .table-cards .tc-check {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    width: auto;
+    padding: 0;
+  }
+  .table-cards .tc-check input {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .table-cards .tc-head {
+    padding-right: 6rem;
+  }
+}
+
+.skeleton {
+  border-radius: var(--radius-card);
+  background: linear-gradient(90deg, var(--neutral-bg) 25%, var(--border) 50%, var(--neutral-bg) 75%);
+  background-size: 200% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton {
+    animation: shimmer 1.3s ease-in-out infinite;
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
   }
 }

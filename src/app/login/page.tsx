@@ -24,7 +24,7 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+    <div className="min-h-dvh flex items-center justify-center bg-[var(--background)]">
       <div className="w-full max-w-sm card p-6">
         <h1 className="sr-only">AlloArbitre</h1>
         {/* eslint-disable-next-line @next/next/no-img-element */}

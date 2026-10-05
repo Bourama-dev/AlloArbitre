@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 import { findMatches, listCompetitionLevels, listMatchCities, listActiveReferees } from "@/lib/matches";
 import { designateReferee } from "@/lib/suggestions";
 import { getCurrentUser } from "@/lib/current-user";
-import { addWeeks, weekRange, formatDateFr } from "@/lib/dates";
+import { addWeeks, weekRange, formatDayMonthFr } from "@/lib/dates";
 import { MatchesTable } from "@/components/matches-table";
 import { AlertToast } from "@/components/alert-toast";
+import { SwipeNav } from "@/components/swipe-nav";
+import { CollapsibleFilters } from "@/components/collapsible-filters";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
 
 export const dynamic = "force-dynamic";
@@ -64,48 +66,66 @@ export default async function MatchesPage({
   const weekEnd = new Date(end);
   weekEnd.setUTCDate(weekEnd.getUTCDate() - 1);
 
+  // Les filtres sont conservés quand on change de semaine.
+  const weekHref = (offset: number) => {
+    const q = new URLSearchParams();
+    if (offset !== 0) q.set("week", String(offset));
+    for (const [key, value] of Object.entries({ level: competitionLevelId, search, city, sort: params.sort })) {
+      if (value) q.set(key, value);
+    }
+    if (status !== "toutes") q.set("status", status);
+    const qs = q.toString();
+    return qs ? `/matchs?${qs}` : "/matchs";
+  };
+  const activeFilters = [competitionLevelId, search, city, status !== "toutes" ? status : "", params.sort].filter(Boolean).length;
+
   return (
-    <div className="space-y-4">
+    <SwipeNav prevHref={weekHref(weekOffset - 1)} nextHref={weekHref(weekOffset + 1)}>
+    <div className="space-y-3 lg:space-y-4">
       {params.error && <AlertToast message={decodeURIComponent(params.error)} variant="error" />}
       {params.alerte && <AlertToast message={decodeURIComponent(params.alerte)} variant="warning" />}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Matchs</h1>
-          <p className="text-xs text-[var(--muted)] mt-0.5">
-            Vue par semaine, tous statuts confondus. Pour désigner en lot tous
-            les matchs incomplets à venir (toutes semaines), voir{" "}
-            <Link href="/fbi" className="text-[var(--accent)] hover:underline">
-              FBI
-            </Link>
-            . Pour le nombre d&apos;arbitres nécessaires par gymnase sur une
-            journée, voir{" "}
-            <Link href="/matchs/gymnase" className="text-[var(--accent)] hover:underline">
-              Arbitres par gymnase
-            </Link>
-            .
+
+      <div className="week-bar">
+        <Link href={weekHref(weekOffset - 1)} className="week-arrow" aria-label="Semaine précédente">
+          ‹
+        </Link>
+        <div className="text-center min-w-0 flex-1 lg:text-left lg:flex-none lg:px-2">
+          <h1 className="text-lg lg:text-xl font-bold tracking-tight leading-tight">
+            {weekOffset === 0 ? "Cette semaine" : "Matchs"}
+          </h1>
+          <p className="text-xs text-[var(--muted)] font-medium">
+            {formatDayMonthFr(start)} → {formatDayMonthFr(weekEnd)}
           </p>
         </div>
-        <div className="flex items-center flex-wrap gap-2 text-sm">
-          <Link href="/matchs/nouveau" className="btn btn-primary">
-            + Nouveau match
-          </Link>
-          <Link href={`/matchs?week=${weekOffset - 1}`} className="btn btn-secondary">
-            ← Préc.
-          </Link>
-          <span className="text-[var(--muted)] px-1 font-medium whitespace-nowrap">
-            {formatDateFr(start)} → {formatDateFr(weekEnd)}
-          </span>
-          <Link href={`/matchs?week=${weekOffset + 1}`} className="btn btn-secondary">
-            Suiv. →
-          </Link>
+        <Link href={weekHref(weekOffset + 1)} className="week-arrow" aria-label="Semaine suivante">
+          ›
+        </Link>
+        <div className="hidden lg:flex items-center gap-2 ml-auto">
           {weekOffset !== 0 && (
             <Link href="/matchs" className="btn-ghost text-sm">
               Revenir à cette semaine
             </Link>
           )}
+          <Link href="/matchs/nouveau" className="btn btn-primary">
+            + Nouveau match
+          </Link>
         </div>
       </div>
 
+      <p className="hidden lg:block text-xs text-[var(--muted)]">
+        Vue par semaine, tous statuts confondus. Pour désigner en lot tous les matchs incomplets à venir (toutes
+        semaines), voir{" "}
+        <Link href="/fbi" className="text-[var(--accent)] hover:underline">
+          FBI
+        </Link>
+        . Pour le nombre d&apos;arbitres nécessaires par gymnase sur une journée, voir{" "}
+        <Link href="/matchs/gymnase" className="text-[var(--accent)] hover:underline">
+          Arbitres par gymnase
+        </Link>
+        .
+      </p>
+
+      <CollapsibleFilters activeCount={activeFilters}>
       <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-end card p-4">
         <input type="hidden" name="week" value={weekOffset} />
         <div className="col-span-2 sm:col-span-1">
@@ -166,8 +186,20 @@ export default async function MatchesPage({
           Filtrer
         </button>
       </form>
+      </CollapsibleFilters>
+
+      {weekOffset !== 0 && (
+        <Link href="/matchs" className="chip-btn lg:hidden" data-on="true">
+          ↺ Revenir à cette semaine
+        </Link>
+      )}
 
       <MatchesTable matches={matches} referees={referees} designateAction={designate} />
+
+      <Link href="/matchs/nouveau" className="fab" aria-label="Nouveau match">
+        <span className="text-xl leading-none">＋</span> Match
+      </Link>
     </div>
+    </SwipeNav>
   );
 }
