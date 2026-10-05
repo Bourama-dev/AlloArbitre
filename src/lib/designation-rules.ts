@@ -10,10 +10,13 @@ export type DesignationRule = {
 };
 
 /**
- * Règles de désignation du CD45, à compléter au fur et à mesure qu'elles
- * sont communiquées. Chaque règle documentée ici doit avoir sa vérification
- * correspondante (voir checkQuotaRules) si elle est de nature à bloquer ou
- * déconseiller une désignation.
+ * Règles de désignation du CD45 et du Règlement des officiels FFBB
+ * 2026-2027 (art. 5 et annexe 15). Chaque règle documentée ici doit avoir sa
+ * vérification correspondante (checkQuotaRules, divisionReasons dans
+ * algo-rules.ts, ou les contrôles de suggestions.ts) si elle est de nature à
+ * bloquer ou déconseiller une désignation. Les plafonds propres au CD45
+ * (2/jour, 3/semaine, 3/week-end) sont plus stricts que ceux de la FFBB et
+ * s'appliquent en plus.
  */
 /**
  * Quotas (jour / semaine / week-end / TQR) : « avertissement » - une
@@ -65,6 +68,34 @@ export const DESIGNATION_RULES: DesignationRule[] = [
     severity: "avertissement",
   },
   {
+    id: "max-4-sur-3-jours",
+    label: "Maximum 4 rencontres sur 3 jours glissants (FFBB)",
+    description:
+      "Règlement des officiels 2026-2027, art. 5.7 : pour des raisons médicales, physiques et de concentration, un arbitre ne peut pas être désigné sur plus de 4 rencontres sur 3 jours consécutifs, quelle que soit la fenêtre de 3 jours retenue. Seules les rencontres arbitrées sont comptées ici : les matchs joués par l'arbitre (qui réduisent ce plafond à 3 ou 2 arbitrées) ne sont pas connus de l'application. Ne s'applique pas aux TQR.",
+    severity: "avertissement",
+  },
+  {
+    id: "age-15-ans",
+    label: "Âge minimum de 15 ans (FFBB)",
+    description:
+      "Règlement des officiels 2026-2027, art. 5.6 et annexe 15 : seuls les arbitres de 15 ans révolus peuvent être désignés par le comité. En dessous, ils officient à domicile comme arbitres club (sans désignation). Sans date de naissance, le contrôle ne bloque pas mais est signalé dans Contrôles.",
+    severity: "bloquant",
+  },
+  {
+    id: "mineur-categorie",
+    label: "Arbitre de 15 ans : pas de match U20/U21 ni senior (FFBB)",
+    description:
+      "Annexe 15 : un arbitre de 15 ans ne peut pas être désigné sur une rencontre U20, U21 ou senior (division reconnue d'après son libellé : « U20 », « U21 », « Seniors », PRM/PRF, DM/DF). Dès 16 ans, ces rencontres lui sont ouvertes, accompagné d'un arbitre majeur.",
+    severity: "bloquant",
+  },
+  {
+    id: "mineur-accompagne",
+    label: "Mineur : jamais seul, jamais avec un autre mineur",
+    description:
+      "Règlement des officiels 2026-2027, art. 5.6 : un arbitre mineur ne doit pas officier seul et, pour le CD45, n'est jamais associé à un autre mineur : un mineur est toujours accompagné d'un arbitre majeur.",
+    severity: "bloquant",
+  },
+  {
     id: "distance-max",
     label: "Distance maximale fixée par le comité",
     description:
@@ -95,6 +126,8 @@ export const DESIGNATION_RULES: DesignationRule[] = [
 ];
 
 const MAX_PER_PERIOD = 3;
+/** FFBB, art. 5.7 : 4 rencontres maximum sur 3 jours glissants. */
+export const MAX_PER_3_DAYS = 4;
 export const MAX_PER_DAY = 2;
 export const MAX_PER_DAY_TQR = 4;
 
@@ -187,6 +220,23 @@ export function checkQuotaRules(
   }
 
   if (!isTqr) {
+    // 3 jours glissants : on teste les trois fenêtres de 3 jours consécutifs
+    // qui contiennent le jour du match (match en 1re, 2e ou 3e position).
+    const DAY_MS = 86_400_000;
+    for (let offset = 0; offset < 3; offset++) {
+      const winStart = new Date(dayStart.getTime() - offset * DAY_MS);
+      const winEnd = new Date(winStart.getTime() + 3 * DAY_MS);
+      const count = existingDates.filter((d) => d >= winStart && d < winEnd).length;
+      if (count + 1 > MAX_PER_3_DAYS) {
+        violations.push({
+          ruleId: "max-4-sur-3-jours",
+          severity: "bloquant",
+          message: `Cet arbitre a déjà ${count} désignation(s) sur 3 jours consécutifs autour de cette date (maximum ${MAX_PER_3_DAYS} sur 3 jours glissants, règlement FFBB).`,
+        });
+        break;
+      }
+    }
+
     const { start: weekStart, end: weekEnd } = weekRange(matchDate);
     const weekCount = existingDates.filter((d) => d >= weekStart && d < weekEnd).length;
     if (weekCount + 1 > MAX_PER_PERIOD) {

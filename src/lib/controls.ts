@@ -172,6 +172,7 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
     const level = one(m.competitionLevel);
     const minLevel = one(one(level?.mapping ?? null)?.minRefereeLevel ?? null);
     const rules: DivisionRules = {
+      label: level?.label ?? null,
       minRefereeAge: level?.minRefereeAge ?? null,
       allowedGroups: groupsByDivision.get(m.competitionLevelId) ?? [],
     };
@@ -190,8 +191,8 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
         problems.push(`Niveau ${refLevel.label} insuffisant (minimum ${minLevel.label})`);
       }
       problems.push(...divisionReasons(rules, { birthDate: r.birthDate, groupIds: r.groups.map((g) => g.groupId) }, date));
-      if (rules.minRefereeAge != null && !r.birthDate) {
-        problems.push("Date de naissance manquante : âge minimum non vérifiable");
+      if (!r.birthDate) {
+        problems.push("Date de naissance manquante : âge minimum (15 ans, FFBB) non vérifiable");
       }
       const ownTeam = refereeOwnClubTeam(r.zone, m.homeTeam, m.awayTeam);
       if (ownTeam) problems.push(ownClubMessage(ownTeam));
