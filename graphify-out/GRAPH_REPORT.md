@@ -1,7 +1,7 @@
 # Graph Report - AlloArbitre  (2026-10-05)
 
 ## Corpus Check
-- 104 files · ~78,667 words
+- 104 files · ~78,674 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 3 file(s) not represented in the graph (top: (none) 1, .ico 1, .css 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a21af3ff`
+- Built from commit: `0968cab2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
