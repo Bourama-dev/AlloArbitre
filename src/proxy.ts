@@ -72,5 +72,7 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Fichiers statiques (logo, icône) exclus : sinon un visiteur non connecté
+  // est redirigé vers /login au lieu de recevoir l'image.
+  matcher: ["/((?!_next/static|_next/image|icon$|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)"],
 };

@@ -26,7 +26,15 @@ export default async function LoginPage({
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
       <div className="w-full max-w-sm card p-6">
-        <h1 className="text-xl font-semibold tracking-tight mb-1">AlloArbitre</h1>
+        <h1 className="sr-only">AlloArbitre</h1>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-alloarbitre.png"
+          alt="AlloArbitre - Gestion des désignations d'arbitres basket"
+          width={900}
+          height={284}
+          className="w-full h-auto rounded-md bg-white mb-3"
+        />
         <p className="text-sm text-[var(--muted)] mb-6">
           Désignation des arbitres - CD45
         </p>

@@ -44,12 +44,23 @@ export function Nav({ user }: { user: NavUser }) {
       <div className="px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-3">
         <div className="flex items-center gap-4 min-w-0 flex-1">
           <Link href="/matchs" className="flex items-center gap-2 shrink-0">
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--brand)] text-white font-bold text-sm">
-              A
-            </span>
-            <span className="hidden sm:inline font-semibold text-[var(--foreground)] tracking-tight">
-              AlloArbitre
-            </span>
+            {/* Fond blanc fixe : le logo (texte bleu nuit) reste lisible en thème sombre. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-alloarbitre-icon.png"
+              alt="AlloArbitre"
+              width={40}
+              height={40}
+              className="sm:hidden h-10 w-10 rounded-md bg-white"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-alloarbitre.png"
+              alt="AlloArbitre"
+              width={900}
+              height={284}
+              className="hidden sm:block h-11 w-auto rounded-md bg-white px-1"
+            />
           </Link>
           <NavLinks links={links} adminLinks={user.role === "ADMIN" ? adminLinks : undefined} />
         </div>
