@@ -44,3 +44,6 @@ next-env.d.ts
 # sqlite database (local dev data, never commit)
 /prisma/dev.db
 /prisma/dev.db-journal
+
+# graphify cache
+/graphify-out/cache/
