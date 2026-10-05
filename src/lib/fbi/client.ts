@@ -32,17 +32,31 @@ async function throttle() {
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
 }
 
-async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+type BodyMode = "text" | "buffer" | "none";
+type FetchedResponse = { res: Response; text: string; buffer?: ArrayBuffer };
+
+/**
+ * GET/POST vers FBI avec reprise sur coupure réseau. La LECTURE du corps est
+ * dans la boucle de reprise : FBI coupe parfois la connexion en plein envoi
+ * d'une grosse page (« terminated »), après que les en-têtes sont arrivés - une
+ * lecture faite hors de la boucle faisait échouer tout l'import sans nouvel
+ * essai.
+ */
+async function fetchWithRetry(url: string, init: RequestInit, body: BodyMode = "text"): Promise<FetchedResponse> {
   for (let attempt = 0; ; attempt++) {
     await throttle();
     try {
-      return await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+      const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+      const res = await fetch(url, { ...init, signal });
+      if (body === "buffer") return { res, text: "", buffer: await res.arrayBuffer() };
+      if (body === "text") return { res, text: await res.text() };
+      return { res, text: "" };
     } catch (error) {
       const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
       if (timedOut || attempt >= NETWORK_RETRIES - 1) {
         // Message enrichi : page FBI concernée + code réseau (ECONNRESET,
         // UND_ERR_CONNECT_TIMEOUT...), sans les paramètres de l'URL. Commence
-        // toujours par le message d'origine (« fetch failed »...).
+        // toujours par le message d'origine (« fetch failed », « terminated »...).
         const e = error as Error & { cause?: { code?: string; message?: string } };
         const page = new URL(url).pathname.split("/").pop();
         const code = e.cause?.code ?? e.cause?.message;
@@ -117,33 +131,37 @@ export class FbiClient {
     let currentInit = init;
 
     for (let hop = 0; hop < 5; hop++) {
-      const res = await fetchWithRetry(url, {
-        ...currentInit,
-        redirect: "manual",
-        headers: {
-          ...(currentInit.headers ?? {}),
-          Cookie: this.cookieHeader(),
+      const { res, text, buffer } = await fetchWithRetry(
+        url,
+        {
+          ...currentInit,
+          redirect: "manual",
+          headers: {
+            ...(currentInit.headers ?? {}),
+            Cookie: this.cookieHeader(),
+          },
         },
-      });
+        // Une redirection n'a pas de corps utile ; sinon texte ou binaire.
+        binary ? "buffer" : "text"
+      );
       this.storeCookies(res);
 
-      const location = res.headers.get("location");
-      if (res.status >= 300 && res.status < 400 && location) {
+      const next = res.headers.get("location");
+      if (res.status >= 300 && res.status < 400 && next) {
         await this.dump(url.slice(FBI_BASE_URL.length + 1), res, "");
-        url = new URL(location, url).toString();
+        url = new URL(next, url).toString();
         currentInit = {}; // un 302 après un POST se rejoue en GET
         continue;
       }
 
       if (binary) {
-        const buffer = await res.arrayBuffer();
-        await this.dump(url.slice(FBI_BASE_URL.length + 1), res, `[binaire, ${buffer.byteLength} octets]`);
-        return { res, body: "", buffer, finalPath: url };
+        const buf = buffer ?? new ArrayBuffer(0);
+        await this.dump(url.slice(FBI_BASE_URL.length + 1), res, `[binaire, ${buf.byteLength} octets]`);
+        return { res, body: "", buffer: buf, finalPath: url };
       }
 
-      const body = await res.text();
-      await this.dump(url.slice(FBI_BASE_URL.length + 1), res, body);
-      return { res, body, finalPath: url };
+      await this.dump(url.slice(FBI_BASE_URL.length + 1), res, text);
+      return { res, body: text, finalPath: url };
     }
 
     throw new Error(`FBI : trop de redirections en appelant ${path}`);

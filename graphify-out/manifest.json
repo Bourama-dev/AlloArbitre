@@ -420,9 +420,9 @@
     "semantic_hash": ""
   },
   "src/lib/fbi/client.ts": {
-    "mtime": 1791234981.4157012,
-    "seen": 1791235045.2554495,
-    "ast_hash": "39aac91383d255a78d77bae566204a0b",
+    "mtime": 1791237452.306474,
+    "seen": 1791237496.3062265,
+    "ast_hash": "0b4513714de21b3e4290c83c36d917a0",
     "semantic_hash": ""
   },
   "src/lib/fbi/designation-sync.ts": {
