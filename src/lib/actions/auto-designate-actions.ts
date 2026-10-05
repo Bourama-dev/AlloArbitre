@@ -14,16 +14,18 @@ import {
 } from "@/lib/suggestions";
 
 /**
- * Ordre de priorité des divisions (règle CD45) : les catégories U13 à U18
- * (TQR compris) sont pourvues en premier, puis PRM et PRF, puis toutes les
- * autres divisions. Catégorie lue dans le libellé (voir divisionAgeCategory) ;
- * à l'intérieur d'un groupe, ordre chronologique.
+ * Ordre de priorité des divisions (règle CD45) : U18 (U16 à U18), puis U15,
+ * puis U13 (TQR compris), puis PRM et PRF, puis toutes les autres divisions.
+ * Catégorie lue dans le libellé (voir divisionAgeCategory) ; à l'intérieur
+ * d'un groupe, ordre chronologique.
  */
 function divisionPriorityRank(label: string): number {
   const category = divisionAgeCategory(label);
-  if (category != null && category >= 13 && category <= 18) return 0;
-  if (/PR[MF]/.test(label.toUpperCase())) return 1;
-  return 2;
+  if (category != null && category >= 16 && category <= 18) return 0;
+  if (category != null && category >= 14 && category <= 15) return 1;
+  if (category != null && category >= 12 && category <= 13) return 2;
+  if (/PR[MF]/.test(label.toUpperCase())) return 3;
+  return 4;
 }
 
 export type PlanItem = {
@@ -56,7 +58,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   const plan: PlanItem[] = [];
   if (matches.length === 0) return plan;
 
-  // U13-U18 d'abord, puis PRM/PRF, puis le reste : les arbitres disponibles
+  // U18, U15, U13, puis PRM/PRF, puis le reste : les arbitres disponibles
   // en nombre limité sont affectés en priorité aux divisions les plus prioritaires.
   matches.sort(
     (a, b) =>
