@@ -640,5 +640,17 @@
     "seen": 1791233763.9478927,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
     "semantic_hash": ""
+  },
+  "supabase/schema.sql": {
+    "mtime": 1791233651.2575424,
+    "seen": 1791233824.6521864,
+    "ast_hash": "1273d4cebb16f6c68ab26dab797e9ba9",
+    "semantic_hash": ""
+  },
+  "supabase/seed.sql": {
+    "mtime": 1791233651.2577372,
+    "seen": 1791233824.6521876,
+    "ast_hash": "1ca2c1d32946810ff52a9b0a12c088e6",
+    "semantic_hash": ""
   }
 }
