@@ -12,6 +12,20 @@ import {
   type MatchForSuggestion,
 } from "@/lib/suggestions";
 
+/**
+ * Ordre de priorité des niveaux de compétition (règle CD45) : les créneaux
+ * les plus exigeants sont pourvus en premier pour ne pas épuiser, sur des
+ * matchs de niveau inférieur, les arbitres qualifiés qui se font rares.
+ * Comparaison sur le libellé (ex. "PRF", "PNM", "DM2 - A"...) : premier motif
+ * qui matche, sinon priorité la plus basse.
+ */
+const LEVEL_PRIORITY = ["PRF", "PNM", "DM2", "DM3", "DM4"];
+function levelPriorityRank(label: string): number {
+  const upper = label.toUpperCase();
+  const idx = LEVEL_PRIORITY.findIndex((p) => upper.includes(p));
+  return idx === -1 ? LEVEL_PRIORITY.length : idx;
+}
+
 export type PlanItem = {
   matchId: string;
   matchLabel: string;
@@ -41,6 +55,15 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   );
   const plan: PlanItem[] = [];
   if (matches.length === 0) return plan;
+
+  // Les matchs de niveau prioritaire (PRF/PNM en tête) sont pourvus avant les
+  // autres : les arbitres qualifiés disponibles en nombre limité leur sont
+  // affectés en priorité plutôt qu'à des matchs de niveau inférieur.
+  matches.sort(
+    (a, b) =>
+      levelPriorityRank(a.competitionLevel.label) - levelPriorityRank(b.competitionLevel.label) ||
+      a.date.getTime() - b.date.getTime()
+  );
 
   const times = matches.map((m) => m.date.getTime());
   const ctx = await loadCandidateContext(new Date(Math.min(...times)), new Date(Math.max(...times)));

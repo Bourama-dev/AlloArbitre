@@ -362,6 +362,12 @@ function divisionRulesFor(ctx: CandidateContext, competitionLevelId: string) {
   return rules;
 }
 
+/** Mineur au sens de la règle CD45 (jamais deux mineurs ensemble, toujours accompagné d'un majeur). */
+function isMinorAt(birthDate: string | null, at: Date): boolean {
+  const age = ageAt(birthDate, at);
+  return age != null && age < 18;
+}
+
 export type MatchForSuggestion = NonNullable<Awaited<ReturnType<typeof getMatchForSuggestion>>>;
 
 /**
@@ -397,6 +403,10 @@ export async function evaluateMatchCandidates(
   const hasMatchCoords = match.lat != null && match.lng != null;
   const matchSlot = { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue };
   const isTqr = match.competitionLevel.label.trim().toUpperCase().startsWith("TQR");
+  // Un mineur doit toujours être accompagné d'un majeur, jamais d'un autre
+  // mineur : si un mineur est déjà désigné (ou retenu dans le lot en cours)
+  // sur ce match, tout autre mineur devient inéligible pour la place restante.
+  const matchAlreadyHasMinor = ctx.referees.some((r) => assigned.has(r.id) && isMinorAt(r.birthDate, match.date));
 
   const candidates = ctx.referees
     .filter((c) => !assigned.has(c.id))
@@ -431,6 +441,9 @@ export async function evaluateMatchCandidates(
       }
       const availabilityVerdict = availability.verdict(c.id, match.date);
       if (availabilityVerdict.block) reasons.push(availabilityVerdict.block);
+      if (matchAlreadyHasMinor && isMinorAt(c.birthDate, match.date)) {
+        reasons.push("Mineur : un autre mineur est déjà désigné sur ce match");
+      }
       const quotaViolations = checkQuotaRules(match.date, match.durationMinutes, activeDesignations, isTqr).filter(
         (v) => v.severity === "bloquant"
       );
@@ -608,6 +621,20 @@ export async function designateReferee(
   }
 
   const matchDate = new Date(match.date);
+
+  if (isMinorAt((referee.birthDate as string | null) ?? null, matchDate) && designations.length > 0) {
+    const { data: partners, error: partnersError } = await supabaseAdmin
+      .from("Referee")
+      .select(`id, "birthDate"`)
+      .in(
+        "id",
+        designations.map((d) => d.refereeId)
+      );
+    if (partnersError) throw partnersError;
+    if ((partners ?? []).some((p) => isMinorAt(p.birthDate as string | null, matchDate))) {
+      return { ok: false, error: "Un arbitre mineur ne peut pas être associé à un autre mineur." };
+    }
+  }
 
   // Même règle que les suggestions : la désignation directe ("Désigner…")
   // ne vérifiait pas les indisponibilités et laissait passer un arbitre

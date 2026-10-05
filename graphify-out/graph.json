@@ -287,20 +287,7 @@
       "file_type": "code",
       "norm_label": "autodesignatesummary",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L122"
-    },
-    {
-      "id": "src_lib_actions_auto_designate_actions_planitem",
-      "label": "PlanItem",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "planitem",
-      "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L15"
+      "source_location": "L145"
     },
     {
       "id": "src_lib_dates_matchslot",
@@ -381,32 +368,6 @@
       "source_location": "L11"
     },
     {
-      "id": "src_lib_suggestions_candidatedesignation",
-      "label": "CandidateDesignation",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "candidatedesignation",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L188"
-    },
-    {
-      "id": "src_lib_suggestions_matchforsuggestion",
-      "label": "MatchForSuggestion",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "matchforsuggestion",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L365"
-    },
-    {
       "id": "src_components_checkbox_picker_pickeritem",
       "label": "PickerItem",
       "_callable": true,
@@ -459,17 +420,43 @@
       "source_location": "L7"
     },
     {
+      "id": "src_app_admin_groupes_page_grouprow",
+      "label": "GroupRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "grouprow",
+      "source_file": "src/app/admin/groupes/page.tsx",
+      "source_location": "L11"
+    },
+    {
       "id": "src_components_alert_toast_variant",
       "label": "Variant",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "variant",
       "source_file": "src/components/alert-toast.tsx",
       "source_location": "L5"
+    },
+    {
+      "id": "src_app_admin_niveaux_page_competitionlevelrow",
+      "label": "CompetitionLevelRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "getCurrentUser",
+      "file_type": "code",
+      "norm_label": "competitionlevelrow",
+      "source_file": "src/app/admin/niveaux/page.tsx",
+      "source_location": "L9"
     },
     {
       "id": "src_lib_designation_rules_designationrule",
@@ -508,33 +495,7 @@
       "file_type": "code",
       "norm_label": "ruleviolation",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L148"
-    },
-    {
-      "id": "src_app_admin_groupes_page_grouprow",
-      "label": "GroupRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "grouprow",
-      "source_file": "src/app/admin/groupes/page.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "src_app_admin_niveaux_page_competitionlevelrow",
-      "label": "CompetitionLevelRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "competitionlevelrow",
-      "source_file": "src/app/admin/niveaux/page.tsx",
-      "source_location": "L9"
+      "source_location": "L155"
     },
     {
       "id": "src_lib_current_user_currentreferee",
@@ -543,7 +504,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
       "norm_label": "currentreferee",
       "source_file": "src/lib/current-user.ts",
@@ -556,7 +517,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
       "norm_label": "currentuser",
       "source_file": "src/lib/current-user.ts",
@@ -569,24 +530,89 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
       "norm_label": "sessionprofile",
       "source_file": "src/lib/current-user.ts",
       "source_location": "L19"
     },
     {
-      "id": "src_lib_availability_campaign_refereecontact",
-      "label": "RefereeContact",
+      "id": "src_lib_stats_season",
+      "label": "season",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 21,
+      "community_name": "current-user.ts",
+      "file_type": "code",
+      "norm_label": "season",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "src_lib_referees_rawreferee",
+      "label": "RawReferee",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "refereecontact",
-      "source_file": "src/lib/availability-campaign.ts",
-      "source_location": "L10"
+      "norm_label": "rawreferee",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L3"
+    },
+    {
+      "id": "src_lib_referees_refereeavailabilityfilter",
+      "label": "RefereeAvailabilityFilter",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "refereeavailabilityfilter",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L58"
+    },
+    {
+      "id": "src_lib_referees_refereesort",
+      "label": "RefereeSort",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "refereesort",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L57"
+    },
+    {
+      "id": "src_lib_referees_refereestatusfilter",
+      "label": "RefereeStatusFilter",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "refereestatusfilter",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L56"
+    },
+    {
+      "id": "src_lib_referees_unavailabilityrow",
+      "label": "UnavailabilityRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "unavailabilityrow",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L26"
     },
     {
       "id": "src_app_admin_utilisateurs_page_profilerow",
@@ -628,6 +654,136 @@
       "source_location": "L11"
     },
     {
+      "id": "src_lib_controls_controlissue",
+      "label": "ControlIssue",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "controlissue",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "src_lib_controls_doubleopportunity",
+      "label": "DoubleOpportunity",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "doubleopportunity",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L31"
+    },
+    {
+      "id": "src_lib_controls_one",
+      "label": "One",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "one",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L40"
+    },
+    {
+      "id": "src_lib_controls_rawmatch",
+      "label": "RawMatch",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "rawmatch",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L43"
+    },
+    {
+      "id": "src_lib_controls_rawreferee",
+      "label": "RawReferee",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "rawreferee",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L62"
+    },
+    {
+      "id": "src_lib_algo_rules_committeesettings",
+      "label": "CommitteeSettings",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "committeesettings",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "src_lib_algo_rules_divisionrules",
+      "label": "DivisionRules",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "divisionrules",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L29"
+    },
+    {
+      "id": "src_lib_routing_roaddistance",
+      "label": "roadDistance",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "roaddistance",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L126"
+    },
+    {
+      "id": "src_lib_suggestions_ineligiblereferee",
+      "label": "IneligibleReferee",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "ineligiblereferee",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L32"
+    },
+    {
+      "id": "src_lib_suggestions_refereesuggestion",
+      "label": "RefereeSuggestion",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "refereesuggestion",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L10"
+    },
+    {
       "id": "src_lib_referee_auth_authresult",
       "label": "AuthResult",
       "_callable": true,
@@ -654,29 +810,16 @@
       "source_location": "L22"
     },
     {
-      "id": "src_lib_algo_rules_committeesettings",
-      "label": "CommitteeSettings",
+      "id": "src_lib_actions_auto_designate_actions_planitem",
+      "label": "PlanItem",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "committeesettings",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L14"
-    },
-    {
-      "id": "src_lib_algo_rules_divisionrules",
-      "label": "DivisionRules",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "divisionrules",
-      "source_file": "src/lib/algo-rules.ts",
+      "norm_label": "planitem",
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
       "source_location": "L29"
     },
     {
@@ -693,84 +836,6 @@
       "source_location": "L127"
     },
     {
-      "id": "src_lib_controls_controlissue",
-      "label": "ControlIssue",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "controlissue",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L21"
-    },
-    {
-      "id": "src_lib_controls_doubleopportunity",
-      "label": "DoubleOpportunity",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "doubleopportunity",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L31"
-    },
-    {
-      "id": "src_lib_controls_one",
-      "label": "One",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "one",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L40"
-    },
-    {
-      "id": "src_lib_controls_rawmatch",
-      "label": "RawMatch",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "rawmatch",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L43"
-    },
-    {
-      "id": "src_lib_controls_rawreferee",
-      "label": "RawReferee",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "rawreferee",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L62"
-    },
-    {
-      "id": "src_lib_routing_roaddistance",
-      "label": "roadDistance",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "roaddistance",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L126"
-    },
-    {
       "id": "src_lib_suggestions_candidatecontext",
       "label": "CandidateContext",
       "_callable": true,
@@ -782,6 +847,19 @@
       "norm_label": "candidatecontext",
       "source_file": "src/lib/suggestions.ts",
       "source_location": "L217"
+    },
+    {
+      "id": "src_lib_suggestions_candidatedesignation",
+      "label": "CandidateDesignation",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "candidatedesignation",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L188"
     },
     {
       "id": "src_lib_suggestions_candidatereferee",
@@ -807,20 +885,20 @@
       "file_type": "code",
       "norm_label": "designateresult",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L562"
+      "source_location": "L575"
     },
     {
-      "id": "src_lib_suggestions_ineligiblereferee",
-      "label": "IneligibleReferee",
+      "id": "src_lib_suggestions_matchforsuggestion",
+      "label": "MatchForSuggestion",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "ineligiblereferee",
+      "norm_label": "matchforsuggestion",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L32"
+      "source_location": "L371"
     },
     {
       "id": "src_lib_suggestions_one",
@@ -847,19 +925,6 @@
       "norm_label": "rawmatchforsuggestion",
       "source_file": "src/lib/suggestions.ts",
       "source_location": "L39"
-    },
-    {
-      "id": "src_lib_suggestions_refereesuggestion",
-      "label": "RefereeSuggestion",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "refereesuggestion",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L10"
     },
     {
       "id": "src_lib_suggestions_unavailabilityslot",
@@ -925,6 +990,19 @@
       "norm_label": "availabilityverdict",
       "source_file": "src/lib/availability.ts",
       "source_location": "L137"
+    },
+    {
+      "id": "src_lib_availability_campaign_refereecontact",
+      "label": "RefereeContact",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "refereecontact",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L10"
     },
     {
       "id": "src_lib_availability_slotid",
@@ -1044,71 +1122,6 @@
       "source_location": "L9"
     },
     {
-      "id": "src_lib_referees_rawreferee",
-      "label": "RawReferee",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "rawreferee",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L3"
-    },
-    {
-      "id": "src_lib_referees_refereeavailabilityfilter",
-      "label": "RefereeAvailabilityFilter",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "refereeavailabilityfilter",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L58"
-    },
-    {
-      "id": "src_lib_referees_refereesort",
-      "label": "RefereeSort",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "refereesort",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L57"
-    },
-    {
-      "id": "src_lib_referees_refereestatusfilter",
-      "label": "RefereeStatusFilter",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "refereestatusfilter",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L56"
-    },
-    {
-      "id": "src_lib_referees_unavailabilityrow",
-      "label": "UnavailabilityRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "unavailabilityrow",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L26"
-    },
-    {
       "id": "src_lib_stats_clubstats",
       "label": "ClubStats",
       "_callable": true,
@@ -1185,19 +1198,6 @@
       "norm_label": "refereestats",
       "source_file": "src/lib/stats.ts",
       "source_location": "L86"
-    },
-    {
-      "id": "src_lib_stats_season",
-      "label": "season",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "season",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L14"
     },
     {
       "id": "src_lib_stats_seasonstats",
@@ -2137,18 +2137,6 @@
       "source_location": "L85"
     },
     {
-      "id": "src_components_fbi_matches_panel_fbimatchespanel_handlepreview",
-      "label": "handlePreview()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "handlepreview()",
-      "source_file": "src/components/fbi-matches-panel.tsx",
-      "source_location": "L65"
-    },
-    {
       "id": "src_components_fbi_matches_panel_fbimatchespanel_setall",
       "label": "setAll()",
       "_callable": true,
@@ -2302,7 +2290,7 @@
       "file_type": "code",
       "norm_label": "applyautodesignation()",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L134"
+      "source_location": "L157"
     },
     {
       "id": "src_lib_actions_auto_designate_actions_applyrefereetomatches",
@@ -2314,19 +2302,7 @@
       "file_type": "code",
       "norm_label": "applyrefereetomatches()",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L155"
-    },
-    {
-      "id": "src_lib_actions_auto_designate_actions_previewautodesignation",
-      "label": "previewAutoDesignation()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "previewautodesignation()",
-      "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L32"
+      "source_location": "L178"
     },
     {
       "id": "src_lib_actions_designation_actions_removedesignation",
@@ -2339,6 +2315,18 @@
       "norm_label": "removedesignation()",
       "source_file": "src/lib/actions/designation-actions.ts",
       "source_location": "L15"
+    },
+    {
+      "id": "src_lib_club_rules_ownclubmessage",
+      "label": "ownClubMessage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "matches.ts",
+      "file_type": "code",
+      "norm_label": "ownclubmessage()",
+      "source_file": "src/lib/club-rules.ts",
+      "source_location": "L61"
     },
     {
       "id": "src_lib_dates_addweeks",
@@ -2375,18 +2363,6 @@
       "norm_label": "formatdateiso()",
       "source_file": "src/lib/dates.ts",
       "source_location": "L24"
-    },
-    {
-      "id": "src_lib_dates_formatdatetimefr",
-      "label": "formatDateTimeFr()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "formatdatetimefr()",
-      "source_file": "src/lib/dates.ts",
-      "source_location": "L37"
     },
     {
       "id": "src_lib_dates_islatermatchsamevenuesameday",
@@ -2521,28 +2497,16 @@
       "source_location": "L59"
     },
     {
-      "id": "src_lib_referees_getrefereesheet",
-      "label": "getRefereeSheet()",
+      "id": "src_lib_suggestions_designatereferee",
+      "label": "designateReferee()",
       "_callable": true,
       "_origin": "ast",
       "community": 1,
       "community_name": "matches.ts",
       "file_type": "code",
-      "norm_label": "getrefereesheet()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L175"
-    },
-    {
-      "id": "src_lib_suggestions_explainsuggestion",
-      "label": "explainSuggestion()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "matches.ts",
-      "file_type": "code",
-      "norm_label": "explainsuggestion()",
+      "norm_label": "designatereferee()",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L557"
+      "source_location": "L581"
     },
     {
       "id": "src_app_layout_rootlayout",
@@ -2778,23 +2742,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "editrefereepage()",
       "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
       "source_location": "L14"
-    },
-    {
-      "id": "src_app_arbitres_id_modifier_page_editrefereepage_deletereferee",
-      "label": "deleteReferee()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 19,
-      "community_name": "AlertToast",
-      "file_type": "code",
-      "norm_label": "deletereferee()",
-      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
-      "source_location": "L93"
     },
     {
       "id": "src_app_arbitres_nouveau_page_newrefereepage",
@@ -2802,7 +2754,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "newrefereepage()",
       "source_file": "src/app/arbitres/nouveau/page.tsx",
@@ -2814,11 +2766,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "newmatchpage()",
       "source_file": "src/app/matchs/nouveau/page.tsx",
       "source_location": "L71"
+    },
+    {
+      "id": "src_app_page_home",
+      "label": "Home()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "home()",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L3"
     },
     {
       "id": "src_components_alert_toast_alerttoast",
@@ -2826,7 +2790,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "alerttoast()",
       "source_file": "src/components/alert-toast.tsx",
@@ -2838,7 +2802,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "confirmsubmitbutton()",
       "source_file": "src/components/confirm-submit-button.tsx",
@@ -2850,11 +2814,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "submitbutton()",
       "source_file": "src/components/submit-button.tsx",
       "source_location": "L7"
+    },
+    {
+      "id": "src_lib_referees_listrefereelevels",
+      "label": "listRefereeLevels()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "listrefereelevels()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L47"
     },
     {
       "id": "src_app_admin_groupes_page_groupsadminpage",
@@ -3037,28 +3013,28 @@
       "source_location": "L72"
     },
     {
-      "id": "src_app_admin_parametres_page_settingsadminpage",
-      "label": "SettingsAdminPage()",
+      "id": "src_app_admin_niveaux_page_normalizemapping",
+      "label": "normalizeMapping()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
       "community_name": "getCurrentUser",
       "file_type": "code",
-      "norm_label": "settingsadminpage()",
-      "source_file": "src/app/admin/parametres/page.tsx",
-      "source_location": "L10"
+      "norm_label": "normalizemapping()",
+      "source_file": "src/app/admin/niveaux/page.tsx",
+      "source_location": "L23"
     },
     {
-      "id": "src_app_admin_parametres_page_settingsadminpage_savesettings",
-      "label": "saveSettings()",
+      "id": "src_app_arbitres_id_modifier_page_editrefereepage_deletereferee",
+      "label": "deleteReferee()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
       "community_name": "getCurrentUser",
       "file_type": "code",
-      "norm_label": "savesettings()",
-      "source_file": "src/app/admin/parametres/page.tsx",
-      "source_location": "L21"
+      "norm_label": "deletereferee()",
+      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
+      "source_location": "L93"
     },
     {
       "id": "src_app_disponibilites_id_page_availabilityperiodpage_deleteperiod",
@@ -3085,6 +3061,18 @@
       "source_location": "L12"
     },
     {
+      "id": "src_lib_designation_rules_checkquotarules",
+      "label": "checkQuotaRules()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "designation-rules.ts",
+      "file_type": "code",
+      "norm_label": "checkquotarules()",
+      "source_file": "src/lib/designation-rules.ts",
+      "source_location": "L171"
+    },
+    {
       "id": "src_lib_designation_rules_dayrange",
       "label": "dayRange()",
       "_callable": true,
@@ -3094,7 +3082,7 @@
       "file_type": "code",
       "norm_label": "dayrange()",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L128"
+      "source_location": "L135"
     },
     {
       "id": "src_lib_designation_rules_weekendrange",
@@ -3106,175 +3094,211 @@
       "file_type": "code",
       "norm_label": "weekendrange()",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L137"
+      "source_location": "L144"
     },
     {
-      "id": "src_app_admin_niveaux_page_normalizemapping",
-      "label": "normalizeMapping()",
+      "id": "src_app_espace_page_refereespacepage",
+      "label": "RefereeSpacePage()",
       "_callable": true,
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
-      "norm_label": "normalizemapping()",
-      "source_file": "src/app/admin/niveaux/page.tsx",
-      "source_location": "L23"
+      "norm_label": "refereespacepage()",
+      "source_file": "src/app/espace/page.tsx",
+      "source_location": "L27"
     },
     {
-      "id": "src_app_page_home",
-      "label": "Home()",
+      "id": "src_app_espace_page_refereespacepage_changepassword",
+      "label": "changePassword()",
       "_callable": true,
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
-      "norm_label": "home()",
-      "source_file": "src/app/page.tsx",
-      "source_location": "L3"
+      "norm_label": "changepassword()",
+      "source_file": "src/app/espace/page.tsx",
+      "source_location": "L179"
     },
     {
-      "id": "src_app_disponibilites_id_page_availabilityperiodpage",
-      "label": "AvailabilityPeriodPage()",
+      "id": "src_app_espace_page_refereespacepage_saveavailability",
+      "label": "saveAvailability()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 21,
+      "community_name": "current-user.ts",
+      "file_type": "code",
+      "norm_label": "saveavailability()",
+      "source_file": "src/app/espace/page.tsx",
+      "source_location": "L134"
+    },
+    {
+      "id": "src_lib_dates_formatdateonlyfr",
+      "label": "formatDateOnlyFr()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 21,
+      "community_name": "current-user.ts",
+      "file_type": "code",
+      "norm_label": "formatdateonlyfr()",
+      "source_file": "src/lib/dates.ts",
+      "source_location": "L49"
+    },
+    {
+      "id": "src_app_arbitres_id_page_refereesheetpage",
+      "label": "RefereeSheetPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "availabilityperiodpage()",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L18"
+      "norm_label": "refereesheetpage()",
+      "source_file": "src/app/arbitres/[id]/page.tsx",
+      "source_location": "L19"
     },
     {
-      "id": "src_app_disponibilites_id_page_availabilityperiodpage_clearrefereeavailability",
-      "label": "clearRefereeAvailability()",
+      "id": "src_app_arbitres_id_page_refereesheetpage_addpunctualaction",
+      "label": "addPunctualAction()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "clearrefereeavailability()",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L112"
+      "norm_label": "addpunctualaction()",
+      "source_file": "src/app/arbitres/[id]/page.tsx",
+      "source_location": "L32"
     },
     {
-      "id": "src_app_disponibilites_id_page_availabilityperiodpage_saverefereeavailability",
-      "label": "saveRefereeAvailability()",
+      "id": "src_app_arbitres_id_page_refereesheetpage_addrecurringaction",
+      "label": "addRecurringAction()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "saverefereeavailability()",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L61"
+      "norm_label": "addrecurringaction()",
+      "source_file": "src/app/arbitres/[id]/page.tsx",
+      "source_location": "L56"
     },
     {
-      "id": "src_app_disponibilites_id_page_availabilityperiodpage_updatedeadline",
-      "label": "updateDeadline()",
+      "id": "src_app_arbitres_id_page_refereesheetpage_removeunavailabilityaction",
+      "label": "removeUnavailabilityAction()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "updatedeadline()",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L129"
+      "norm_label": "removeunavailabilityaction()",
+      "source_file": "src/app/arbitres/[id]/page.tsx",
+      "source_location": "L71"
     },
     {
-      "id": "src_app_disponibilites_id_page_back",
-      "label": "back()",
+      "id": "src_app_arbitres_page_refereespage",
+      "label": "RefereesPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "back()",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L14"
+      "norm_label": "refereespage()",
+      "source_file": "src/app/arbitres/page.tsx",
+      "source_location": "L11"
     },
     {
-      "id": "src_lib_availability_campaign_activereferees",
-      "label": "activeReferees()",
+      "id": "src_app_arbitres_page_todayiso",
+      "label": "todayIso()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "activereferees()",
-      "source_file": "src/lib/availability-campaign.ts",
-      "source_location": "L18"
+      "norm_label": "todayiso()",
+      "source_file": "src/app/arbitres/page.tsx",
+      "source_location": "L7"
     },
     {
-      "id": "src_lib_availability_campaign_announcementmessage",
-      "label": "announcementMessage()",
+      "id": "src_lib_referees_addpunctualunavailability",
+      "label": "addPunctualUnavailability()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "announcementmessage()",
-      "source_file": "src/lib/availability-campaign.ts",
-      "source_location": "L33"
+      "norm_label": "addpunctualunavailability()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L229"
     },
     {
-      "id": "src_lib_availability_campaign_getperiod",
-      "label": "getPeriod()",
+      "id": "src_lib_referees_addrecurringunavailability",
+      "label": "addRecurringUnavailability()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "getperiod()",
-      "source_file": "src/lib/availability-campaign.ts",
-      "source_location": "L12"
+      "norm_label": "addrecurringunavailability()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L243"
     },
     {
-      "id": "src_lib_availability_campaign_remindermessage",
-      "label": "reminderMessage()",
+      "id": "src_lib_referees_computeunavailablerefereeids",
+      "label": "computeUnavailableRefereeIds()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "remindermessage()",
-      "source_file": "src/lib/availability-campaign.ts",
-      "source_location": "L43"
+      "norm_label": "computeunavailablerefereeids()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L67"
     },
     {
-      "id": "src_lib_availability_campaign_spaceloginurl",
-      "label": "spaceLoginUrl()",
+      "id": "src_lib_referees_getrefereesheet",
+      "label": "getRefereeSheet()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "spaceloginurl()",
-      "source_file": "src/lib/availability-campaign.ts",
-      "source_location": "L28"
+      "norm_label": "getrefereesheet()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L175"
     },
     {
-      "id": "src_lib_availability_datetoparislocal",
-      "label": "dateToParisLocal()",
+      "id": "src_lib_referees_listrefereeswithload",
+      "label": "listRefereesWithLoad()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "datetoparislocal()",
-      "source_file": "src/lib/availability.ts",
-      "source_location": "L82"
+      "norm_label": "listrefereeswithload()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L92"
     },
     {
-      "id": "src_lib_availability_formatdeadlinefr",
-      "label": "formatDeadlineFr()",
+      "id": "src_lib_referees_listzones",
+      "label": "listZones()",
       "_callable": true,
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "formatdeadlinefr()",
-      "source_file": "src/lib/availability.ts",
-      "source_location": "L96"
+      "norm_label": "listzones()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L261"
+    },
+    {
+      "id": "src_lib_referees_removeunavailability",
+      "label": "removeUnavailability()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "removeunavailability()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L256"
     },
     {
       "id": "src_app_admin_utilisateurs_page_back",
@@ -3337,52 +3361,424 @@
       "source_location": "L84"
     },
     {
-      "id": "src_app_disponibilites_page_availabilityperiodspage",
-      "label": "AvailabilityPeriodsPage()",
+      "id": "src_app_admin_parametres_page_settingsadminpage",
+      "label": "SettingsAdminPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 25,
-      "community_name": "disponibilites/page.tsx",
+      "community_name": "controls.ts",
       "file_type": "code",
-      "norm_label": "availabilityperiodspage()",
-      "source_file": "src/app/disponibilites/page.tsx",
-      "source_location": "L17"
+      "norm_label": "settingsadminpage()",
+      "source_file": "src/app/admin/parametres/page.tsx",
+      "source_location": "L10"
     },
     {
-      "id": "src_app_disponibilites_page_availabilityperiodspage_createperiod",
-      "label": "createPeriod()",
+      "id": "src_app_admin_parametres_page_settingsadminpage_savesettings",
+      "label": "saveSettings()",
       "_callable": true,
       "_origin": "ast",
       "community": 25,
-      "community_name": "disponibilites/page.tsx",
+      "community_name": "controls.ts",
       "file_type": "code",
-      "norm_label": "createperiod()",
-      "source_file": "src/app/disponibilites/page.tsx",
+      "norm_label": "savesettings()",
+      "source_file": "src/app/admin/parametres/page.tsx",
+      "source_location": "L21"
+    },
+    {
+      "id": "src_app_controles_page_controlspage",
+      "label": "ControlsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "controlspage()",
+      "source_file": "src/app/controles/page.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_lib_algo_rules_getsettings",
+      "label": "getSettings()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "getsettings()",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L20"
+    },
+    {
+      "id": "src_lib_controls_rundesignationcontrols",
+      "label": "runDesignationControls()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "rundesignationcontrols()",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L86"
+    },
+    {
+      "id": "src_lib_dates_formatdatetimefr",
+      "label": "formatDateTimeFr()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "formatdatetimefr()",
+      "source_file": "src/lib/dates.ts",
       "source_location": "L37"
     },
     {
-      "id": "src_app_disponibilites_page_formatday",
-      "label": "formatDay()",
+      "id": "src_lib_dates_hasschedulingconflict",
+      "label": "hasSchedulingConflict()",
       "_callable": true,
       "_origin": "ast",
       "community": 25,
-      "community_name": "disponibilites/page.tsx",
+      "community_name": "controls.ts",
       "file_type": "code",
-      "norm_label": "formatday()",
-      "source_file": "src/app/disponibilites/page.tsx",
-      "source_location": "L12"
+      "norm_label": "hasschedulingconflict()",
+      "source_file": "src/lib/dates.ts",
+      "source_location": "L128"
     },
     {
-      "id": "src_lib_availability_parislocaltodate",
-      "label": "parisLocalToDate()",
+      "id": "src_lib_geocoding_distancekm",
+      "label": "distanceKm()",
       "_callable": true,
       "_origin": "ast",
       "community": 25,
-      "community_name": "disponibilites/page.tsx",
+      "community_name": "controls.ts",
       "file_type": "code",
-      "norm_label": "parislocaltodate()",
-      "source_file": "src/lib/availability.ts",
-      "source_location": "L60"
+      "norm_label": "distancekm()",
+      "source_file": "src/lib/geocoding.ts",
+      "source_location": "L91"
+    },
+    {
+      "id": "src_lib_suggestions_unavailabilityblocksmatch",
+      "label": "unavailabilityBlocksMatch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "unavailabilityblocksmatch()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L95"
+    },
+    {
+      "id": "src_lib_algo_rules_ageat",
+      "label": "ageAt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "ageat()",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L57"
+    },
+    {
+      "id": "src_lib_algo_rules_divisionagecategory",
+      "label": "divisionAgeCategory()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "divisionagecategory()",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L74"
+    },
+    {
+      "id": "src_lib_algo_rules_divisionreasons",
+      "label": "divisionReasons()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "divisionreasons()",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L84"
+    },
+    {
+      "id": "src_lib_algo_rules_getdivisionrules",
+      "label": "getDivisionRules()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "getdivisionrules()",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L37"
+    },
+    {
+      "id": "src_lib_algo_rules_maxdistancereason",
+      "label": "maxDistanceReason()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "maxdistancereason()",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L111"
+    },
+    {
+      "id": "src_lib_suggestions_buildwhy",
+      "label": "buildWhy()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "buildwhy()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L162"
+    },
+    {
+      "id": "src_lib_suggestions_divisionrulesfor",
+      "label": "divisionRulesFor()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "divisionrulesfor()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L356"
+    },
+    {
+      "id": "src_lib_suggestions_evaluatematchcandidates",
+      "label": "evaluateMatchCandidates()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "evaluatematchcandidates()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L388"
+    },
+    {
+      "id": "src_lib_suggestions_isminorat",
+      "label": "isMinorAt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "isminorat()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L366"
+    },
+    {
+      "id": "src_lib_suggestions_issamevenuesameday",
+      "label": "isSameVenueSameDay()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "issamevenuesameday()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L150"
+    },
+    {
+      "id": "src_lib_suggestions_rankscore",
+      "label": "rankScore()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "rankscore()",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L143"
+    },
+    {
+      "id": "src_app_matchs_id_page_matchdetailpage",
+      "label": "MatchDetailPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "matchdetailpage()",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_app_matchs_id_page_matchdetailpage_designate",
+      "label": "designate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "designate()",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L47"
+    },
+    {
+      "id": "src_app_matchs_id_page_matchdetailpage_removedesignation",
+      "label": "removeDesignation()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "removedesignation()",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L64"
+    },
+    {
+      "id": "src_lib_geocoding_estimatepayment",
+      "label": "estimatePayment()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "estimatepayment()",
+      "source_file": "src/lib/geocoding.ts",
+      "source_location": "L107"
+    },
+    {
+      "id": "src_lib_routing_cachedroaddistances",
+      "label": "cachedRoadDistances()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "cachedroaddistances()",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L131"
+    },
+    {
+      "id": "src_lib_routing_coordkey",
+      "label": "coordKey()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "coordkey()",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L18"
+    },
+    {
+      "id": "src_lib_routing_fetchmatrix",
+      "label": "fetchMatrix()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "fetchmatrix()",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L29"
+    },
+    {
+      "id": "src_lib_routing_roaddistancesto",
+      "label": "roadDistancesTo()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "roaddistancesto()",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L74"
+    },
+    {
+      "id": "src_components_suggestions_list_matches",
+      "label": "matches()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "matches()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_suggestions_list_normalize",
+      "label": "normalize()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "normalize()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_suggestions_list_suggestionslist",
+      "label": "SuggestionsList()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "suggestionslist()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_components_suggestions_list_suggestionslist_renderrow",
+      "label": "renderRow()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "renderrow()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L40"
+    },
+    {
+      "id": "src_lib_club_rules_normalize",
+      "label": "normalize()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "refereeOwnClubTeam",
+      "file_type": "code",
+      "norm_label": "normalize()",
+      "source_file": "src/lib/club-rules.ts",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_lib_club_rules_refereeownclubteam",
+      "label": "refereeOwnClubTeam()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "refereeOwnClubTeam",
+      "file_type": "code",
+      "norm_label": "refereeownclubteam()",
+      "source_file": "src/lib/club-rules.ts",
+      "source_location": "L48"
+    },
+    {
+      "id": "src_lib_club_rules_teamclubsegments",
+      "label": "teamClubSegments()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "refereeOwnClubTeam",
+      "file_type": "code",
+      "norm_label": "teamclubsegments()",
+      "source_file": "src/lib/club-rules.ts",
+      "source_location": "L29"
     },
     {
       "id": "src_app_auth_confirm_route_get",
@@ -3673,388 +4069,52 @@
       "source_location": "L14"
     },
     {
-      "id": "src_app_controles_page_controlspage",
-      "label": "ControlsPage()",
+      "id": "src_components_fbi_matches_panel_fbimatchespanel_handlepreview",
+      "label": "handlePreview()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "controlspage()",
-      "source_file": "src/app/controles/page.tsx",
-      "source_location": "L9"
+      "norm_label": "handlepreview()",
+      "source_file": "src/components/fbi-matches-panel.tsx",
+      "source_location": "L65"
     },
     {
-      "id": "src_app_matchs_id_page_matchdetailpage",
-      "label": "MatchDetailPage()",
+      "id": "src_lib_actions_auto_designate_actions_levelpriorityrank",
+      "label": "levelPriorityRank()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "matchdetailpage()",
-      "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L17"
+      "norm_label": "levelpriorityrank()",
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L23"
     },
     {
-      "id": "src_app_matchs_id_page_matchdetailpage_designate",
-      "label": "designate()",
+      "id": "src_lib_actions_auto_designate_actions_previewautodesignation",
+      "label": "previewAutoDesignation()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "designate()",
-      "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L47"
+      "norm_label": "previewautodesignation()",
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L46"
     },
     {
-      "id": "src_app_matchs_id_page_matchdetailpage_removedesignation",
-      "label": "removeDesignation()",
+      "id": "src_lib_suggestions_explainsuggestion",
+      "label": "explainSuggestion()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "removedesignation()",
-      "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L64"
-    },
-    {
-      "id": "src_components_suggestions_list_matches",
-      "label": "matches()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "matches()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_suggestions_list_normalize",
-      "label": "normalize()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "normalize()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_suggestions_list_suggestionslist",
-      "label": "SuggestionsList()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "suggestionslist()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_components_suggestions_list_suggestionslist_renderrow",
-      "label": "renderRow()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "renderrow()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L40"
-    },
-    {
-      "id": "src_lib_algo_rules_ageat",
-      "label": "ageAt()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "ageat()",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L57"
-    },
-    {
-      "id": "src_lib_algo_rules_divisionagecategory",
-      "label": "divisionAgeCategory()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "divisionagecategory()",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L74"
-    },
-    {
-      "id": "src_lib_algo_rules_divisionreasons",
-      "label": "divisionReasons()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "divisionreasons()",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L84"
-    },
-    {
-      "id": "src_lib_algo_rules_getdivisionrules",
-      "label": "getDivisionRules()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "getdivisionrules()",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L37"
-    },
-    {
-      "id": "src_lib_algo_rules_getsettings",
-      "label": "getSettings()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "getsettings()",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L20"
-    },
-    {
-      "id": "src_lib_algo_rules_maxdistancereason",
-      "label": "maxDistanceReason()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "maxdistancereason()",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L111"
-    },
-    {
-      "id": "src_lib_availability_loadavailabilityindex",
-      "label": "loadAvailabilityIndex()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "loadavailabilityindex()",
-      "source_file": "src/lib/availability.ts",
-      "source_location": "L155"
-    },
-    {
-      "id": "src_lib_club_rules_normalize",
-      "label": "normalize()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "normalize()",
-      "source_file": "src/lib/club-rules.ts",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_lib_club_rules_ownclubmessage",
-      "label": "ownClubMessage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "ownclubmessage()",
-      "source_file": "src/lib/club-rules.ts",
-      "source_location": "L61"
-    },
-    {
-      "id": "src_lib_club_rules_refereeownclubteam",
-      "label": "refereeOwnClubTeam()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "refereeownclubteam()",
-      "source_file": "src/lib/club-rules.ts",
-      "source_location": "L48"
-    },
-    {
-      "id": "src_lib_club_rules_teamclubsegments",
-      "label": "teamClubSegments()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "teamclubsegments()",
-      "source_file": "src/lib/club-rules.ts",
-      "source_location": "L29"
-    },
-    {
-      "id": "src_lib_controls_rundesignationcontrols",
-      "label": "runDesignationControls()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "rundesignationcontrols()",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L86"
-    },
-    {
-      "id": "src_lib_dates_hasschedulingconflict",
-      "label": "hasSchedulingConflict()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "hasschedulingconflict()",
-      "source_file": "src/lib/dates.ts",
-      "source_location": "L128"
-    },
-    {
-      "id": "src_lib_designation_rules_checkquotarules",
-      "label": "checkQuotaRules()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "checkquotarules()",
-      "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L164"
-    },
-    {
-      "id": "src_lib_geocoding_distancekm",
-      "label": "distanceKm()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "distancekm()",
-      "source_file": "src/lib/geocoding.ts",
-      "source_location": "L91"
-    },
-    {
-      "id": "src_lib_geocoding_estimatepayment",
-      "label": "estimatePayment()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "estimatepayment()",
-      "source_file": "src/lib/geocoding.ts",
-      "source_location": "L107"
-    },
-    {
-      "id": "src_lib_routing_cachedroaddistances",
-      "label": "cachedRoadDistances()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "cachedroaddistances()",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L131"
-    },
-    {
-      "id": "src_lib_routing_coordkey",
-      "label": "coordKey()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "coordkey()",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L18"
-    },
-    {
-      "id": "src_lib_routing_fetchmatrix",
-      "label": "fetchMatrix()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "fetchmatrix()",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L29"
-    },
-    {
-      "id": "src_lib_routing_roaddistancesto",
-      "label": "roadDistancesTo()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "roaddistancesto()",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L74"
-    },
-    {
-      "id": "src_lib_suggestions_buildwhy",
-      "label": "buildWhy()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "buildwhy()",
+      "norm_label": "explainsuggestion()",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L162"
-    },
-    {
-      "id": "src_lib_suggestions_designatereferee",
-      "label": "designateReferee()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "designatereferee()",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L568"
-    },
-    {
-      "id": "src_lib_suggestions_divisionrulesfor",
-      "label": "divisionRulesFor()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "divisionrulesfor()",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L356"
-    },
-    {
-      "id": "src_lib_suggestions_evaluatematchcandidates",
-      "label": "evaluateMatchCandidates()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "evaluatematchcandidates()",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L382"
+      "source_location": "L570"
     },
     {
       "id": "src_lib_suggestions_fetchpaged",
@@ -4090,7 +4150,7 @@
       "file_type": "code",
       "norm_label": "getmatchcandidates()",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L536"
+      "source_location": "L549"
     },
     {
       "id": "src_lib_suggestions_getmatchforsuggestion",
@@ -4103,18 +4163,6 @@
       "norm_label": "getmatchforsuggestion()",
       "source_file": "src/lib/suggestions.ts",
       "source_location": "L108"
-    },
-    {
-      "id": "src_lib_suggestions_issamevenuesameday",
-      "label": "isSameVenueSameDay()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "issamevenuesameday()",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L150"
     },
     {
       "id": "src_lib_suggestions_loadcandidatecontext",
@@ -4141,18 +4189,6 @@
       "source_location": "L68"
     },
     {
-      "id": "src_lib_suggestions_rankscore",
-      "label": "rankScore()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "rankscore()",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L143"
-    },
-    {
       "id": "src_lib_suggestions_suggestreferees",
       "label": "suggestReferees()",
       "_callable": true,
@@ -4162,55 +4198,175 @@
       "file_type": "code",
       "norm_label": "suggestreferees()",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L548"
+      "source_location": "L561"
     },
     {
-      "id": "src_lib_suggestions_unavailabilityblocksmatch",
-      "label": "unavailabilityBlocksMatch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "unavailabilityblocksmatch()",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L95"
-    },
-    {
-      "id": "src_app_espace_page_refereespacepage",
-      "label": "RefereeSpacePage()",
+      "id": "src_app_disponibilites_id_page_availabilityperiodpage",
+      "label": "AvailabilityPeriodPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 5,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "refereespacepage()",
-      "source_file": "src/app/espace/page.tsx",
-      "source_location": "L27"
+      "norm_label": "availabilityperiodpage()",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L18"
     },
     {
-      "id": "src_app_espace_page_refereespacepage_changepassword",
-      "label": "changePassword()",
+      "id": "src_app_disponibilites_id_page_availabilityperiodpage_clearrefereeavailability",
+      "label": "clearRefereeAvailability()",
       "_callable": true,
       "_origin": "ast",
       "community": 5,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "changepassword()",
-      "source_file": "src/app/espace/page.tsx",
-      "source_location": "L179"
+      "norm_label": "clearrefereeavailability()",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L112"
     },
     {
-      "id": "src_app_espace_page_refereespacepage_saveavailability",
-      "label": "saveAvailability()",
+      "id": "src_app_disponibilites_id_page_availabilityperiodpage_saverefereeavailability",
+      "label": "saveRefereeAvailability()",
       "_callable": true,
       "_origin": "ast",
       "community": 5,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "saveavailability()",
-      "source_file": "src/app/espace/page.tsx",
-      "source_location": "L134"
+      "norm_label": "saverefereeavailability()",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L61"
+    },
+    {
+      "id": "src_app_disponibilites_id_page_availabilityperiodpage_updatedeadline",
+      "label": "updateDeadline()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "updatedeadline()",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L129"
+    },
+    {
+      "id": "src_app_disponibilites_id_page_back",
+      "label": "back()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "back()",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L14"
+    },
+    {
+      "id": "src_app_disponibilites_page_availabilityperiodspage",
+      "label": "AvailabilityPeriodsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "availabilityperiodspage()",
+      "source_file": "src/app/disponibilites/page.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_app_disponibilites_page_availabilityperiodspage_createperiod",
+      "label": "createPeriod()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "createperiod()",
+      "source_file": "src/app/disponibilites/page.tsx",
+      "source_location": "L37"
+    },
+    {
+      "id": "src_app_disponibilites_page_formatday",
+      "label": "formatDay()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "formatday()",
+      "source_file": "src/app/disponibilites/page.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_lib_availability_campaign_activereferees",
+      "label": "activeReferees()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "activereferees()",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L18"
+    },
+    {
+      "id": "src_lib_availability_campaign_announcementmessage",
+      "label": "announcementMessage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "announcementmessage()",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L33"
+    },
+    {
+      "id": "src_lib_availability_campaign_getperiod",
+      "label": "getPeriod()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "getperiod()",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_lib_availability_campaign_remindermessage",
+      "label": "reminderMessage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "remindermessage()",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L43"
+    },
+    {
+      "id": "src_lib_availability_campaign_spaceloginurl",
+      "label": "spaceLoginUrl()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "spaceloginurl()",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L28"
+    },
+    {
+      "id": "src_lib_availability_datetoparislocal",
+      "label": "dateToParisLocal()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "datetoparislocal()",
+      "source_file": "src/lib/availability.ts",
+      "source_location": "L82"
     },
     {
       "id": "src_lib_availability_daysbetween",
@@ -4237,6 +4393,30 @@
       "source_location": "L50"
     },
     {
+      "id": "src_lib_availability_formatdeadlinefr",
+      "label": "formatDeadlineFr()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "formatdeadlinefr()",
+      "source_file": "src/lib/availability.ts",
+      "source_location": "L96"
+    },
+    {
+      "id": "src_lib_availability_loadavailabilityindex",
+      "label": "loadAvailabilityIndex()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "loadavailabilityindex()",
+      "source_file": "src/lib/availability.ts",
+      "source_location": "L155"
+    },
+    {
       "id": "src_lib_availability_mapperiod",
       "label": "mapPeriod()",
       "_callable": true,
@@ -4247,6 +4427,18 @@
       "norm_label": "mapperiod()",
       "source_file": "src/lib/availability.ts",
       "source_location": "L115"
+    },
+    {
+      "id": "src_lib_availability_parislocaltodate",
+      "label": "parisLocalToDate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "parislocaltodate()",
+      "source_file": "src/lib/availability.ts",
+      "source_location": "L60"
     },
     {
       "id": "src_lib_availability_slotlabel",
@@ -4741,78 +4933,6 @@
       "source_location": "L10"
     },
     {
-      "id": "src_app_arbitres_id_page_refereesheetpage",
-      "label": "RefereeSheetPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "refereesheetpage()",
-      "source_file": "src/app/arbitres/[id]/page.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_app_arbitres_id_page_refereesheetpage_addpunctualaction",
-      "label": "addPunctualAction()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "addpunctualaction()",
-      "source_file": "src/app/arbitres/[id]/page.tsx",
-      "source_location": "L32"
-    },
-    {
-      "id": "src_app_arbitres_id_page_refereesheetpage_addrecurringaction",
-      "label": "addRecurringAction()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "addrecurringaction()",
-      "source_file": "src/app/arbitres/[id]/page.tsx",
-      "source_location": "L56"
-    },
-    {
-      "id": "src_app_arbitres_id_page_refereesheetpage_removeunavailabilityaction",
-      "label": "removeUnavailabilityAction()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "removeunavailabilityaction()",
-      "source_file": "src/app/arbitres/[id]/page.tsx",
-      "source_location": "L71"
-    },
-    {
-      "id": "src_app_arbitres_page_refereespage",
-      "label": "RefereesPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "refereespage()",
-      "source_file": "src/app/arbitres/page.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "src_app_arbitres_page_todayiso",
-      "label": "todayIso()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "todayiso()",
-      "source_file": "src/app/arbitres/page.tsx",
-      "source_location": "L7"
-    },
-    {
       "id": "src_app_statistiques_page_euros",
       "label": "euros()",
       "_callable": true,
@@ -4859,102 +4979,6 @@
       "norm_label": "statspage()",
       "source_file": "src/app/statistiques/page.tsx",
       "source_location": "L21"
-    },
-    {
-      "id": "src_lib_dates_formatdateonlyfr",
-      "label": "formatDateOnlyFr()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "formatdateonlyfr()",
-      "source_file": "src/lib/dates.ts",
-      "source_location": "L49"
-    },
-    {
-      "id": "src_lib_referees_addpunctualunavailability",
-      "label": "addPunctualUnavailability()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "addpunctualunavailability()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L229"
-    },
-    {
-      "id": "src_lib_referees_addrecurringunavailability",
-      "label": "addRecurringUnavailability()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "addrecurringunavailability()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L243"
-    },
-    {
-      "id": "src_lib_referees_computeunavailablerefereeids",
-      "label": "computeUnavailableRefereeIds()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "computeunavailablerefereeids()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L67"
-    },
-    {
-      "id": "src_lib_referees_listrefereelevels",
-      "label": "listRefereeLevels()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "listrefereelevels()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L47"
-    },
-    {
-      "id": "src_lib_referees_listrefereeswithload",
-      "label": "listRefereesWithLoad()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "listrefereeswithload()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L92"
-    },
-    {
-      "id": "src_lib_referees_listzones",
-      "label": "listZones()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "listzones()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L261"
-    },
-    {
-      "id": "src_lib_referees_removeunavailability",
-      "label": "removeUnavailability()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "removeunavailability()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L256"
     },
     {
       "id": "src_lib_stats_clubofteam",
@@ -5523,14 +5547,14 @@
       "source_location": "L3"
     },
     {
-      "id": "src_lib_actions_auto_designate_actions",
-      "label": "auto-designate-actions.ts",
+      "id": "src_lib_actions_designation_actions",
+      "label": "designation-actions.ts",
       "_origin": "ast",
       "community": 1,
       "community_name": "matches.ts",
       "file_type": "code",
-      "norm_label": "auto-designate-actions.ts",
-      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "norm_label": "designation-actions.ts",
+      "source_file": "src/lib/actions/designation-actions.ts",
       "source_location": "L1"
     },
     {
@@ -6438,11 +6462,77 @@
       "source_location": "L136"
     },
     {
+      "id": "next_config",
+      "label": "next.config.ts",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "next.config.ts",
+      "source_file": "next.config.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "next_config_nextconfig",
+      "label": "nextConfig",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "nextconfig",
+      "source_file": "next.config.ts",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_app_admin_groupes_page",
+      "label": "groupes/page.tsx",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "groupes/page.tsx",
+      "source_file": "src/app/admin/groupes/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_admin_groupes_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/admin/groupes/page.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_app_admin_parametres_page",
+      "label": "parametres/page.tsx",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "parametres/page.tsx",
+      "source_file": "src/app/admin/parametres/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_admin_parametres_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/admin/parametres/page.tsx",
+      "source_location": "L8"
+    },
+    {
       "id": "src_app_arbitres_id_modifier_page",
       "label": "arbitres/[id]/modifier/page.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "arbitres/[id]/modifier/page.tsx",
       "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
@@ -6453,7 +6543,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
@@ -6464,7 +6554,7 @@
       "label": "arbitres/nouveau/page.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "arbitres/nouveau/page.tsx",
       "source_file": "src/app/arbitres/nouveau/page.tsx",
@@ -6475,7 +6565,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/arbitres/nouveau/page.tsx",
@@ -6486,7 +6576,7 @@
       "label": "compte/page.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "compte/page.tsx",
       "source_file": "src/app/compte/page.tsx",
@@ -6497,7 +6587,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/compte/page.tsx",
@@ -6508,7 +6598,7 @@
       "label": "matchs/[id]/modifier/page.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "matchs/[id]/modifier/page.tsx",
       "source_file": "src/app/matchs/[id]/modifier/page.tsx",
@@ -6519,7 +6609,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/matchs/[id]/modifier/page.tsx",
@@ -6530,7 +6620,7 @@
       "label": "matchs/nouveau/page.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "matchs/nouveau/page.tsx",
       "source_file": "src/app/matchs/nouveau/page.tsx",
@@ -6541,18 +6631,29 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/matchs/nouveau/page.tsx",
       "source_location": "L11"
     },
     {
+      "id": "src_app_page",
+      "label": "app/page.tsx",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "app/page.tsx",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_alert_toast",
       "label": "alert-toast.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "alert-toast.tsx",
       "source_file": "src/components/alert-toast.tsx",
@@ -6563,7 +6664,7 @@
       "label": "VARIANT_CLASS",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "variant_class",
       "source_file": "src/components/alert-toast.tsx",
@@ -6574,7 +6675,7 @@
       "label": "confirm-submit-button.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "confirm-submit-button.tsx",
       "source_file": "src/components/confirm-submit-button.tsx",
@@ -6585,22 +6686,77 @@
       "label": "submit-button.tsx",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "code",
       "norm_label": "submit-button.tsx",
       "source_file": "src/components/submit-button.tsx",
       "source_location": "L1"
     },
     {
+      "id": "src_lib_supabase_admin",
+      "label": "admin.ts",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "admin.ts",
+      "source_file": "src/lib/supabase/admin.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_supabase_admin_supabaseadmin",
+      "label": "supabaseAdmin",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "supabaseadmin",
+      "source_file": "src/lib/supabase/admin.ts",
+      "source_location": "L13"
+    },
+    {
+      "id": "ref_next",
+      "label": "next",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "next",
+      "file_type": "concept",
+      "norm_label": "next",
+      "source_file": "package.json",
+      "source_location": "L16"
+    },
+    {
       "id": "ref_react_dom",
       "label": "react-dom",
       "_origin": "ast",
       "community": 19,
-      "community_name": "AlertToast",
+      "community_name": "next",
       "file_type": "concept",
       "norm_label": "react-dom",
       "source_file": "package.json",
       "source_location": "L18"
+    },
+    {
+      "id": "src_app_admin_niveaux_page",
+      "label": "niveaux/page.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "getCurrentUser",
+      "file_type": "code",
+      "norm_label": "niveaux/page.tsx",
+      "source_file": "src/app/admin/niveaux/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_admin_niveaux_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "getCurrentUser",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/admin/niveaux/page.tsx",
+      "source_location": "L7"
     },
     {
       "id": "src_lib_current_user_getcurrentuser",
@@ -6677,7 +6833,7 @@
       "file_type": "code",
       "norm_label": "max_per_3_days",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L123"
+      "source_location": "L130"
     },
     {
       "id": "src_lib_designation_rules_max_per_day",
@@ -6688,7 +6844,7 @@
       "file_type": "code",
       "norm_label": "max_per_day",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L124"
+      "source_location": "L131"
     },
     {
       "id": "src_lib_designation_rules_max_per_day_tqr",
@@ -6699,205 +6855,106 @@
       "file_type": "code",
       "norm_label": "max_per_day_tqr",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L125"
-    },
-    {
-      "id": "next_config",
-      "label": "next.config.ts",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "next.config.ts",
-      "source_file": "next.config.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "next_config_nextconfig",
-      "label": "nextConfig",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "nextconfig",
-      "source_file": "next.config.ts",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_app_admin_groupes_page",
-      "label": "groupes/page.tsx",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "groupes/page.tsx",
-      "source_file": "src/app/admin/groupes/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_admin_groupes_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/admin/groupes/page.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_app_admin_niveaux_page",
-      "label": "niveaux/page.tsx",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "niveaux/page.tsx",
-      "source_file": "src/app/admin/niveaux/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_admin_niveaux_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/admin/niveaux/page.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_app_admin_parametres_page",
-      "label": "parametres/page.tsx",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "parametres/page.tsx",
-      "source_file": "src/app/admin/parametres/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_admin_parametres_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/admin/parametres/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_app_page",
-      "label": "app/page.tsx",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "app/page.tsx",
-      "source_file": "src/app/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_actions_designation_actions",
-      "label": "designation-actions.ts",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "designation-actions.ts",
-      "source_file": "src/lib/actions/designation-actions.ts",
-      "source_location": "L1"
+      "source_location": "L132"
     },
     {
       "id": "src_lib_current_user",
       "label": "current-user.ts",
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
       "norm_label": "current-user.ts",
       "source_file": "src/lib/current-user.ts",
       "source_location": "L1"
     },
     {
+      "id": "src_lib_current_user_getcurrentreferee",
+      "label": "getCurrentReferee",
+      "_origin": "ast",
+      "community": 21,
+      "community_name": "current-user.ts",
+      "file_type": "code",
+      "norm_label": "getcurrentreferee",
+      "source_file": "src/lib/current-user.ts",
+      "source_location": "L87"
+    },
+    {
       "id": "src_lib_current_user_getsessionprofile",
       "label": "getSessionProfile",
       "_origin": "ast",
       "community": 21,
-      "community_name": "next",
+      "community_name": "current-user.ts",
       "file_type": "code",
       "norm_label": "getsessionprofile",
       "source_file": "src/lib/current-user.ts",
       "source_location": "L27"
     },
     {
-      "id": "src_lib_supabase_admin",
-      "label": "admin.ts",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "admin.ts",
-      "source_file": "src/lib/supabase/admin.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_supabase_admin_supabaseadmin",
-      "label": "supabaseAdmin",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "code",
-      "norm_label": "supabaseadmin",
-      "source_file": "src/lib/supabase/admin.ts",
-      "source_location": "L13"
-    },
-    {
-      "id": "ref_next",
-      "label": "next",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "next",
-      "file_type": "concept",
-      "norm_label": "next",
-      "source_file": "package.json",
-      "source_location": "L16"
-    },
-    {
-      "id": "src_app_disponibilites_id_page",
-      "label": "disponibilites/[id]/page.tsx",
+      "id": "src_app_arbitres_id_page",
+      "label": "arbitres/[id]/page.tsx",
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "disponibilites/[id]/page.tsx",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "norm_label": "arbitres/[id]/page.tsx",
+      "source_file": "src/app/arbitres/[id]/page.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_app_disponibilites_id_page_dynamic",
+      "id": "src_app_arbitres_id_page_dynamic",
       "label": "dynamic",
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
       "norm_label": "dynamic",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L12"
+      "source_file": "src/app/arbitres/[id]/page.tsx",
+      "source_location": "L17"
     },
     {
-      "id": "src_lib_availability_campaign",
-      "label": "availability-campaign.ts",
+      "id": "src_app_arbitres_page",
+      "label": "arbitres/page.tsx",
       "_origin": "ast",
       "community": 22,
-      "community_name": "disponibilites/[id]/page.tsx",
+      "community_name": "arbitres/[id]/page.tsx",
       "file_type": "code",
-      "norm_label": "availability-campaign.ts",
-      "source_file": "src/lib/availability-campaign.ts",
+      "norm_label": "arbitres/page.tsx",
+      "source_file": "src/app/arbitres/page.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_app_arbitres_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/arbitres/page.tsx",
+      "source_location": "L5"
+    },
+    {
+      "id": "src_lib_referees",
+      "label": "referees.ts",
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "referees.ts",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_referees_weekday_labels",
+      "label": "WEEKDAY_LABELS",
+      "_origin": "ast",
+      "community": 22,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "weekday_labels",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L37"
     },
     {
       "id": "supabase_seed",
@@ -6944,26 +7001,125 @@
       "source_location": "L15"
     },
     {
-      "id": "src_app_disponibilites_page",
-      "label": "disponibilites/page.tsx",
+      "id": "src_app_controles_page",
+      "label": "controles/page.tsx",
       "_origin": "ast",
       "community": 25,
-      "community_name": "disponibilites/page.tsx",
+      "community_name": "controls.ts",
       "file_type": "code",
-      "norm_label": "disponibilites/page.tsx",
-      "source_file": "src/app/disponibilites/page.tsx",
+      "norm_label": "controles/page.tsx",
+      "source_file": "src/app/controles/page.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_app_disponibilites_page_dynamic",
+      "id": "src_app_controles_page_dynamic",
       "label": "dynamic",
       "_origin": "ast",
       "community": 25,
-      "community_name": "disponibilites/page.tsx",
+      "community_name": "controls.ts",
       "file_type": "code",
       "norm_label": "dynamic",
-      "source_file": "src/app/disponibilites/page.tsx",
-      "source_location": "L10"
+      "source_file": "src/app/controles/page.tsx",
+      "source_location": "L5"
+    },
+    {
+      "id": "src_app_controles_page_periods",
+      "label": "PERIODS",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "periods",
+      "source_file": "src/app/controles/page.tsx",
+      "source_location": "L7"
+    },
+    {
+      "id": "src_lib_controls",
+      "label": "controls.ts",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "controls.ts",
+      "file_type": "code",
+      "norm_label": "controls.ts",
+      "source_file": "src/lib/controls.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_algo_rules",
+      "label": "algo-rules.ts",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "algo-rules.ts",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_algo_rules_min_designation_age",
+      "label": "MIN_DESIGNATION_AGE",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "evaluateMatchCandidates",
+      "file_type": "code",
+      "norm_label": "min_designation_age",
+      "source_file": "src/lib/algo-rules.ts",
+      "source_location": "L67"
+    },
+    {
+      "id": "src_app_matchs_id_page",
+      "label": "matchs/[id]/page.tsx",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "matchs/[id]/page.tsx",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_matchs_id_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_lib_routing",
+      "label": "routing.ts",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "matchs/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "routing.ts",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_suggestions_list",
+      "label": "suggestions-list.tsx",
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "suggestions-list.tsx",
+      "file_type": "code",
+      "norm_label": "suggestions-list.tsx",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_club_rules",
+      "label": "club-rules.ts",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "refereeOwnClubTeam",
+      "file_type": "code",
+      "norm_label": "club-rules.ts",
+      "source_file": "src/lib/club-rules.ts",
+      "source_location": "L1"
     },
     {
       "id": "src_app_auth_confirm_route",
@@ -7197,125 +7353,26 @@
       "source_location": "L12"
     },
     {
-      "id": "src_app_controles_page",
-      "label": "controles/page.tsx",
+      "id": "src_lib_actions_auto_designate_actions",
+      "label": "auto-designate-actions.ts",
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "controles/page.tsx",
-      "source_file": "src/app/controles/page.tsx",
+      "norm_label": "auto-designate-actions.ts",
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
       "source_location": "L1"
     },
     {
-      "id": "src_app_controles_page_dynamic",
-      "label": "dynamic",
+      "id": "src_lib_actions_auto_designate_actions_level_priority",
+      "label": "LEVEL_PRIORITY",
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/controles/page.tsx",
-      "source_location": "L5"
-    },
-    {
-      "id": "src_app_controles_page_periods",
-      "label": "PERIODS",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "periods",
-      "source_file": "src/app/controles/page.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_app_matchs_id_page",
-      "label": "matchs/[id]/page.tsx",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "matchs/[id]/page.tsx",
-      "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_matchs_id_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_suggestions_list",
-      "label": "suggestions-list.tsx",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "suggestions-list.tsx",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_algo_rules",
-      "label": "algo-rules.ts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "algo-rules.ts",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_algo_rules_min_designation_age",
-      "label": "MIN_DESIGNATION_AGE",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "min_designation_age",
-      "source_file": "src/lib/algo-rules.ts",
-      "source_location": "L67"
-    },
-    {
-      "id": "src_lib_club_rules",
-      "label": "club-rules.ts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "club-rules.ts",
-      "source_file": "src/lib/club-rules.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_controls",
-      "label": "controls.ts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "controls.ts",
-      "source_file": "src/lib/controls.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_routing",
-      "label": "routing.ts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "routing.ts",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L1"
+      "norm_label": "level_priority",
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L22"
     },
     {
       "id": "src_lib_suggestions",
@@ -7338,6 +7395,50 @@
       "norm_label": "manual_only_levels",
       "source_file": "src/lib/suggestions.ts",
       "source_location": "L37"
+    },
+    {
+      "id": "src_app_disponibilites_id_page",
+      "label": "disponibilites/[id]/page.tsx",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "disponibilites/[id]/page.tsx",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_disponibilites_id_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_app_disponibilites_page",
+      "label": "disponibilites/page.tsx",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "disponibilites/page.tsx",
+      "source_file": "src/app/disponibilites/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_disponibilites_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/disponibilites/page.tsx",
+      "source_location": "L10"
     },
     {
       "id": "src_app_espace_page",
@@ -7373,6 +7474,17 @@
       "source_location": "L1"
     },
     {
+      "id": "src_lib_availability_campaign",
+      "label": "availability-campaign.ts",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "availability-campaign.ts",
+      "source_file": "src/lib/availability-campaign.ts",
+      "source_location": "L1"
+    },
+    {
       "id": "src_lib_availability_no_effect",
       "label": "NO_EFFECT",
       "_origin": "ast",
@@ -7404,17 +7516,6 @@
       "norm_label": "slots",
       "source_file": "src/lib/availability.ts",
       "source_location": "L17"
-    },
-    {
-      "id": "src_lib_current_user_getcurrentreferee",
-      "label": "getCurrentReferee",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "getcurrentreferee",
-      "source_file": "src/lib/current-user.ts",
-      "source_location": "L87"
     },
     {
       "id": "src_app_export_page",
@@ -7791,17 +7892,6 @@
       "source_location": "L26"
     },
     {
-      "id": "ref_exceljs",
-      "label": "exceljs",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "package.json",
-      "file_type": "concept",
-      "norm_label": "exceljs",
-      "source_file": "package.json",
-      "source_location": "L15"
-    },
-    {
       "id": "ref_supabase_supabase_js",
       "label": "@supabase/supabase-js",
       "_origin": "ast",
@@ -8033,50 +8123,6 @@
       "source_location": "L7"
     },
     {
-      "id": "src_app_arbitres_id_page",
-      "label": "arbitres/[id]/page.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "arbitres/[id]/page.tsx",
-      "source_file": "src/app/arbitres/[id]/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_arbitres_id_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/arbitres/[id]/page.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_app_arbitres_page",
-      "label": "arbitres/page.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "arbitres/page.tsx",
-      "source_file": "src/app/arbitres/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_arbitres_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/arbitres/page.tsx",
-      "source_location": "L5"
-    },
-    {
       "id": "src_app_statistiques_page",
       "label": "statistiques/page.tsx",
       "_origin": "ast",
@@ -8110,28 +8156,6 @@
       "source_location": "L7"
     },
     {
-      "id": "src_lib_referees",
-      "label": "referees.ts",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "referees.ts",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_referees_weekday_labels",
-      "label": "WEEKDAY_LABELS",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "stats.ts",
-      "file_type": "code",
-      "norm_label": "weekday_labels",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L37"
-    },
-    {
       "id": "src_lib_stats",
       "label": "stats.ts",
       "_origin": "ast",
@@ -8141,6 +8165,17 @@
       "norm_label": "stats.ts",
       "source_file": "src/lib/stats.ts",
       "source_location": "L1"
+    },
+    {
+      "id": "ref_exceljs",
+      "label": "exceljs",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "stats.ts",
+      "file_type": "concept",
+      "norm_label": "exceljs",
+      "source_file": "package.json",
+      "source_location": "L15"
     },
     {
       "id": "src_app_globals",
@@ -11885,7 +11920,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L137",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -11897,7 +11932,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L142",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -11909,7 +11944,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L159",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -11921,7 +11956,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L164",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -11933,7 +11968,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L101",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -11945,7 +11980,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L33",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -11957,7 +11992,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L39",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_actions_auto_designate_actions_previewautodesignation",
+      "target": "src_lib_actions_auto_designate_actions_levelpriorityrank",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -11969,7 +12016,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L46",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -11981,7 +12028,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L56",
+      "source_location": "L79",
       "weight": 1.0
     },
     {
@@ -11993,7 +12040,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L73",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -12401,7 +12448,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L173",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -12413,7 +12460,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L233",
+      "source_location": "L240",
       "weight": 1.0
     },
     {
@@ -12425,7 +12472,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L243",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -14057,7 +14104,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L592",
+      "source_location": "L605",
       "weight": 1.0
     },
     {
@@ -14069,7 +14116,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L593",
+      "source_location": "L606",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_suggestions_designatereferee",
+      "target": "src_lib_suggestions_isminorat",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L625",
       "weight": 1.0
     },
     {
@@ -14081,7 +14140,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L621",
+      "source_location": "L648",
       "weight": 1.0
     },
     {
@@ -14093,7 +14152,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L650",
+      "source_location": "L677",
       "weight": 1.0
     },
     {
@@ -14105,7 +14164,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L659",
+      "source_location": "L686",
       "weight": 1.0
     },
     {
@@ -14117,7 +14176,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L672",
+      "source_location": "L699",
       "weight": 1.0
     },
     {
@@ -14129,7 +14188,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L673",
+      "source_location": "L700",
       "weight": 1.0
     },
     {
@@ -14141,7 +14200,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L676",
+      "source_location": "L703",
       "weight": 1.0
     },
     {
@@ -14153,7 +14212,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L685",
+      "source_location": "L712",
       "weight": 1.0
     },
     {
@@ -14165,7 +14224,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L691",
+      "source_location": "L718",
       "weight": 1.0
     },
     {
@@ -14177,7 +14236,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L702",
+      "source_location": "L729",
       "weight": 1.0
     },
     {
@@ -14189,7 +14248,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L703",
+      "source_location": "L730",
       "weight": 1.0
     },
     {
@@ -14201,7 +14260,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L704",
+      "source_location": "L731",
       "weight": 1.0
     },
     {
@@ -14225,7 +14284,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L395",
+      "source_location": "L401",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_suggestions_evaluatematchcandidates",
+      "target": "src_lib_suggestions_isminorat",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L409",
       "weight": 1.0
     },
     {
@@ -14237,7 +14308,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L416",
+      "source_location": "L426",
       "weight": 1.0
     },
     {
@@ -14249,7 +14320,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L417",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -14261,7 +14332,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L418",
+      "source_location": "L428",
       "weight": 1.0
     },
     {
@@ -14273,7 +14344,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L421",
+      "source_location": "L431",
       "weight": 1.0
     },
     {
@@ -14285,7 +14356,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L429",
+      "source_location": "L439",
       "weight": 1.0
     },
     {
@@ -14297,7 +14368,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L434",
+      "source_location": "L447",
       "weight": 1.0
     },
     {
@@ -14309,7 +14380,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L441",
+      "source_location": "L454",
       "weight": 1.0
     },
     {
@@ -14321,7 +14392,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L445",
+      "source_location": "L458",
       "weight": 1.0
     },
     {
@@ -14333,7 +14404,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L446",
+      "source_location": "L459",
       "weight": 1.0
     },
     {
@@ -14345,7 +14416,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L461",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -14357,7 +14428,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L480",
+      "source_location": "L493",
       "weight": 1.0
     },
     {
@@ -14369,7 +14440,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L485",
+      "source_location": "L498",
       "weight": 1.0
     },
     {
@@ -14381,7 +14452,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L497",
+      "source_location": "L510",
       "weight": 1.0
     },
     {
@@ -14393,7 +14464,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L501",
+      "source_location": "L514",
       "weight": 1.0
     },
     {
@@ -14405,7 +14476,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L515",
+      "source_location": "L528",
       "weight": 1.0
     },
     {
@@ -14417,7 +14488,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L521",
+      "source_location": "L534",
       "weight": 1.0
     },
     {
@@ -14429,7 +14500,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L541",
+      "source_location": "L554",
       "weight": 1.0
     },
     {
@@ -14441,7 +14512,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L543",
+      "source_location": "L556",
       "weight": 1.0
     },
     {
@@ -14453,7 +14524,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L544",
+      "source_location": "L557",
       "weight": 1.0
     },
     {
@@ -14466,6 +14537,18 @@
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
       "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_suggestions_isminorat",
+      "target": "src_lib_algo_rules_ageat",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L367",
       "weight": 1.0
     },
     {
@@ -14525,7 +14608,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L552",
+      "source_location": "L565",
       "weight": 1.0
     },
     {
@@ -26434,7 +26517,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L122",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -26445,18 +26528,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L134",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_actions_auto_designate_actions",
-      "target": "src_lib_actions_auto_designate_actions_planitem",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L15",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -26467,7 +26539,40 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L155",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_actions_auto_designate_actions",
+      "target": "src_lib_actions_auto_designate_actions_level_priority",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_actions_auto_designate_actions",
+      "target": "src_lib_actions_auto_designate_actions_levelpriorityrank",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_actions_auto_designate_actions",
+      "target": "src_lib_actions_auto_designate_actions_planitem",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/actions/auto-designate-actions.ts",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -26478,7 +26583,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/actions/auto-designate-actions.ts",
-      "source_location": "L32",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -27171,7 +27276,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L123",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -27182,7 +27287,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L124",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -27193,7 +27298,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L125",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -27204,7 +27309,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L128",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -27215,7 +27320,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L137",
+      "source_location": "L144",
       "weight": 1.0
     },
     {
@@ -27226,7 +27331,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L148",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -27237,7 +27342,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/designation-rules.ts",
-      "source_location": "L164",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -29013,13 +29118,13 @@
     },
     {
       "source": "src_lib_suggestions",
-      "target": "src_lib_suggestions_matchforsuggestion",
+      "target": "src_lib_suggestions_isminorat",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L365",
+      "source_location": "L366",
       "weight": 1.0
     },
     {
@@ -29035,13 +29140,24 @@
     },
     {
       "source": "src_lib_suggestions",
+      "target": "src_lib_suggestions_matchforsuggestion",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_suggestions",
       "target": "src_lib_suggestions_evaluatematchcandidates",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L382",
+      "source_location": "L388",
       "weight": 1.0
     },
     {
@@ -29063,7 +29179,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L536",
+      "source_location": "L549",
       "weight": 1.0
     },
     {
@@ -29074,7 +29190,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L548",
+      "source_location": "L561",
       "weight": 1.0
     },
     {
@@ -29085,7 +29201,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L557",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -29096,7 +29212,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L562",
+      "source_location": "L575",
       "weight": 1.0
     },
     {
@@ -29107,7 +29223,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/suggestions.ts",
-      "source_location": "L568",
+      "source_location": "L581",
       "weight": 1.0
     },
     {
@@ -30329,5 +30445,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "49af4f59b3ed8e2d8b9cd340d47c2ab8b63398a0"
+  "built_at_commit": "e8e047e476079612e4ea6b2e657d030ff0219b7a"
 }
