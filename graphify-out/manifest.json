@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "src/app/admin/import/page.tsx": {
-    "mtime": 1791233651.2474644,
-    "seen": 1791233763.9478016,
-    "ast_hash": "b8f2bead7d27dffcebc6896102742738",
+    "mtime": 1791234284.4149866,
+    "seen": 1791234318.0716388,
+    "ast_hash": "ca4b8dafc1823e36aebbbe3751ade04f",
     "semantic_hash": ""
   },
   "src/app/admin/niveaux/page.tsx": {
@@ -360,9 +360,9 @@
     "semantic_hash": ""
   },
   "src/lib/actions/auto-designate-actions.ts": {
-    "mtime": 1791233651.2537565,
-    "seen": 1791233763.9478571,
-    "ast_hash": "e050653234bb14b898db6c6375b10137",
+    "mtime": 1791234284.4147499,
+    "seen": 1791234318.0717025,
+    "ast_hash": "20367172c6164332b255e150f88e8696",
     "semantic_hash": ""
   },
   "src/lib/actions/designation-actions.ts": {
@@ -540,9 +540,9 @@
     "semantic_hash": ""
   },
   "src/lib/suggestions.ts": {
-    "mtime": 1791233651.254216,
-    "seen": 1791233763.9478815,
-    "ast_hash": "34a3535ae56db893f8b432a4ab38317c",
+    "mtime": 1791234284.4143217,
+    "seen": 1791234318.071731,
+    "ast_hash": "823578cb5d090845445a05f21e812768",
     "semantic_hash": ""
   },
   "src/lib/supabase/admin.ts": {

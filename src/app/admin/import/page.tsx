@@ -61,20 +61,6 @@ async function geocode() {
       geoMatches: String(summary.matchesGeocoded),
       geoRefFailed: String(summary.refereesFailed),
       geoVenuesFailed: more > 0 ? `${venues} | … et ${more} autre(s)` : venues,
-    // Une liste d'échecs illimitée dans l'URL de redirection dépasse la
-    // limite de longueur d'URI de la plateforme (URI_TOO_LONG) dès que
-    // beaucoup d'adresses ne sont pas géocodables : on tronque à quelques
-    // exemples et on indique le total.
-    const maxShown = 5;
-    const geoFailed =
-      summary.failed.length > maxShown
-        ? `${summary.failed.slice(0, maxShown).join(" | ")} | … et ${summary.failed.length - maxShown} autre(s)`
-        : summary.failed.join(" | ");
-    params = new URLSearchParams({
-      geoReferees: String(summary.refereesGeocoded),
-      geoMatches: String(summary.matchesGeocoded),
-      geoFailedCount: String(summary.failed.length),
-      geoFailed,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -99,8 +85,6 @@ export default async function ImportMatchsPage({
     geoMatches?: string;
     geoRefFailed?: string;
     geoVenuesFailed?: string;
-    geoFailedCount?: string;
-    geoFailed?: string;
   }>;
 }) {
   const user = await getCurrentUser();
@@ -175,11 +159,6 @@ export default async function ImportMatchsPage({
             )}
             {params.geoVenuesFailed && (
               <p className="text-[var(--danger)]">Lieux de match non géocodables : {params.geoVenuesFailed}</p>
-            )}
-            {params.geoFailed && (
-              <p className="text-[var(--danger)]">
-                Non géocodables{params.geoFailedCount ? ` (${params.geoFailedCount})` : ""} : {params.geoFailed}
-              </p>
             )}
           </div>
         )}

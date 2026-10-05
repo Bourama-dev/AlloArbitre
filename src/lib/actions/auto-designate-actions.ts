@@ -47,9 +47,6 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   const plan: PlanItem[] = [];
   const pendingByReferee = new Map<string, MatchSlot[]>();
 
-  for (const matchId of matchIds) {
-    const match = await getMatchForSuggestion(matchId);
-    if (!match) continue;
   const matches = (
     await Promise.all(matchIds.map((id) => getMatchForSuggestion(id)))
   ).filter((m): m is NonNullable<typeof m> => !!m && !m.cancelled && m.refereesRequired > m.designations.length);
@@ -97,12 +94,9 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       const suggestions = allSuggestions.filter((s) => s.availabilityStatus === "disponible");
       const pickIndex = suggestions.findIndex((s) => {
         const pending = pendingByReferee.get(s.id) ?? [];
-        return !pending.some((p) =>
-          hasSchedulingConflict(
-            { date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng },
-            p
-          )
-        );
+        // Même contrôle qu'à l'enregistrement (trajet + présence 30 min),
+        // pour ne pas proposer un arbitre que designateReferee refuserait.
+        return !pending.some((p) => hasSchedulingConflict(slot, p));
       });
 
       if (pickIndex === -1) {
@@ -131,7 +125,7 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
       });
 
       const list = pendingByReferee.get(pick.id) ?? [];
-      list.push({ date: match.date, durationMinutes: match.durationMinutes, venue: match.venue, lat: match.lat, lng: match.lng });
+      list.push(slot);
       pendingByReferee.set(pick.id, list);
     }
   }
