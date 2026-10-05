@@ -781,3 +781,50 @@ body {
     background-position: -200% 0;
   }
 }
+
+/* Fenêtre modale : feuille du bas sur mobile, boîte centrée au-dessus */
+@media (max-width: 639px) {
+  .sheet-modal {
+    border-radius: 1.75rem 1.75rem 0 0;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    animation: sheetUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@media (min-width: 640px) {
+  .sheet-modal {
+    animation: scaleIn 0.16s ease both;
+  }
+}
+
+/* Matrice (ex. disponibilités jour × créneau) : défile à l'horizontale, 1re colonne figée */
+.table-matrix table {
+  min-width: max-content;
+}
+.table-matrix th:first-child,
+.table-matrix td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--border);
+}
+.table-matrix thead th:first-child {
+  background: var(--neutral-bg);
+}
+
+/* Listes <ul class="table-shell card-list"> : une carte par ligne sur mobile */
+@media (max-width: 1023px) {
+  .card-list {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .card-list > li {
+    background: var(--surface);
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+}

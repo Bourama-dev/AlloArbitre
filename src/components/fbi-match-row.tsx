@@ -70,24 +70,24 @@ export function FbiMatchRow({
     <>
       <tr className="cursor-pointer hover:bg-[var(--neutral-bg)]" onClick={toggle}>
         {selectable && (
-          <td onClick={(e) => e.stopPropagation()}>
+          <td className="tc-check" onClick={(e) => e.stopPropagation()}>
             {status === "incomplet" && (
               <input type="checkbox" name="matchIds" value={m.id} aria-label={`Sélectionner ${m.homeTeam} - ${m.awayTeam}`} />
             )}
           </td>
         )}
-        <td className="whitespace-nowrap">{formatDateTimeFr(m.date)}</td>
-        <td className="whitespace-nowrap text-[var(--muted)]">
+        <td className="whitespace-nowrap tc-date tc-head">{formatDateTimeFr(m.date)}</td>
+        <td className="whitespace-nowrap text-[var(--muted)] tc-head text-xs">
           {m.competitionLevel.label}
           {m.poule ? ` · ${m.poule}` : ""}
         </td>
-        <td className="font-medium whitespace-nowrap">{m.homeTeam}</td>
-        <td className="font-medium whitespace-nowrap">{m.awayTeam}</td>
-        <td className="whitespace-nowrap text-[var(--muted)]">
+        <td className="font-medium whitespace-nowrap tc-team">{m.homeTeam}</td>
+        <td className="font-medium whitespace-nowrap tc-team tc-away">{m.awayTeam}</td>
+        <td className="whitespace-nowrap text-[var(--muted)] tc-venue">
           {m.venue ?? "-"}
           {m.city ? ` - ${m.city}` : ""}
         </td>
-        <td className="min-w-[10rem]" onClick={(e) => e.stopPropagation()}>
+        <td className="min-w-[10rem]" data-label="Arbitres" onClick={(e) => e.stopPropagation()}>
           {m.designations.length === 0 ? (
             <span className="text-[var(--muted)]">Aucun arbitre (0/{m.refereesRequired})</span>
           ) : (
@@ -163,10 +163,10 @@ export function FbiMatchRow({
             </p>
           )}
         </td>
-        <td>
+        <td className="tc-status">
           <StatusBadge status={status} />
         </td>
-        <td className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+        <td className="text-right whitespace-nowrap tc-actions" onClick={(e) => e.stopPropagation()}>
           <div className="inline-flex flex-col items-end gap-1">
             {m.designations.length > 0 && <PushToFbiButton matchId={m.id} />}
             <button type="button" onClick={toggle} className="text-[var(--accent)] hover:underline text-xs inline-flex items-center gap-1">
@@ -196,7 +196,7 @@ export function FbiMatchRow({
                     {detail.officiels.length === 0 ? (
                       <p className="text-sm text-[var(--muted)]">Aucun officiel désigné sur FBI pour cette rencontre.</p>
                     ) : (
-                      <div className="table-shell overflow-x-auto">
+                      <div className="table-shell table-cards overflow-x-auto">
                         <table>
                           <thead>
                             <tr>
@@ -210,11 +210,11 @@ export function FbiMatchRow({
                           <tbody>
                             {detail.officiels.map((o, i) => (
                               <tr key={`${o.licence}-${i}`}>
-                                <td className="font-medium whitespace-nowrap">{o.nom || "-"}</td>
-                                <td className="whitespace-nowrap">{o.prenom || "-"}</td>
-                                <td className="whitespace-nowrap">{o.fonction || "-"}</td>
-                                <td className="whitespace-nowrap text-[var(--muted)]">{o.licence || "-"}</td>
-                                <td>
+                                <td className="font-medium whitespace-nowrap tc-team">{o.nom || "-"} {o.prenom || ""}</td>
+                                <td className="whitespace-nowrap tc-hide-sm">{o.prenom || "-"}</td>
+                                <td className="whitespace-nowrap" data-label="Fonction">{o.fonction || "-"}</td>
+                                <td className="whitespace-nowrap text-[var(--muted)]" data-label="N° licence">{o.licence || "-"}</td>
+                                <td data-label="Présence">
                                   {o.presence ? (
                                     <span className={`badge ${presenceStyles[o.presence] ?? "text-[var(--muted)] bg-[var(--neutral-bg)]"}`}>
                                       {o.presence}

@@ -72,59 +72,51 @@ export default async function MatchDetailPage({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href="/matchs" className="text-sm text-[var(--accent)] hover:underline">
-          ← Retour aux matchs
-        </Link>
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
-          <h1 className="text-xl font-semibold tracking-tight">
-            {match.homeTeam} <span className="text-[var(--muted)] font-normal">vs</span>{" "}
-            {match.awayTeam}
-          </h1>
+    <div className="space-y-4 lg:space-y-6 max-w-3xl">
+      <Link href="/matchs" className="chip-btn">
+        ‹ Matchs
+      </Link>
+
+      <header className="card p-5 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-[var(--brand)]">
+            {match.competitionLevel.label}
+            {match.poule ? ` · Poule ${match.poule}` : ""}
+          </span>
           <StatusBadge status={status} />
-          <Link href={`/matchs/${id}/modifier`} className="btn-ghost text-sm">
-            Modifier
-          </Link>
         </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted)] mt-2">
-          <span>{match.competitionLevel.label}</span>
-          {match.poule && <span>Poule {match.poule}</span>}
-          <span>{formatDateTimeFr(match.date)}</span>
+        <h1 className="text-2xl font-bold tracking-tight leading-tight">
+          {match.homeTeam}
+          <span className="block text-sm font-medium text-[var(--muted)] my-0.5">contre</span>
+          {match.awayTeam}
+        </h1>
+        <div className="space-y-1 text-sm">
+          <p className="font-semibold">{formatDateTimeFr(match.date)}</p>
           {(match.venue || match.city) && (
-            <span>
+            <p className="text-[var(--muted)]">
               {match.venue}
               {match.venue && match.city ? " · " : ""}
               {match.city}
-            </span>
+            </p>
           )}
         </div>
-        {match.notes && (
-          <p className="text-sm text-[var(--muted)] mt-1 italic">{match.notes}</p>
-        )}
-        <div className="grid grid-cols-2 gap-3 mt-4 max-w-md">
-          <div className="card p-3 text-center">
-            <p className="field-label mb-1">Domicile</p>
-            <p className="font-semibold">{match.homeTeam}</p>
-          </div>
-          <div className="card p-3 text-center">
-            <p className="field-label mb-1">Extérieur</p>
-            <p className="font-semibold">{match.awayTeam}</p>
-          </div>
-        </div>
-      </div>
+        {match.notes && <p className="text-sm text-[var(--muted)] italic">{match.notes}</p>}
+        <Link href={`/matchs/${id}/modifier`} className="btn btn-secondary w-full sm:w-auto">
+          Modifier le match
+        </Link>
+      </header>
 
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
       {alerte && <AlertToast message={decodeURIComponent(alerte)} variant="warning" />}
 
       <section>
-        <h2 className="text-sm font-semibold mb-2">
+        <h2 className="text-sm font-bold mb-2">
           Arbitres désignés ({match.designations.length}/{match.refereesRequired})
         </h2>
         {match.designations.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">Aucun arbitre désigné pour l&apos;instant.</p>
         ) : (
-          <ul className="table-shell divide-y divide-[var(--border)]">
+          <ul className="table-shell card-list divide-y divide-[var(--border)]">
             {match.designations.map((d) => {
               // 2e match du jour dans la même salle : pas de frais kilométriques (règle CD45).
               const home =
@@ -138,7 +130,7 @@ export default async function MatchDetailPage({
                     ? distanceKm({ lat: match.lat, lng: match.lng }, home)
                     : null;
               return (
-              <li key={d.id} className="px-4 py-2.5 text-sm flex items-center justify-between">
+              <li key={d.id} className="px-4 py-3 text-sm flex items-center justify-between gap-2">
                 <Link
                   href={`/arbitres/${d.referee.id}`}
                   className="inline-flex items-center gap-2 hover:underline"
@@ -174,7 +166,7 @@ export default async function MatchDetailPage({
 
       {status === "incomplet" && (
         <section>
-          <h2 className="text-sm font-semibold mb-2">
+          <h2 className="text-sm font-bold mb-2">
             Suggestions ({slotsLeft} désignation{slotsLeft > 1 ? "s" : ""} restante
             {slotsLeft > 1 ? "s" : ""})
           </h2>

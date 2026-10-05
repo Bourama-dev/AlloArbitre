@@ -14,6 +14,7 @@ import {
 } from "@/lib/availability";
 import { formatDateOnlyFr, formatDateTimeFr } from "@/lib/dates";
 import { AlertToast } from "@/components/alert-toast";
+import { RefereeTabs } from "@/components/referee-tabs";
 import { SubmitButton } from "@/components/submit-button";
 import { MIN_PASSWORD_LENGTH } from "@/lib/referee-auth";
 import { computeSeasonStats, currentSeasonStartYear, season } from "@/lib/stats";
@@ -267,7 +268,7 @@ export default async function RefereeSpacePage({
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className={`max-w-xl mx-auto space-y-6 ${me.isStaff ? "" : "pb-24"}`}>
       {saved && <AlertToast message="Disponibilités enregistrées. Merci !" variant="success" />}
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
       {mdp && <AlertToast message="Mot de passe enregistré." variant="success" />}
@@ -275,7 +276,7 @@ export default async function RefereeSpacePage({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs text-[var(--muted)]">Espace arbitre</p>
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-xl font-bold tracking-tight">
             {me.firstName} {me.lastName}
           </h1>
         </div>
@@ -289,7 +290,7 @@ export default async function RefereeSpacePage({
       </div>
 
       {!me.isStaff && (
-        <details open={!!motdepasse} className="card p-4">
+        <details open={!!motdepasse} className="card p-4" id="sec-compte">
           <summary className="cursor-pointer text-sm font-semibold">
             {motdepasse ? "Choisissez votre mot de passe" : "Changer mon mot de passe"}
           </summary>
@@ -322,8 +323,8 @@ export default async function RefereeSpacePage({
         </details>
       )}
 
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold">Mes disponibilités</h2>
+      <div className="space-y-3 scroll-mt-4" id="sec-dispos">
+        <h2 className="text-sm font-bold">Mes disponibilités</h2>
         {periods.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">Aucune période de saisie ouverte pour le moment.</p>
         ) : (
@@ -331,8 +332,8 @@ export default async function RefereeSpacePage({
         )}
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold">Mes prochaines désignations ({upcoming.length})</h2>
+      <div className="space-y-3 scroll-mt-4" id="sec-matchs">
+        <h2 className="text-sm font-bold">Mes prochaines désignations ({upcoming.length})</h2>
         {upcoming.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">Aucune désignation à venir.</p>
         ) : (
@@ -372,8 +373,8 @@ export default async function RefereeSpacePage({
         )}
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold">Mon suivi · saison {seasonStats.season.label}</h2>
+      <div className="space-y-3 scroll-mt-4" id="sec-suivi">
+        <h2 className="text-sm font-bold">Mon suivi · saison {seasonStats.season.label}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
             { label: "Matchs arbitrés", value: String(myStats?.played ?? 0) },
@@ -456,6 +457,17 @@ export default async function RefereeSpacePage({
           <p>Recyclage : {formatDateOnlyFr((sheet?.recyclingDate as string | null) ?? null)}</p>
         </div>
       </div>
+
+      {!me.isStaff && (
+        <RefereeTabs
+          tabs={[
+            { id: "sec-dispos", label: "Dispos", icon: "dispos" },
+            { id: "sec-matchs", label: "Matchs", icon: "matchs" },
+            { id: "sec-suivi", label: "Suivi", icon: "stats" },
+            { id: "sec-compte", label: "Compte", icon: "compte" },
+          ]}
+        />
+      )}
     </div>
   );
 }

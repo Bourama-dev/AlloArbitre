@@ -329,7 +329,7 @@ export default async function AvailabilityPeriodPage({
             {filtre === "sans-reponse" ? "Afficher tout le monde" : `Seulement les ${missing.length} sans réponse`}
           </Link>
         </div>
-        <div className="table-shell overflow-x-auto">
+        <div className="table-shell table-matrix overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr>

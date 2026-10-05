@@ -104,7 +104,7 @@ export function FbiMatchesPanel({
         }}
       >
         {hasIncomplete && (
-          <div className="flex flex-wrap items-center gap-3 mb-2">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
             <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -124,7 +124,7 @@ export function FbiMatchesPanel({
               type="button"
               onClick={handlePreview}
               disabled={isPreviewing}
-              className="btn btn-primary inline-flex items-center gap-2"
+              className="btn btn-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               {isPreviewing && <span className="spinner" aria-hidden />}
               {isPreviewing ? "Calcul en cours…" : "Auto-désignation des matchs sélectionnés"}
@@ -134,11 +134,11 @@ export function FbiMatchesPanel({
 
         {byDay.map(([day, matches]) => (
           <section key={day} className="space-y-2 mb-4">
-            <h2 className="text-sm font-semibold">
+            <h2 className="text-sm font-bold sticky top-0 z-20 -mx-1 px-1 py-1.5 bg-[var(--background)]/90 backdrop-blur lg:static lg:bg-transparent lg:backdrop-blur-none">
               {day.charAt(0).toUpperCase() + day.slice(1)}{" "}
               <span className="font-normal text-[var(--muted)]">({matches.length})</span>
             </h2>
-            <div className="table-shell overflow-x-auto">
+            <div className="table-shell table-cards overflow-x-auto">
               <table>
                 <thead>
                   <tr>
@@ -192,8 +192,8 @@ export function FbiMatchesPanel({
       )}
 
       {plan && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
-          <div className="card animate-scale-in max-w-2xl w-full max-h-[85vh] overflow-y-auto p-5 space-y-3">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 sm:p-4 animate-fade-in">
+          <div className="sheet-modal card max-w-2xl w-full max-h-[88dvh] overflow-y-auto p-5 space-y-3">
             <div>
               <h2 className="font-semibold text-lg">Récapitulatif de l&apos;auto-désignation</h2>
               <p className="text-xs text-[var(--muted)] mt-1">
@@ -218,7 +218,7 @@ export function FbiMatchesPanel({
                 </li>
               ))}
             </ul>
-            <div className="flex justify-end gap-2 pt-2 border-t border-[var(--border)]">
+            <div className="sticky bottom-0 -mx-5 -mb-5 px-5 py-3 flex justify-end gap-2 border-t border-[var(--border)] bg-[var(--surface)]">
               <button type="button" className="btn btn-secondary" onClick={() => setPlan(null)} disabled={isApplying}>
                 Annuler
               </button>

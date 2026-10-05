@@ -1,3 +1,4 @@
+import { InfoText } from "@/components/info-text";
 import Link from "next/link";
 import { runDesignationControls } from "@/lib/controls";
 import { formatDateTimeFr } from "@/lib/dates";
@@ -19,15 +20,15 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
   const { issues, doubles, checked } = await runDesignationControls(from, to);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Contrôles</h1>
-          <p className="text-sm text-[var(--muted)] max-w-3xl">
+          <h1 className="text-xl font-bold tracking-tight">Contrôles</h1>
+          <InfoText className="max-w-3xl">
             Les désignations à venir sont revérifiées avec les règles actuelles : niveau, groupe, âge, club,
             horaires, indisponibilités, quotas et distance maximale. Une indisponibilité saisie après coup ou un
             changement de règle apparaît ici. Rien n&apos;est modifié automatiquement.
-          </p>
+          </InfoText>
         </div>
         <form className="flex items-center gap-2">
           <label htmlFor="jours" className="field-label">
@@ -47,13 +48,13 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold mb-2">
+        <h2 className="text-sm font-bold mb-2">
           Désignations à corriger ({issues.length} sur {checked} vérifiée{checked > 1 ? "s" : ""})
         </h2>
         {issues.length === 0 ? (
           <p className="text-sm text-[var(--success)]">Aucune anomalie sur la période.</p>
         ) : (
-          <div className="table-shell overflow-x-auto">
+          <div className="table-shell table-cards overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -65,20 +66,20 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
               <tbody>
                 {issues.map((i) => (
                   <tr key={`${i.matchId}-${i.refereeId}`} className="align-top">
-                    <td className="px-3 py-2">
-                      <Link href={`/matchs/${i.matchId}`} className="hover:underline font-medium">
+                    <td className="px-3 py-2 tc-head">
+                      <Link href={`/matchs/${i.matchId}`} className="hover:underline font-semibold">
                         {i.matchLabel}
                       </Link>
                       <div className="text-xs text-[var(--muted)]">
                         {formatDateTimeFr(i.matchDate)} · {i.division}
                       </div>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap" data-label="Arbitre">
                       <Link href={`/arbitres/${i.refereeId}`} className="hover:underline">
                         {i.refereeName}
                       </Link>
                     </td>
-                    <td className="px-3 py-2 text-[var(--danger)]">
+                    <td className="px-3 py-2 text-[var(--danger)]" data-label="Problème(s)">
                       <ul className="space-y-0.5">
                         {i.problems.map((p) => (
                           <li key={p}>{p}</li>
@@ -95,11 +96,11 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
 
       <section>
         <h2 className="text-sm font-semibold mb-1">Doublés possibles ({doubles.length})</h2>
-        <p className="text-xs text-[var(--muted)] mb-2">
+        <InfoText className="mb-2">
           Matchs incomplets dans un gymnase où un arbitre est déjà désigné le même jour, sur un créneau compatible :
           il est déjà sur place, sans frais de déplacement pour le 2e match. Ouvrez le match pour vérifier ses
           autres règles (quotas, niveau…) : s&apos;il est compatible, il apparaît en tête des suggestions.
-        </p>
+        </InfoText>
         {doubles.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">Aucun doublé possible sur la période.</p>
         ) : (

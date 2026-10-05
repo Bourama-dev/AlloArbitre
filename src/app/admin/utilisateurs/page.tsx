@@ -107,7 +107,7 @@ export default async function UsersAdminPage({
             défaut ; promouvez-le en ADMIN ici si besoin.
           </p>
         </div>
-        <div className="table-shell overflow-x-auto">
+        <div className="table-shell table-cards overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr>
@@ -123,13 +123,13 @@ export default async function UsersAdminPage({
                 const isMe = p.id === currentUser.id;
                 return (
                   <tr key={p.id}>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="tc-team px-3 py-2 whitespace-nowrap">
                       {p.name}
                       {isMe && <span className="text-xs text-[var(--muted)]"> (vous)</span>}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">{p.email}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">{formatWhen(lastSignIn.get(p.id))}</td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="E-mail">{p.email}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="Dernière connexion">{formatWhen(lastSignIn.get(p.id))}</td>
+                    <td className="px-3 py-2" data-label="Rôle">
                       {isMe ? (
                         <span className="text-sm">{p.role}</span>
                       ) : (
@@ -145,7 +145,7 @@ export default async function UsersAdminPage({
                         </form>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <td className="tc-actions px-3 py-2 text-right whitespace-nowrap">
                       {!isMe && (
                         <form action={deleteUser}>
                           <input type="hidden" name="id" value={p.id} />
@@ -199,7 +199,7 @@ export default async function UsersAdminPage({
           notActivated.length === 0 ? (
             <p className="text-sm text-[var(--success)]">Tous les arbitres actifs ont activé leur espace.</p>
           ) : (
-            <div className="table-shell overflow-x-auto">
+            <div className="table-shell table-cards overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr>
@@ -212,14 +212,14 @@ export default async function UsersAdminPage({
                 <tbody>
                   {notActivated.map((r) => (
                     <tr key={r.id}>
-                      <td className="px-3 py-2 whitespace-nowrap">
+                      <td className="tc-team px-3 py-2 whitespace-nowrap">
                         {r.lastName} {r.firstName}
                       </td>
-                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">
+                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="Licence">
                         {r.licenseNumber ?? <span className="text-[var(--warning)]">aucune : lien personnel requis</span>}
                       </td>
-                      <td className="px-3 py-2 text-[var(--muted)]">{r.zone ?? ""}</td>
-                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <td className="px-3 py-2 text-[var(--muted)]" data-label="Club">{r.zone ?? ""}</td>
+                      <td className="tc-actions px-3 py-2 text-right whitespace-nowrap">
                         <Link href={`/arbitres/${r.id}`} className="text-xs text-[var(--accent)] hover:underline">
                           Fiche / lien personnel
                         </Link>
@@ -233,7 +233,7 @@ export default async function UsersAdminPage({
         ) : refereeAccounts.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">Aucun arbitre n&apos;a encore activé son espace.</p>
         ) : (
-          <div className="table-shell overflow-x-auto">
+          <div className="table-shell table-cards overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -249,7 +249,7 @@ export default async function UsersAdminPage({
                   const referee = p.refereeId ? refereeById.get(p.refereeId) : undefined;
                   return (
                     <tr key={p.id}>
-                      <td className="px-3 py-2 whitespace-nowrap">
+                      <td className="tc-team px-3 py-2 whitespace-nowrap">
                         {referee ? (
                           <Link href={`/arbitres/${referee.id}`} className="hover:underline">
                             {referee.lastName} {referee.firstName}
@@ -260,10 +260,10 @@ export default async function UsersAdminPage({
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">{p.email}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">{formatWhen(p.createdAt)}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]">{formatWhen(lastSignIn.get(p.id))}</td>
-                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="E-mail de connexion">{p.email}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="Activé le">{formatWhen(p.createdAt)}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-[var(--muted)]" data-label="Dernière connexion">{formatWhen(lastSignIn.get(p.id))}</td>
+                      <td className="tc-actions px-3 py-2 text-right whitespace-nowrap">
                         <form action={deleteUser}>
                           <input type="hidden" name="id" value={p.id} />
                           <ConfirmSubmitButton

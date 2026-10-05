@@ -70,7 +70,7 @@ export default async function FbiRencontrePage({
                   Aucun officiel désigné sur FBI pour cette rencontre.
                 </p>
               ) : (
-                <div className="table-shell overflow-x-auto">
+                <div className="table-shell table-cards overflow-x-auto">
                   <table>
                     <thead>
                       <tr>
@@ -84,11 +84,11 @@ export default async function FbiRencontrePage({
                     <tbody>
                       {detail.officiels.map((o, i) => (
                         <tr key={`${o.licence}-${i}`}>
-                          <td className="font-medium whitespace-nowrap">{o.nom || "-"}</td>
-                          <td className="whitespace-nowrap">{o.prenom || "-"}</td>
-                          <td className="whitespace-nowrap">{o.fonction || "-"}</td>
-                          <td className="whitespace-nowrap text-[var(--muted)]">{o.licence || "-"}</td>
-                          <td>
+                          <td className="tc-team font-medium whitespace-nowrap">{o.nom || "-"}</td>
+                          <td className="whitespace-nowrap" data-label="Prénom">{o.prenom || "-"}</td>
+                          <td className="whitespace-nowrap" data-label="Fonction">{o.fonction || "-"}</td>
+                          <td className="whitespace-nowrap text-[var(--muted)]" data-label="N° licence">{o.licence || "-"}</td>
+                          <td data-label="Présence">
                             {o.presence ? (
                               <span className={`badge ${presenceStyles[o.presence] ?? "text-[var(--muted)] bg-[var(--neutral-bg)]"}`}>
                                 {o.presence}

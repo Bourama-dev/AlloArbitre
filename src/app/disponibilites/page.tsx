@@ -1,3 +1,5 @@
+import { CollapsibleFilters } from "@/components/collapsible-filters";
+import { InfoText } from "@/components/info-text";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -60,20 +62,21 @@ export default async function AvailabilityPeriodsPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
       {ok && <AlertToast message={decodeURIComponent(ok)} variant="success" />}
 
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Disponibilités</h1>
-        <p className="text-sm text-[var(--muted)] max-w-3xl">
+        <h1 className="text-xl font-bold tracking-tight">Disponibilités</h1>
+        <InfoText className="max-w-3xl">
           Ouvrez une période (un week-end, une semaine…) : les arbitres saisissent leurs créneaux disponibles dans leur
           espace jusqu&apos;à la date limite, puis la saisie est verrouillée. Chaque période fournit un message
           d&apos;annonce et un message de relance (avec les noms des retardataires) à coller dans le groupe WhatsApp.
           Les créneaux saisis filtrent directement les suggestions de désignation.
-        </p>
+        </InfoText>
       </div>
 
+      <CollapsibleFilters label="+ Nouvelle période">
       <form action={createPeriod} className="card p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
         <div className="lg:col-span-2">
           <label className="field-label" htmlFor="label">
@@ -103,11 +106,12 @@ export default async function AvailabilityPeriodsPage({
           Ouvrir la période
         </SubmitButton>
       </form>
+      </CollapsibleFilters>
 
       {periods.length === 0 ? (
         <p className="text-sm text-[var(--muted)]">Aucune période pour l&apos;instant.</p>
       ) : (
-        <div className="table-shell overflow-x-auto">
+        <div className="table-shell table-cards overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr>
@@ -123,19 +127,19 @@ export default async function AvailabilityPeriodsPage({
                 const n = responseCount.get(p.id) ?? 0;
                 return (
                   <tr key={p.id}>
-                    <td className="px-3 py-2">
-                      <Link href={`/disponibilites/${p.id}`} className="font-medium hover:underline">
+                    <td className="px-3 py-2 tc-team">
+                      <Link href={`/disponibilites/${p.id}`} className="hover:underline">
                         {p.label}
                       </Link>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap" data-label="Dates">
                       {formatDay(p.startDate)} → {formatDay(p.endDate)}
                     </td>
-                    <td className={`px-3 py-2 whitespace-nowrap ${closed ? "text-[var(--muted)]" : ""}`}>
+                    <td className={`px-3 py-2 whitespace-nowrap ${closed ? "text-[var(--muted)]" : ""}`} data-label="Clôture">
                       {closed ? "Close · " : "Ouverte · "}
                       {formatDeadlineFr(p.deadline)}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap" data-label="Réponses">
                       {n} / {activeCount ?? 0}
                     </td>
                   </tr>

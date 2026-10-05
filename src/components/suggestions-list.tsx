@@ -39,7 +39,7 @@ export function SuggestionsList({
 
   function renderRow(s: RefereeSuggestion, reasons?: string[]) {
     return (
-      <li key={s.id} className="px-4 py-2.5 text-sm flex items-center justify-between gap-3">
+      <li key={s.id} className="px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <span className="avatar-chip">
             {s.firstName.charAt(0)}
@@ -85,10 +85,10 @@ export function SuggestionsList({
             )}
           </div>
         </div>
-        <form action={designateAction}>
+        <form action={designateAction} className="shrink-0">
           <input type="hidden" name="refereeId" value={s.id} />
           <SubmitButton
-            className={reasons ? "btn btn-secondary" : "btn btn-primary"}
+            className={`${reasons ? "btn btn-secondary" : "btn btn-primary"} w-full sm:w-auto`}
             pendingLabel="Désignation…"
           >
             Désigner
@@ -105,7 +105,7 @@ export function SuggestionsList({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Rechercher un arbitre par nom…"
-        className="input w-full sm:w-72"
+        className="input w-full sm:w-72 sticky top-2 z-10"
       />
 
       <div>
@@ -117,7 +117,7 @@ export function SuggestionsList({
               : "Aucun résultat pour cette recherche."}
           </p>
         ) : (
-          <ul className="table-shell divide-y divide-[var(--border)]">
+          <ul className="table-shell card-list divide-y divide-[var(--border)]">
             {filteredEligible.map((s) => renderRow(s))}
           </ul>
         )}
@@ -129,7 +129,7 @@ export function SuggestionsList({
           {filteredIneligible.length === 0 ? (
             <p className="text-sm text-[var(--muted)]">Aucun résultat pour cette recherche.</p>
           ) : (
-            <ul className="table-shell divide-y divide-[var(--border)]">
+            <ul className="table-shell card-list divide-y divide-[var(--border)]">
               {filteredIneligible.map((s) => renderRow(s, s.reasons))}
             </ul>
           )}

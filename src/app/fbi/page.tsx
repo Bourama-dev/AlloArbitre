@@ -1,3 +1,5 @@
+import { CollapsibleFilters } from "@/components/collapsible-filters";
+import { InfoText } from "@/components/info-text";
 import { findMatches, listActiveReferees } from "@/lib/matches";
 import { matchStatus } from "@/lib/match-status";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
@@ -116,15 +118,16 @@ export default async function FbiPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Rencontres</h1>
-          <p className="text-xs text-[var(--muted)] mt-0.5">
-            Matchs AlloArbitre sur la période, avec l&apos;état de la désignation FBI en un clic sur une ligne.
-            Période limitée à {MAX_DAYS} jours.
-          </p>
-        </div>
-        <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 items-end card p-3 w-full lg:w-auto">
+      <div>
+        <h1 className="text-xl font-bold tracking-tight">Rencontres</h1>
+        <InfoText className="mt-0.5">
+          Matchs AlloArbitre sur la période, avec l&apos;état de la désignation FBI en un clic sur une ligne. Période
+          limitée à {MAX_DAYS} jours.
+        </InfoText>
+      </div>
+
+      <CollapsibleFilters activeCount={[groupe, code, status !== "toutes" ? status : "", search].filter(Boolean).length}>
+        <form className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 items-end card p-3 w-full">
           <div>
             <label htmlFor="fbi-du" className="field-label">Du</label>
             <input type="date" id="fbi-du" name="du" defaultValue={toIsoDay(du)} className="input w-full" />
@@ -172,16 +175,16 @@ export default async function FbiPage({
             Afficher
           </button>
         </form>
-      </div>
+      </CollapsibleFilters>
 
       <section className="space-y-2">
         <div>
           <h2 className="text-sm font-semibold">Calendrier AlloArbitre</h2>
-          <p className="text-xs text-[var(--muted)] mt-0.5">
+          <InfoText className="mt-0.5">
             Aucun import automatique : les rencontres FBI sont reprises dans AlloArbitre uniquement quand vous lancez
             l&apos;import ci-dessous, sur la période choisie dans le filtre (plus la période est longue, plus FBI met de
             temps à répondre).
-          </p>
+          </InfoText>
         </div>
         <ImportFbiMatchesButton du={toIsoDay(du)} au={toIsoDay(au)} />
       </section>
@@ -189,10 +192,10 @@ export default async function FbiPage({
       <section className="space-y-2">
         <div>
           <h2 className="text-sm font-semibold">Envoi vers FBI</h2>
-          <p className="text-xs text-[var(--muted)] mt-0.5">
+          <InfoText className="mt-0.5">
             Pousse vers FBI les désignations des matchs affichés ci-dessous (filtres appliqués), et seulement eux. Une
             position déjà occupée sur FBI par un autre arbitre est remplacée par celui d&apos;AlloArbitre.
-          </p>
+          </InfoText>
         </div>
         <PushAllToFbiButton matchIds={filtered.filter((m) => m.designations.length > 0).map((m) => m.id)} />
       </section>

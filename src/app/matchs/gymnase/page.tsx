@@ -1,3 +1,4 @@
+import { InfoText } from "@/components/info-text";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
@@ -40,13 +41,13 @@ export default async function GymnaseJourneePage({
   return (
     <div className="space-y-4">
       <div>
-        <Link href="/matchs" className="text-sm text-[var(--accent)] hover:underline">
-          ← Retour aux matchs
+        <Link href="/matchs" className="chip-btn">
+          ‹ Matchs
         </Link>
-        <h1 className="text-xl font-semibold tracking-tight mt-2">
+        <h1 className="text-xl font-bold tracking-tight mt-3">
           Arbitres nécessaires par gymnase
         </h1>
-        <p className="text-xs text-[var(--muted)] mt-0.5">
+        <InfoText className="mt-0.5">
           Pour une journée donnée, regroupe les matchs par gymnase et calcule le nombre
           minimum d&apos;arbitres distincts nécessaires (un même arbitre peut couvrir
           plusieurs matchs tant qu&apos;ils ne se chevauchent pas dans le temps - par
@@ -54,13 +55,13 @@ export default async function GymnaseJourneePage({
           règle des 2 matchs par arbitre et par jour s&apos;applique aux matchs
           classiques, mais pas aux TQR (tournoi, plusieurs matchs courts le même
           jour). Chaque match exige au moins 2 arbitres.
-        </p>
+        </InfoText>
       </div>
 
-      <form className="flex items-end gap-3 card p-4">
+      <form className="flex items-end gap-3 card p-4 [&>div]:flex-1 sm:[&>div]:flex-none">
         <div>
           <label className="field-label">Date</label>
-          <input type="date" name="date" defaultValue={dateStr} className="input" />
+          <input type="date" name="date" defaultValue={dateStr} className="input w-full" />
         </div>
         <button type="submit" className="btn btn-primary">
           Afficher

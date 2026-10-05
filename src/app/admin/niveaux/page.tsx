@@ -229,7 +229,7 @@ export default async function LevelMappingAdminPage({
           d&apos;arbitres. Modifiez-la librement, rien n&apos;est figé dans le code.
         </p>
 
-        <div className="table-shell overflow-x-auto mt-3">
+        <div className="table-shell table-cards overflow-x-auto mt-3">
           <table className="w-full text-sm">
             <thead>
               <tr>
@@ -246,8 +246,8 @@ export default async function LevelMappingAdminPage({
             <tbody>
               {competitionLevelRows.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-3 py-2 whitespace-nowrap">{c.label}</td>
-                  <td className="px-3 py-2">
+                  <td className="tc-team px-3 py-2 whitespace-nowrap">{c.label}</td>
+                  <td className="px-3 py-2" data-label="Niveau d&apos;arbitre minimum">
                     <form action={saveMapping} className="flex items-center gap-2">
                       <input type="hidden" name="competitionLevelId" value={c.id} />
                       <select
@@ -272,7 +272,7 @@ export default async function LevelMappingAdminPage({
                       </button>
                     </form>
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap" data-label="Désigné par le CD45">
                     <form action={toggleAutoDesignation} className="flex items-center gap-2">
                       <input type="hidden" name="competitionLevelId" value={c.id} />
                       <input type="hidden" name="autoDesignation" value={String(!c.autoDesignation)} />
@@ -284,7 +284,7 @@ export default async function LevelMappingAdminPage({
                       </button>
                     </form>
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap" data-label="Âge min. arbitre">
                     <form action={saveMinAge} className="flex items-center gap-2">
                       <input type="hidden" name="competitionLevelId" value={c.id} />
                       <input
