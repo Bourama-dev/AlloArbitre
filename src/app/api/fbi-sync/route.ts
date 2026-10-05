@@ -42,10 +42,19 @@ function readableError(error: unknown): string {
   // affiché pour pouvoir distinguer un blocage côté FBI d'une simple coupure.
   const cause = (error as { cause?: { code?: string } } | null)?.cause?.code;
   console.error("[fbi-sync]", message, cause ?? "");
-  if (/fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|socket hang up/i.test(message)) {
-    return `FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI, malgré 3 essais${
-      cause ? ` - code ${cause}` : ""
-    }). Réessayez dans quelques minutes.`;
+  if (/fetch failed|terminated|ECONNRESET|ETIMEDOUT|ENOTFOUND|socket hang up/i.test(message)) {
+    const tries = /(\d+) essai/.exec(message)?.[1];
+    const cooldown = /nouvelle tentative possible dans (\d+) min/.exec(message)?.[1];
+    if (cause === "UND_ERR_CONNECT_TIMEOUT") {
+      return (
+        "FBI n'accepte plus les connexions depuis AlloArbitre (il bloque parfois temporairement une adresse qui " +
+        `l'interroge en rafale). Patientez ${cooldown ?? "10 à 30"} minutes sans relancer, puis réessayez : relancer ` +
+        "plus tôt prolonge le blocage."
+      );
+    }
+    return `FBI ne répond pas pour le moment (coupure réseau entre AlloArbitre et le site FBI${
+      tries ? `, après ${tries} essai${tries === "1" ? "" : "s"}` : ""
+    }${cause ? ` - code ${cause}` : ""}). Réessayez dans quelques minutes.`;
   }
   if (/timeout|aborted/i.test(message)) {
     return "FBI met trop de temps à répondre (site surchargé). Réessayez dans quelques minutes.";

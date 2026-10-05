@@ -25,6 +25,20 @@ const REQUEST_TIMEOUT_MS = 90_000;
 const MIN_INTERVAL_MS = 350;
 let nextRequestAt = 0;
 
+// Quand FBI ne laisse même plus établir la connexion (UND_ERR_CONNECT_TIMEOUT),
+// retenter n'aide pas et prolonge le blocage : on arrête aussitôt et on
+// n'envoie plus aucune requête pendant ce délai (par instance de fonction).
+const CONNECT_COOLDOWN_MS = 2 * 60_000;
+let blockedUntil = 0;
+
+function cooldownError(): Error {
+  const minutes = Math.max(1, Math.ceil((blockedUntil - Date.now()) / 60_000));
+  return Object.assign(
+    new Error(`fetch failed [connexion refusée par FBI, nouvelle tentative possible dans ${minutes} min, 0 essai(s)]`),
+    { cause: { code: "UND_ERR_CONNECT_TIMEOUT" } }
+  );
+}
+
 async function throttle() {
   const now = Date.now();
   const wait = Math.max(0, nextRequestAt - now);
@@ -43,6 +57,7 @@ type FetchedResponse = { res: Response; text: string; buffer?: ArrayBuffer };
  * essai.
  */
 async function fetchWithRetry(url: string, init: RequestInit, body: BodyMode = "text"): Promise<FetchedResponse> {
+  if (Date.now() < blockedUntil) throw cooldownError();
   for (let attempt = 0; ; attempt++) {
     await throttle();
     try {
@@ -53,7 +68,10 @@ async function fetchWithRetry(url: string, init: RequestInit, body: BodyMode = "
       return { res, text: "" };
     } catch (error) {
       const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
-      if (timedOut || attempt >= NETWORK_RETRIES - 1) {
+      const connectRefused =
+        (error as { cause?: { code?: string } } | null)?.cause?.code === "UND_ERR_CONNECT_TIMEOUT";
+      if (connectRefused) blockedUntil = Date.now() + CONNECT_COOLDOWN_MS;
+      if (timedOut || connectRefused || attempt >= NETWORK_RETRIES - 1) {
         // Message enrichi : page FBI concernée + code réseau (ECONNRESET,
         // UND_ERR_CONNECT_TIMEOUT...), sans les paramètres de l'URL. Commence
         // toujours par le message d'origine (« fetch failed », « terminated »...).
