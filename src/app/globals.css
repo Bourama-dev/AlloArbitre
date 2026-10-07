@@ -828,3 +828,24 @@ body {
     box-shadow: var(--shadow-card);
   }
 }
+
+/* --- Impression / PDF (pages Export et Statistiques) ----------------------
+   La navigation (barre du bas, rail latéral, boutons flottants, feuille
+   « Plus ») n'a rien à faire sur le document imprimé, ni le décalage que le
+   rail impose au contenu sur grand écran. */
+@media print {
+  .bottom-nav,
+  .side-nav,
+  .fab,
+  .sheet,
+  .sheet-backdrop,
+  .week-bar {
+    display: none !important;
+  }
+  .app-main,
+  .app-main[data-shell="staff"] {
+    margin-left: 0 !important;
+    width: auto !important;
+    padding: 0 !important;
+  }
+}
