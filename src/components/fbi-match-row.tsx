@@ -8,13 +8,21 @@ import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { ConflictBadge } from "@/components/conflict-badge";
 import { SubmitButton } from "@/components/submit-button";
+import { ConfirmModal } from "@/components/confirm-modal";
 import { PushToFbiButton } from "@/components/push-to-fbi-button";
 import { removeDesignation } from "@/lib/actions/designation-actions";
 import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 import type { FbiRencontreDetail } from "@/lib/fbi/detail";
 
 /** Résultat de la désignation directe d'une ligne : motif du refus éventuel. */
-export type DesignateState = { error: string | null; warning?: string | null } | null;
+export type DesignateState = {
+  error: string | null;
+  warning?: string | null;
+  /** Conflit d'horaire à confirmer : le répartiteur choisit de passer outre ou non. */
+  confirm?: boolean;
+  /** Arbitre visé (le formulaire est réinitialisé après l'action : on le conserve ici). */
+  refereeId?: string;
+} | null;
 export type DesignateAction = (prev: DesignateState, formData: FormData) => Promise<DesignateState>;
 
 const presenceStyles: Record<string, string> = {
@@ -43,6 +51,22 @@ export function FbiMatchRow({
   // Le motif d'un refus (indisponible, conflit, quota, club...) s'affiche sous
   // la ligne, sans recharger la page ni perdre les filtres.
   const [designState, designFormAction] = useActionState(designateAction, null);
+  // Conflit d'horaire : fenêtre de confirmation au lieu d'un refus sec.
+  const [dismissed, setDismissed] = useState<DesignateState>(null);
+  const [isConfirming, startConfirm] = useTransition();
+  const confirming = !!designState?.confirm && dismissed !== designState;
+  const confirmedReferee = designState?.refereeId
+    ? referees.find((r) => r.id === designState.refereeId)
+    : undefined;
+
+  function confirmConflict() {
+    if (!designState?.refereeId) return;
+    const fd = new FormData();
+    fd.set("matchId", m.id);
+    fd.set("refereeId", designState.refereeId);
+    fd.set("confirmConflict", "1");
+    startConfirm(() => designFormAction(fd));
+  }
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<FbiRencontreDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -152,7 +176,17 @@ export function FbiMatchRow({
               </SubmitButton>
             </form>
           )}
-          {designState?.error && (
+          {confirming && (
+            <ConfirmModal
+              title={`Désigner ${confirmedReferee ? `${confirmedReferee.firstName} ${confirmedReferee.lastName}` : "cet arbitre"} malgré le conflit d'horaire ?`}
+              message={`${designState?.error ?? ""} Vous pouvez tout de même le désigner.`}
+              confirmLabel="Désigner quand même"
+              pending={isConfirming}
+              onConfirm={confirmConflict}
+              onCancel={() => setDismissed(designState)}
+            />
+          )}
+          {designState?.error && !designState.confirm && (
             <p role="alert" className="text-xs text-[var(--danger)] mt-1 max-w-xs whitespace-normal">
               {designState.error}
             </p>

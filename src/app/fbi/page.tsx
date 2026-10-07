@@ -109,10 +109,13 @@ export default async function FbiPage({
     const matchId = String(formData.get("matchId"));
     const refereeId = String(formData.get("refereeId") ?? "");
     if (!refereeId) return { error: "Choisissez un arbitre." };
-    const result = await designateReferee(matchId, refereeId, user.id);
+    const confirmConflict = formData.get("confirmConflict") === "1";
+    const result = await designateReferee(matchId, refereeId, user.id, { confirmConflict });
     revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
-    if (!result.ok) return { error: result.error };
+    if (!result.ok) {
+      return result.confirmable ? { error: result.error, confirm: true, refereeId } : { error: result.error };
+    }
     return { error: null, warning: result.warnings.length ? result.warnings.join(" ") : null };
   }
 

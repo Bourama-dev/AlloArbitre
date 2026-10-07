@@ -3,6 +3,7 @@ import { hasSchedulingConflict, isLaterMatchSameVenueSameDay } from "@/lib/dates
 import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
 import { checkQuotaRules } from "@/lib/designation-rules";
+import { SCHEDULING_CONFLICT_MESSAGE } from "@/lib/designation-messages";
 import { ageAt, divisionReasons, getDivisionRules, getSettings, maxDistanceReason } from "@/lib/algo-rules";
 import { coordKey, roadDistance, roadDistancesTo } from "@/lib/routing";
 import { loadAvailabilityIndex, type AvailabilityStatus } from "@/lib/availability";
@@ -575,13 +576,21 @@ export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number)
 export type DesignateResult =
   /** warnings : quotas dépassés (jour / semaine / week-end / TQR), non bloquants. */
   | { ok: true; warnings: string[] }
-  | { ok: false; error: string };
+  /**
+   * confirmable : refus que le répartiteur peut passer outre après confirmation
+   * (conflit d'horaire) ; on rappelle alors designateReferee avec
+   * `confirmConflict: true`. Les désignations automatiques ne confirment jamais.
+   */
+  | { ok: false; error: string; confirmable?: boolean };
+
+export type DesignateOptions = { confirmConflict?: boolean };
 
 /** Création de la désignation - toujours suite à une validation manuelle explicite. */
 export async function designateReferee(
   matchId: string,
   refereeId: string,
-  createdById: string
+  createdById: string,
+  opts: DesignateOptions = {}
 ): Promise<DesignateResult> {
   const { data: match, error: matchError } = await supabaseAdmin
     .from("Match")
@@ -679,8 +688,10 @@ export async function designateReferee(
       d
     )
   );
-  if (hasConflict) {
-    return { ok: false, error: "Cet arbitre a déjà un match sur ce créneau (ou pas assez de temps pour rejoindre l'autre gymnase)." };
+  // Conflit d'horaire : le répartiteur peut passer outre en confirmant (fenêtre
+  // de confirmation côté écran) ; sans confirmation, la désignation est refusée.
+  if (hasConflict && !opts.confirmConflict) {
+    return { ok: false, error: SCHEDULING_CONFLICT_MESSAGE, confirmable: true };
   }
 
   const quotaViolations = checkQuotaRules(
@@ -693,6 +704,7 @@ export async function designateReferee(
   // il est seulement signalé au répartiteur (alerte). Les suggestions et
   // l'auto-désignation, elles, n'en proposent pas.
   const warnings = quotaViolations.map((v) => v.message);
+  if (hasConflict) warnings.unshift("conflit d'horaire confirmé (créneau déjà occupé ou trajet entre gymnases trop court).");
 
   // Âge minimum et groupes de désignation de la division.
   const [divisionRules, settings] = await Promise.all([

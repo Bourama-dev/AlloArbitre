@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { addWeeks, weekRange, formatDayMonthFr } from "@/lib/dates";
 import { MatchesTable } from "@/components/matches-table";
 import { AlertToast } from "@/components/alert-toast";
+import { ConflictConfirm } from "@/components/conflict-confirm";
 import { SwipeNav } from "@/components/swipe-nav";
 import { CollapsibleFilters } from "@/components/collapsible-filters";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
@@ -25,6 +26,9 @@ export default async function MatchesPage({
     sort?: string;
     error?: string;
     alerte?: string;
+    confirm?: string;
+    matchId?: string;
+    refereeId?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -51,11 +55,16 @@ export default async function MatchesPage({
     if (!user) redirect("/login");
     const matchId = String(formData.get("matchId"));
     const refereeId = String(formData.get("refereeId"));
-    const result = await designateReferee(matchId, refereeId, user.id);
+    const confirmConflict = formData.get("confirmConflict") === "1";
+    const result = await designateReferee(matchId, refereeId, user.id, { confirmConflict });
     revalidatePath("/matchs");
     revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
     if (!result.ok) {
+      // Conflit d'horaire : la page demande confirmation au lieu d'afficher un refus.
+      if (result.confirmable) {
+        redirect(`/matchs?confirm=conflit&matchId=${encodeURIComponent(matchId)}&refereeId=${encodeURIComponent(refereeId)}`);
+      }
       redirect(`/matchs?error=${encodeURIComponent(result.error)}`);
     }
     if (result.warnings.length) {
@@ -84,6 +93,16 @@ export default async function MatchesPage({
     <div className="space-y-3 lg:space-y-4">
       {params.error && <AlertToast message={decodeURIComponent(params.error)} variant="error" />}
       {params.alerte && <AlertToast message={decodeURIComponent(params.alerte)} variant="warning" />}
+      {params.confirm === "conflit" && params.matchId && params.refereeId && (
+        <ConflictConfirm
+          refereeName={(() => {
+            const r = referees.find((x) => x.id === params.refereeId);
+            return r ? `${r.firstName} ${r.lastName}` : "cet arbitre";
+          })()}
+          fields={{ matchId: params.matchId, refereeId: params.refereeId }}
+          action={designate}
+        />
+      )}
 
       <div className="week-bar">
         <Link href={weekHref(weekOffset - 1)} className="week-arrow" aria-label="Semaine précédente">

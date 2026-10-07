@@ -1,3 +1,4 @@
+import { ConflictConfirm } from "@/components/conflict-confirm";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
@@ -19,10 +20,10 @@ export default async function MatchDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; alerte?: string }>;
+  searchParams: Promise<{ error?: string; alerte?: string; confirm?: string; refereeId?: string }>;
 }) {
   const { id } = await params;
-  const { error, alerte } = await searchParams;
+  const { error, alerte, confirm, refereeId: confirmRefereeId } = await searchParams;
 
   const match = await getMatchById(id);
   if (!match) notFound();
@@ -49,11 +50,16 @@ export default async function MatchDetailPage({
     const user = await getCurrentUser();
     if (!user) return;
     const refereeId = String(formData.get("refereeId"));
-    const result = await designateReferee(id, refereeId, user.id);
+    const confirmConflict = formData.get("confirmConflict") === "1";
+    const result = await designateReferee(id, refereeId, user.id, { confirmConflict });
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
     revalidatePath("/fbi");
     if (!result.ok) {
+      // Conflit d'horaire : la page demande confirmation au lieu d'afficher un refus.
+      if (result.confirmable) {
+        redirect(`/matchs/${id}?confirm=conflit&refereeId=${encodeURIComponent(refereeId)}`);
+      }
       redirect(`/matchs/${id}?error=${encodeURIComponent(result.error)}`);
     }
     if (result.warnings.length) {
@@ -108,6 +114,16 @@ export default async function MatchDetailPage({
 
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
       {alerte && <AlertToast message={decodeURIComponent(alerte)} variant="warning" />}
+      {confirm === "conflit" && confirmRefereeId && (
+        <ConflictConfirm
+          refereeName={(() => {
+            const r = [...eligible, ...ineligible].find((x) => x.id === confirmRefereeId);
+            return r ? `${r.firstName} ${r.lastName}` : "cet arbitre";
+          })()}
+          fields={{ refereeId: confirmRefereeId }}
+          action={designate}
+        />
+      )}
 
       <section>
         <h2 className="text-sm font-bold mb-2">
