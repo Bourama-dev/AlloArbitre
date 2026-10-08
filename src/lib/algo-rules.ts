@@ -3,8 +3,6 @@
  * /admin/niveaux et /admin/groupes) :
  * - distance kilométrique maximale domicile -> gymnase (Settings) ;
  * - âge minimum de l'arbitre par division (CompetitionLevel.minRefereeAge) ;
- * - âge minimum FFBB (15 ans) et catégories ouvertes aux arbitres de 15 ans
- *   (Règlement des officiels 2026-2027, art. 5.6 et annexe 15) ;
  * - groupes de désignation : une division rattachée à au moins un groupe
  *   n'est ouverte qu'aux arbitres membres d'un de ces groupes. Une division
  *   sans groupe reste ouverte à tous (comportement historique).
@@ -63,24 +61,13 @@ export function ageAt(birthDate: string | null | undefined, date: Date): number 
   return age;
 }
 
-/** Âge minimum pour être désigné par le comité (FFBB, art. 5.6). */
-export const MIN_DESIGNATION_AGE = 15;
+export { divisionAgeCategory } from "@/lib/algo-rules-shared";
 
 /**
- * Catégorie d'âge d'une division d'après son libellé : « U15 », « RMU18 »,
- * « TQR1_U15M » -> 15 ; U20/U21 -> 20/21 ; seniors (« Seniors D1 », PRM/PRF,
- * DM2...) -> 99. Libellé non reconnu -> null (aucun contrôle de catégorie).
+ * Raisons bloquantes liées à la division (âge minimum fixé pour la division,
+ * groupes). Les interdictions par niveau / âge d'arbitre sont des règles
+ * modifiables (Admin > Règles, voir checkRefereeRules). Vide = autorisé.
  */
-export function divisionAgeCategory(label: string | null | undefined): number | null {
-  if (!label) return null;
-  const l = label.trim().toUpperCase();
-  const u = l.match(/U(\d{1,2})(?!\d)/);
-  if (u) return Number(u[1]);
-  if (/SENIOR|^PR[MF]|^D[MF]\d/.test(l)) return 99;
-  return null;
-}
-
-/** Raisons bloquantes liées à la division (âge, groupe). Vide = autorisé. */
 export function divisionReasons(
   rules: DivisionRules,
   referee: { birthDate: string | null; groupIds: string[] },
@@ -88,14 +75,6 @@ export function divisionReasons(
 ): string[] {
   const reasons: string[] = [];
   const refereeAge = ageAt(referee.birthDate, matchDate);
-  if (refereeAge != null && refereeAge < MIN_DESIGNATION_AGE) {
-    reasons.push(`Trop jeune : ${refereeAge} ans (désignation possible dès ${MIN_DESIGNATION_AGE} ans révolus, règlement FFBB)`);
-  } else if (refereeAge === MIN_DESIGNATION_AGE) {
-    const category = divisionAgeCategory(rules.label);
-    if (category != null && category >= 20) {
-      reasons.push("Arbitre de 15 ans : pas de désignation sur un match U20, U21 ou senior (règlement FFBB, annexe 15)");
-    }
-  }
   if (rules.minRefereeAge != null) {
     const age = refereeAge;
     if (age != null && age < rules.minRefereeAge) {

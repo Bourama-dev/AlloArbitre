@@ -10,7 +10,8 @@
  */
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { hasSchedulingConflict } from "@/lib/dates";
-import { checkQuotaRules } from "@/lib/designation-rules";
+import { checkQuotaRules, checkRefereeRules } from "@/lib/designation-rules";
+import { getRules } from "@/lib/rules-store";
 import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { distanceKm } from "@/lib/geocoding";
 import { divisionReasons, getSettings, maxDistanceReason, type DivisionRules } from "@/lib/algo-rules";
@@ -103,8 +104,9 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
   const matches = (rawMatches ?? []) as unknown as RawMatch[];
 
   const refereeIds = [...new Set(matches.flatMap((m) => m.designations.map((d) => d.refereeId)))];
-  const [settings, { data: groupDivisions, error: gdError }] = await Promise.all([
+  const [settings, designationRules, { data: groupDivisions, error: gdError }] = await Promise.all([
     getSettings(),
+    getRules(),
     supabaseAdmin.from("RefereeGroupDivision").select("groupId, competitionLevelId, group:RefereeGroup(label)"),
   ]);
   if (gdError) throw gdError;
@@ -204,8 +206,16 @@ export async function runDesignationControls(from: Date, to: Date): Promise<{
       }
       const availabilityBlock = availability.verdict(r.id, date).block;
       if (availabilityBlock) problems.push(availabilityBlock);
-      for (const v of checkQuotaRules(date, m.durationMinutes, others, isTqr)) {
-        if (v.severity === "bloquant") problems.push(v.message);
+      for (const v of checkQuotaRules(date, m.durationMinutes, others, isTqr, designationRules)) {
+        problems.push(v.message);
+      }
+      for (const v of checkRefereeRules(
+        designationRules,
+        { birthDate: r.birthDate, levelLabel: refLevel?.label ?? null },
+        { label: level?.label ?? null },
+        date
+      )) {
+        problems.push(v.message);
       }
       const sameVenue = others.some(
         (o) =>

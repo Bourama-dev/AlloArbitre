@@ -25,6 +25,7 @@ const more: AppNavLink[] = [
 ];
 
 const adminLinks: AppNavLink[] = [
+  { href: "/admin/regles", label: "Règles", icon: "admin" },
   { href: "/admin/niveaux", label: "Niveaux", icon: "admin" },
   { href: "/admin/groupes", label: "Groupes", icon: "admin" },
   { href: "/admin/parametres", label: "Paramètres", icon: "admin" },

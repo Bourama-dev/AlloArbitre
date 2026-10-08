@@ -2,7 +2,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { hasSchedulingConflict, isLaterMatchSameVenueSameDay } from "@/lib/dates";
 import { ownClubMessage, refereeOwnClubTeam } from "@/lib/club-rules";
 import { distanceKm, estimatePayment } from "@/lib/geocoding";
-import { checkQuotaRules } from "@/lib/designation-rules";
+import { checkQuotaRules, checkRefereeRules, type Rule } from "@/lib/designation-rules";
+import { getRules } from "@/lib/rules-store";
 import { SCHEDULING_CONFLICT_MESSAGE } from "@/lib/designation-messages";
 import { ageAt, divisionReasons, getDivisionRules, getSettings, maxDistanceReason } from "@/lib/algo-rules";
 import { coordKey, roadDistance, roadDistancesTo } from "@/lib/routing";
@@ -222,6 +223,8 @@ export type CandidateContext = {
   /** Nombre de désignations à venir par arbitre (équité). */
   upcomingByReferee: Map<string, number>;
   settings: Awaited<ReturnType<typeof getSettings>>;
+  /** Règles de désignation actives (Admin > Règles). */
+  rules: Rule[];
   availability: Awaited<ReturnType<typeof loadAvailabilityIndex>>;
   divisionRules: Map<string, Promise<Awaited<ReturnType<typeof getDivisionRules>>>>;
   now: Date;
@@ -250,7 +253,7 @@ export async function loadCandidateContext(from: Date, to: Date): Promise<Candid
   const windowStart = new Date(from.getTime() - CONTEXT_MARGIN_MS).toISOString();
   const windowEnd = new Date(to.getTime() + CONTEXT_MARGIN_MS).toISOString();
 
-  const [refereeRows, windowRows, upcomingRows, unavailabilityRows, settings] = await Promise.all([
+  const [refereeRows, windowRows, upcomingRows, unavailabilityRows, settings, rules] = await Promise.all([
     fetchPaged<{
       id: string;
       firstName: string;
@@ -305,6 +308,7 @@ export async function loadCandidateContext(from: Date, to: Date): Promise<Candid
         .range(f, t)
     ),
     getSettings(),
+    getRules(),
   ]);
 
   const availability = await loadAvailabilityIndex(
@@ -348,6 +352,7 @@ export async function loadCandidateContext(from: Date, to: Date): Promise<Candid
     designationsByReferee,
     upcomingByReferee,
     settings,
+    rules,
     availability,
     divisionRules: new Map(),
     now,
@@ -445,10 +450,20 @@ export async function evaluateMatchCandidates(
       if (matchAlreadyHasMinor && isMinorAt(c.birthDate, match.date)) {
         reasons.push("Mineur : un autre mineur est déjà désigné sur ce match");
       }
-      const quotaViolations = checkQuotaRules(match.date, match.durationMinutes, activeDesignations, isTqr).filter(
-        (v) => v.severity === "bloquant"
-      );
-      for (const v of quotaViolations) reasons.push(v.message);
+      // Règles modifiables (Admin > Règles) : quotas, repos TQR, interdictions
+      // par niveau / âge d'arbitre. Quelle que soit leur gravité, un arbitre qui
+      // les enfreint n'est jamais proposé (la gravité ne joue qu'en désignation manuelle).
+      for (const v of checkQuotaRules(match.date, match.durationMinutes, activeDesignations, isTqr, ctx.rules)) {
+        reasons.push(v.message);
+      }
+      for (const v of checkRefereeRules(
+        ctx.rules,
+        { birthDate: c.birthDate, levelLabel: c.level.label },
+        { label: match.competitionLevel.label },
+        match.date
+      )) {
+        reasons.push(v.message);
+      }
 
       const oneWayKm =
         hasMatchCoords && c.lat != null && c.lng != null
@@ -605,7 +620,7 @@ export async function designateReferee(
 
   const { data: referee, error: refereeError } = await supabaseAdmin
     .from("Referee")
-    .select("zone, birthDate, lat, lng, groups:RefereeGroupMember(groupId)")
+    .select("zone, birthDate, lat, lng, level:RefereeLevel(label), groups:RefereeGroupMember(groupId)")
     .eq("id", refereeId)
     .maybeSingle();
   if (refereeError) throw refereeError;
@@ -694,16 +709,25 @@ export async function designateReferee(
     return { ok: false, error: SCHEDULING_CONFLICT_MESSAGE, confirmable: true };
   }
 
-  const quotaViolations = checkQuotaRules(
-    matchDate,
-    match.durationMinutes,
-    existingMatches,
-    isTqr
-  ).filter((v) => v.severity === "bloquant");
-  // Désignation manuelle : un quota dépassé n'empêche pas la désignation,
-  // il est seulement signalé au répartiteur (alerte). Les suggestions et
-  // l'auto-désignation, elles, n'en proposent pas.
-  const warnings = quotaViolations.map((v) => v.message);
+  // Règles modifiables (Admin > Règles) : une règle « bloquante » refuse la
+  // désignation manuelle, une règle « avertissement » l'enregistre avec une
+  // alerte. Les suggestions et l'auto-désignation, elles, n'en proposent jamais.
+  const rules = await getRules();
+  const refereeLevelRaw = referee?.level as unknown;
+  const refereeLevelLabel =
+    ((Array.isArray(refereeLevelRaw) ? refereeLevelRaw[0] : refereeLevelRaw) as { label: string } | null)?.label ?? null;
+  const ruleViolations = [
+    ...checkQuotaRules(matchDate, match.durationMinutes, existingMatches, isTqr, rules),
+    ...checkRefereeRules(
+      rules,
+      { birthDate: (referee?.birthDate as string | null) ?? null, levelLabel: refereeLevelLabel },
+      { label: competitionLevel?.label ?? null },
+      matchDate
+    ),
+  ];
+  const blockingRules = ruleViolations.filter((v) => v.severity === "bloquant");
+  if (blockingRules.length > 0) return { ok: false, error: blockingRules.map((v) => v.message).join(" ") };
+  const warnings = ruleViolations.map((v) => v.message);
   if (hasConflict) warnings.unshift("conflit d'horaire confirmé (créneau déjà occupé ou trajet entre gymnases trop court).");
 
   // Âge minimum et groupes de désignation de la division.

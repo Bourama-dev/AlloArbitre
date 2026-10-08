@@ -257,3 +257,21 @@ create table "RefereeActivationAttempt" (
 -- modification de raw_app_meta_data (migration profil_arbitre_sync_app_metadata).
 -- create trigger on_auth_user_app_metadata_updated after update of raw_app_meta_data
 --   on auth.users for each row execute function public.sync_profile_role_from_app_metadata();
+
+-- Règles de désignation modifiables depuis Admin > Règles (migration
+-- designation_rules_table). Les règles de base (builtin) sont semées par la
+-- migration ; sans table ou vide, l'application retombe sur DEFAULT_RULES.
+create table "DesignationRule" (
+  id text primary key,
+  kind text not null check (kind in ('quota', 'tqr-repos', 'forbid')),
+  label text not null,
+  description text not null default '',
+  severity text not null default 'bloquant' check (severity in ('bloquant', 'avertissement')),
+  active boolean not null default true,
+  builtin boolean not null default false,
+  params jsonb not null default '{}'::jsonb,
+  position integer not null default 0,
+  "createdAt" timestamptz not null default now(),
+  "updatedAt" timestamptz not null default now()
+);
+alter table "DesignationRule" enable row level security;
