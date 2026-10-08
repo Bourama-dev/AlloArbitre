@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { computeSeasonStats, currentSeasonStartYear, parseSeason } from "@/lib/stats";
+import { ReportTabs } from "@/components/report-tabs";
 import { PrintButton } from "@/components/print-button";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
       <style>{STATS_CSS}</style>
 
       <div className="rx-no-print space-y-3">
+        <ReportTabs current="statistiques" />
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Statistiques</h1>

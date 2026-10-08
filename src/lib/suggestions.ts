@@ -48,7 +48,7 @@ type RawMatchForSuggestion = {
   competitionLevel: {
     id: string;
     label: string;
-    /** false = division non désignée par le CD45 : pas d'auto-désignation (cf. /admin/niveaux). */
+    /** false = division non désignée par le CD45 : pas d'auto-désignation (cf. /admin/divisions). */
     autoDesignation: boolean;
     mapping: { minRefereeLevel: { id: string; label: string; rank: number } } | null;
   };
@@ -59,7 +59,7 @@ type RawMatchForSuggestion = {
  * PostgREST renvoie la relation to-one `mapping` tantôt comme un objet,
  * tantôt comme un tableau à 0 ou 1 élément selon l'état de son cache de
  * schéma - normalise les deux formes (même correctif que sur
- * /admin/niveaux) pour ne jamais rater une correspondance pourtant bien
+ * /admin/divisions) pour ne jamais rater une correspondance pourtant bien
  * enregistrée en base.
  */
 function normalizeMapping(

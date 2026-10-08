@@ -193,8 +193,8 @@ export const SYSTEM_RULES: SystemRule[] = [
     label: "Âge minimum par division",
     description:
       "Si un âge minimum est fixé pour une division, un arbitre plus jeune à la date du match ne peut pas y être désigné.",
-    href: "/admin/niveaux",
-    hrefLabel: "Admin > Niveaux",
+    href: "/admin/divisions?onglet=niveaux",
+    hrefLabel: "Divisions et groupes",
   },
   {
     id: "disponibilites",
@@ -209,8 +209,8 @@ export const SYSTEM_RULES: SystemRule[] = [
     label: "Groupes de désignation",
     description:
       "Une division rattachée à un ou plusieurs groupes n'est ouverte qu'aux arbitres membres de ces groupes. Une division sans groupe reste ouverte à tous.",
-    href: "/admin/groupes",
-    hrefLabel: "Admin > Groupes",
+    href: "/admin/divisions?onglet=groupes",
+    hrefLabel: "Divisions et groupes",
   },
 ];
 

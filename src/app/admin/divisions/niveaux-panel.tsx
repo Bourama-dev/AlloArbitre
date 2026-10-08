@@ -1,0 +1,461 @@
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "@/lib/current-user";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { AlertToast } from "@/components/alert-toast";
+
+export const dynamic = "force-dynamic";
+
+type CompetitionLevelRow = {
+  id: string;
+  label: string;
+  autoDesignation: boolean;
+  minRefereeAge: number | null;
+  mapping: { minRefereeLevel: { id: string; label: string } } | null;
+};
+
+/**
+ * PostgREST renvoie `mapping` tantôt comme un objet (relation to-one bien
+ * détectée), tantôt comme un tableau (à 0 ou 1 élément) selon l'état du
+ * cache de schéma - normalise les deux formes pour ne jamais rater une
+ * correspondance pourtant bien enregistrée en base.
+ */
+function normalizeMapping(
+  raw: unknown
+): { minRefereeLevel: { id: string; label: string } } | null {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return (raw[0] as { minRefereeLevel: { id: string; label: string } }) ?? null;
+  return raw as { minRefereeLevel: { id: string; label: string } };
+}
+
+export async function LevelMappingPanel({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const user = await getCurrentUser();
+  if (user?.role !== "ADMIN") {
+    redirect("/matchs");
+  }
+
+  const { error } = await searchParams;
+
+  const [{ data: competitionLevels, error: clError }, { data: refereeLevels, error: rlError }] =
+    await Promise.all([
+      supabaseAdmin
+        .from("CompetitionLevel")
+        .select("id, label, autoDesignation, minRefereeAge, mapping:LevelMapping(minRefereeLevel:RefereeLevel(id, label))")
+        .order("label", { ascending: true }),
+      supabaseAdmin.from("RefereeLevel").select("id, label, rank").order("rank", { ascending: true }),
+    ]);
+  if (clError) throw clError;
+  if (rlError) throw rlError;
+
+  const competitionLevelRows: CompetitionLevelRow[] = (
+    (competitionLevels ?? []) as unknown as {
+      id: string;
+      label: string;
+      autoDesignation: boolean;
+      minRefereeAge: number | null;
+      mapping: unknown;
+    }[]
+  ).map((c) => ({
+    id: c.id,
+    label: c.label,
+    autoDesignation: c.autoDesignation,
+    minRefereeAge: c.minRefereeAge,
+    mapping: normalizeMapping(c.mapping),
+  }));
+
+  // Divisions désignées par le CD45 (auto-désignation). Seniors : PRF/PRM
+  // seulement ; DM2-DM4 à la main pour les clubs demandeurs.
+  async function toggleAutoDesignation(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+    const id = String(formData.get("competitionLevelId"));
+    const value = formData.get("autoDesignation") === "true";
+    const { error } = await supabaseAdmin.from("CompetitionLevel").update({ autoDesignation: value }).eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/divisions");
+  }
+
+  // Âge minimum de l'arbitre (à la date du match) sur cette division ; vide = pas de contrôle.
+  async function saveMinAge(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+    const id = String(formData.get("competitionLevelId"));
+    const raw = String(formData.get("minRefereeAge") ?? "").trim();
+    const value = raw === "" ? null : Number(raw);
+    if (value != null && (!Number.isInteger(value) || value < 10 || value > 99)) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent("Âge minimum : un entier entre 10 et 99, ou vide.")}`);
+    }
+    const { error } = await supabaseAdmin.from("CompetitionLevel").update({ minRefereeAge: value }).eq("id", id);
+    if (error) throw error;
+    revalidatePath("/admin/divisions");
+  }
+
+  async function saveMapping(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+
+    const competitionLevelId = String(formData.get("competitionLevelId"));
+    const minRefereeLevelId = String(formData.get("minRefereeLevelId"));
+
+    const { error } = await supabaseAdmin
+      .from("LevelMapping")
+      .upsert({ competitionLevelId, minRefereeLevelId }, { onConflict: "competitionLevelId" });
+    if (error) throw error;
+    revalidatePath("/admin/divisions");
+  }
+
+  async function addRefereeLevel(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+
+    const label = String(formData.get("label") ?? "").trim();
+    const rank = Number(formData.get("rank"));
+    if (!label || !rank) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent("Libellé et rang requis.")}`);
+    }
+
+    const { error } = await supabaseAdmin.from("RefereeLevel").insert({ label, rank });
+    if (error) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent(error.message)}`);
+    }
+    revalidatePath("/admin/divisions");
+  }
+
+  async function renameRefereeLevel(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+
+    const id = String(formData.get("id"));
+    const label = String(formData.get("label") ?? "").trim();
+    const rank = Number(formData.get("rank"));
+    if (!label || !rank) return;
+
+    const { error } = await supabaseAdmin
+      .from("RefereeLevel")
+      .update({ label, rank })
+      .eq("id", id);
+    if (error) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent(error.message)}`);
+    }
+    revalidatePath("/admin/divisions");
+  }
+
+  async function deleteRefereeLevel(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+    const id = String(formData.get("id"));
+
+    const { error } = await supabaseAdmin.from("RefereeLevel").delete().eq("id", id);
+    if (error) {
+      redirect(
+        `/admin/divisions?onglet=niveaux&error=${encodeURIComponent(
+          "Suppression impossible : ce niveau est utilisé par des arbitres ou une correspondance."
+        )}`
+      );
+    }
+    revalidatePath("/admin/divisions");
+  }
+
+  async function addCompetitionLevel(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+
+    const label = String(formData.get("label") ?? "").trim();
+    if (!label) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent("Libellé requis.")}`);
+    }
+
+    const { error } = await supabaseAdmin.from("CompetitionLevel").insert({ label });
+    if (error) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent(error.message)}`);
+    }
+    revalidatePath("/admin/divisions");
+  }
+
+  async function renameCompetitionLevel(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+
+    const id = String(formData.get("id"));
+    const label = String(formData.get("label") ?? "").trim();
+    if (!label) return;
+
+    const { error } = await supabaseAdmin.from("CompetitionLevel").update({ label }).eq("id", id);
+    if (error) {
+      redirect(`/admin/divisions?onglet=niveaux&error=${encodeURIComponent(error.message)}`);
+    }
+    revalidatePath("/admin/divisions");
+  }
+
+  async function deleteCompetitionLevel(formData: FormData) {
+    "use server";
+    const user = await getCurrentUser();
+    if (user?.role !== "ADMIN") return;
+    const id = String(formData.get("id"));
+
+    const { error } = await supabaseAdmin.from("CompetitionLevel").delete().eq("id", id);
+    if (error) {
+      redirect(
+        `/admin/divisions?onglet=niveaux&error=${encodeURIComponent(
+          "Suppression impossible : ce niveau est utilisé par des matchs existants."
+        )}`
+      );
+    }
+    revalidatePath("/admin/divisions");
+  }
+
+  return (
+    <div className="space-y-8">
+      {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
+
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight">
+          Correspondance niveaux de compétition → niveau d&apos;arbitre minimum
+        </h2>
+        <p className="text-sm text-[var(--muted)]">
+          Cette table pilote le filtre de niveau de l&apos;algorithme de suggestion
+          d&apos;arbitres. Modifiez-la librement, rien n&apos;est figé dans le code.
+        </p>
+
+        <div className="table-shell table-cards overflow-x-auto mt-3">
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="px-3 py-2 font-medium">Niveau de compétition</th>
+                <th className="px-3 py-2 font-medium">Niveau d&apos;arbitre minimum</th>
+                <th className="px-3 py-2 font-medium" title="Inclus dans l'auto-désignation. Sinon : désignation manuelle uniquement (ex. club qui en fait la demande).">
+                  Désigné par le CD45
+                </th>
+                <th className="px-3 py-2 font-medium" title="Âge minimum de l'arbitre à la date du match. Vide = pas de contrôle.">
+                  Âge min. arbitre
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {competitionLevelRows.map((c) => (
+                <tr key={c.id}>
+                  <td className="tc-team px-3 py-2 whitespace-nowrap">{c.label}</td>
+                  <td className="px-3 py-2" data-label="Niveau d&apos;arbitre minimum">
+                    <form action={saveMapping} className="flex items-center gap-2">
+                      <input type="hidden" name="competitionLevelId" value={c.id} />
+                      <select
+                        name="minRefereeLevelId"
+                        defaultValue={c.mapping?.minRefereeLevel?.id ?? ""}
+                        className="input"
+                      >
+                        <option value="" disabled>
+                          Non défini
+                        </option>
+                        {refereeLevels.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="submit"
+                        className="btn btn-primary text-xs"
+                      >
+                        Enregistrer
+                      </button>
+                    </form>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap" data-label="Désigné par le CD45">
+                    <form action={toggleAutoDesignation} className="flex items-center gap-2">
+                      <input type="hidden" name="competitionLevelId" value={c.id} />
+                      <input type="hidden" name="autoDesignation" value={String(!c.autoDesignation)} />
+                      <span className={c.autoDesignation ? "text-[var(--success)]" : "text-[var(--muted)]"}>
+                        {c.autoDesignation ? "Oui (auto)" : "Non - à la main"}
+                      </span>
+                      <button type="submit" className="btn btn-secondary text-xs">
+                        {c.autoDesignation ? "Exclure" : "Inclure"}
+                      </button>
+                    </form>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap" data-label="Âge min. arbitre">
+                    <form action={saveMinAge} className="flex items-center gap-2">
+                      <input type="hidden" name="competitionLevelId" value={c.id} />
+                      <input
+                        type="number"
+                        name="minRefereeAge"
+                        min={10}
+                        max={99}
+                        defaultValue={c.minRefereeAge ?? ""}
+                        placeholder="-"
+                        className="input w-20"
+                      />
+                      <button type="submit" className="btn btn-secondary text-xs">
+                        OK
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-base font-semibold">Niveaux d&apos;arbitre</h2>
+        <p className="text-sm text-[var(--muted)]">
+          Rang 1 = niveau le plus élevé (rang croissant = niveau plus bas). La
+          suppression échoue si des arbitres ou une correspondance utilisent
+          encore ce niveau.
+        </p>
+
+        <div className="table-shell overflow-x-auto mt-3">
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="px-3 py-2 font-medium">Libellé</th>
+                <th className="px-3 py-2 font-medium">Rang</th>
+                <th className="px-3 py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {refereeLevels.map((l) => (
+                <tr key={l.id}>
+                  <td colSpan={3} className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <form action={renameRefereeLevel} className="flex items-center gap-2 flex-1">
+                        <input type="hidden" name="id" value={l.id} />
+                        <input
+                          name="label"
+                          defaultValue={l.label}
+                          className="input flex-1"
+                        />
+                        <input
+                          type="number"
+                          name="rank"
+                          defaultValue={l.rank}
+                          className="input w-20"
+                        />
+                        <button
+                          type="submit"
+                          className="btn btn-primary text-xs"
+                        >
+                          Enregistrer
+                        </button>
+                      </form>
+                      <form action={deleteRefereeLevel}>
+                        <input type="hidden" name="id" value={l.id} />
+                        <button
+                          type="submit"
+                          className="btn-danger text-xs whitespace-nowrap"
+                        >
+                          Supprimer
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <form
+          action={addRefereeLevel}
+          className="flex items-center gap-2 mt-3 card p-3"
+        >
+          <input
+            name="label"
+            placeholder="Libellé (ex: DEP-2)"
+            required
+            className="input flex-1"
+          />
+          <input
+            type="number"
+            name="rank"
+            placeholder="Rang"
+            required
+            className="input w-24"
+          />
+          <button
+            type="submit"
+            className="btn btn-primary text-xs"
+          >
+            Ajouter
+          </button>
+        </form>
+      </div>
+
+      <div>
+        <h2 className="text-base font-semibold">Niveaux de compétition</h2>
+        <p className="text-sm text-[var(--muted)]">
+          La suppression échoue si des matchs existants utilisent encore ce
+          niveau.
+        </p>
+
+        <div className="table-shell overflow-x-auto mt-3">
+          <table className="w-full text-sm">
+            <tbody>
+              {competitionLevelRows.map((c) => (
+                <tr key={c.id}>
+                  <td className="px-3 py-2">
+                    <form action={renameCompetitionLevel} className="flex items-center gap-2">
+                      <input type="hidden" name="id" value={c.id} />
+                      <input
+                        name="label"
+                        defaultValue={c.label}
+                        className="input flex-1"
+                      />
+                      <button
+                        type="submit"
+                        className="btn btn-primary text-xs"
+                      >
+                        Enregistrer
+                      </button>
+                    </form>
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <form action={deleteCompetitionLevel}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <button
+                        type="submit"
+                        className="btn-danger text-xs"
+                      >
+                        Supprimer
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <form
+          action={addCompetitionLevel}
+          className="flex items-center gap-2 mt-3 card p-3"
+        >
+          <input
+            name="label"
+            placeholder="Libellé (ex: TQR1_U15M)"
+            required
+            className="input flex-1"
+          />
+          <button
+            type="submit"
+            className="btn btn-primary text-xs"
+          >
+            Ajouter
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

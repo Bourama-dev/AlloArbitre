@@ -196,8 +196,8 @@ export default async function MatchDetailPage({
               Aucun niveau d&apos;arbitre minimum n&apos;est configuré pour «&nbsp;{match.competitionLevel.label}&nbsp;».
               Toutes les suggestions sont affichées sans filtre de niveau. Vous pouvez
               corriger cela dans{" "}
-              <Link href="/admin/niveaux" className="underline">
-                Admin niveaux
+              <Link href="/admin/divisions?onglet=niveaux" className="underline">
+                Divisions et groupes
               </Link>
               .
             </p>

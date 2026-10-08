@@ -94,7 +94,7 @@ soit via `/signup` ou créée manuellement depuis le dashboard Supabase.
 Supabase > Authentication > Users > Add user (cocher "Auto Confirm User"
 pour se connecter immédiatement sans email de confirmation).
 
-**Promouvoir un compte en ADMIN** (accès à `/admin/niveaux`) :
+**Promouvoir un compte en ADMIN** (accès à `/admin/divisions`) :
 
 ```sql
 UPDATE "Profile" SET role = 'ADMIN' WHERE email = 'quelquun@example.com';

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CollapsibleFilters } from "@/components/collapsible-filters";
 import { InfoText } from "@/components/info-text";
 import { findMatches, listActiveReferees } from "@/lib/matches";
@@ -50,6 +51,7 @@ export default async function FbiPage({
   searchParams: Promise<{ du?: string; au?: string; groupe?: string; code?: string; etat?: string; search?: string }>;
 }) {
   const params = await searchParams;
+  const isAdmin = (await getCurrentUser())?.role === "ADMIN";
 
   let du = parseIsoDay(params.du) ?? parseIsoDay(todayParis())!;
   let au = parseIsoDay(params.au) ?? new Date(du.getTime() + (DEFAULT_DAYS - 1) * 86_400_000);
@@ -121,12 +123,19 @@ export default async function FbiPage({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Rencontres</h1>
-        <InfoText className="mt-0.5">
-          Matchs AlloArbitre sur la période, avec l&apos;état de la désignation FBI en un clic sur une ligne. Période
-          limitée à {MAX_DAYS} jours.
-        </InfoText>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Rencontres</h1>
+          <InfoText className="mt-0.5">
+            Matchs AlloArbitre sur la période, avec l&apos;état de la désignation FBI en un clic sur une ligne. Période
+            limitée à {MAX_DAYS} jours.
+          </InfoText>
+        </div>
+        {isAdmin && (
+          <Link href="/admin/import" className="chip-btn shrink-0">
+            Importer un fichier
+          </Link>
+        )}
       </div>
 
       <CollapsibleFilters activeCount={[groupe, code, status !== "toutes" ? status : "", search].filter(Boolean).length}>

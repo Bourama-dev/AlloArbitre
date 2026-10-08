@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NavIcon, type NavIconName } from "@/components/nav-icons";
 
-export type AppNavLink = { href: string; label: string; shortLabel?: string; icon: NavIconName };
+export type AppNavLink = { href: string; label: string; shortLabel?: string; icon: NavIconName; also?: string[] };
 
 type Props = {
   /** Onglets de la barre du bas (4 maximum) : aussi le haut du rail latéral sur grand écran. */
@@ -17,8 +17,8 @@ type Props = {
   logoutAction: () => void;
 };
 
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(href + "/");
+function isActive(pathname: string, href: string, also: string[] = []) {
+  return [href, ...also].some((h) => pathname === h || pathname.startsWith(h + "/"));
 }
 
 function buzz() {
@@ -39,7 +39,7 @@ export function AppNav({ tabs, more, admin, userLabel, logoutAction }: Props) {
 
   const allSecondary = [...more, ...(admin ?? [])];
   const moreActive =
-    pathname.startsWith("/compte") || allSecondary.some((l) => isActive(pathname, l.href));
+    pathname.startsWith("/compte") || allSecondary.some((l) => isActive(pathname, l.href, l.also));
 
   // Fermeture avec la touche Échap, et page figée derrière la feuille ouverte.
   useEffect(() => {
@@ -85,7 +85,7 @@ export function AppNav({ tabs, more, admin, userLabel, logoutAction }: Props) {
           <ul className="space-y-1">
             {[...tabs, ...more].map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className="side-link" data-active={isActive(pathname, l.href)}>
+                <Link href={l.href} className="side-link" data-active={isActive(pathname, l.href, l.also)}>
                   <NavIcon name={l.icon} className="w-5 h-5 shrink-0" />
                   {l.label}
                 </Link>
@@ -98,7 +98,7 @@ export function AppNav({ tabs, more, admin, userLabel, logoutAction }: Props) {
               <ul className="space-y-1">
                 {admin.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="side-link" data-active={isActive(pathname, l.href)}>
+                    <Link href={l.href} className="side-link" data-active={isActive(pathname, l.href, l.also)}>
                       <NavIcon name={l.icon} className="w-5 h-5 shrink-0" />
                       {l.label}
                     </Link>
@@ -125,7 +125,7 @@ export function AppNav({ tabs, more, admin, userLabel, logoutAction }: Props) {
       {/* ---- Barre du bas (mobile / tablette) ---- */}
       <nav className="bottom-nav" aria-label="Navigation principale">
         {tabs.map((l) => {
-          const active = isActive(pathname, l.href);
+          const active = isActive(pathname, l.href, l.also);
           return (
             <Link
               key={l.href}
@@ -195,7 +195,7 @@ export function AppNav({ tabs, more, admin, userLabel, logoutAction }: Props) {
             <ul className="grid grid-cols-3 gap-2 p-4">
               {more.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="tile" data-active={isActive(pathname, l.href)} onClick={() => setSheetOpen(false)}>
+                  <Link href={l.href} className="tile" data-active={isActive(pathname, l.href, l.also)} onClick={() => setSheetOpen(false)}>
                     <NavIcon name={l.icon} className="w-7 h-7" />
                     <span>{l.label}</span>
                   </Link>
@@ -209,7 +209,7 @@ export function AppNav({ tabs, more, admin, userLabel, logoutAction }: Props) {
                 <ul className="grid grid-cols-3 gap-2 p-4 pt-2">
                   {admin.map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} className="tile" data-active={isActive(pathname, l.href)} onClick={() => setSheetOpen(false)}>
+                      <Link href={l.href} className="tile" data-active={isActive(pathname, l.href, l.also)} onClick={() => setSheetOpen(false)}>
                         <NavIcon name={l.icon} className="w-7 h-7" />
                         <span>{l.label}</span>
                       </Link>

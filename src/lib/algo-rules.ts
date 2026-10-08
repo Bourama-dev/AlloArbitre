@@ -1,6 +1,6 @@
 /**
  * Règles de désignation paramétrables par le comité (voir /reglement,
- * /admin/niveaux et /admin/groupes) :
+ * /admin/divisions) :
  * - distance kilométrique maximale domicile -> gymnase (Settings) ;
  * - âge minimum de l'arbitre par division (CompetitionLevel.minRefereeAge) ;
  * - groupes de désignation : une division rattachée à au moins un groupe
