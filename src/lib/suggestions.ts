@@ -218,7 +218,7 @@ export type CandidateContext = {
   /** Nombre de désignations à venir par arbitre (équité). */
   upcomingByReferee: Map<string, number>;
   settings: Awaited<ReturnType<typeof getSettings>>;
-  /** Règles de désignation actives (Admin > Règles). */
+  /** Règles de désignation actives (page Règles). */
   rules: Rule[];
   availability: Awaited<ReturnType<typeof loadAvailabilityIndex>>;
   divisionRules: Map<string, Promise<Awaited<ReturnType<typeof getDivisionRules>>>>;
@@ -442,7 +442,7 @@ export async function evaluateMatchCandidates(
       if (matchAlreadyHasMinor && isMinorAt(c.birthDate, match.date)) {
         reasons.push("Mineur : un autre mineur est déjà désigné sur ce match");
       }
-      // Règles modifiables (Admin > Règles) : quotas, repos TQR, interdictions
+      // Règles modifiables (page Règles) : quotas, repos TQR, interdictions
       // par niveau / âge d'arbitre. Quelle que soit leur gravité, un arbitre qui
       // les enfreint n'est jamais proposé (la gravité ne joue qu'en désignation manuelle).
       for (const v of checkQuotaRules(match.date, match.durationMinutes, activeDesignations, isTqr, ctx.rules)) {
@@ -700,7 +700,7 @@ export async function designateReferee(
   );
   if (hasConflict) problems.push(SCHEDULING_CONFLICT_MESSAGE);
 
-  // Règles modifiables (Admin > Règles) : aucune ne bloque, toutes demandent confirmation.
+  // Règles modifiables (page Règles) : aucune ne bloque, toutes demandent confirmation.
   const rules = await getRules();
   const refereeLevelRaw = referee?.level as unknown;
   const refereeLevelLabel =

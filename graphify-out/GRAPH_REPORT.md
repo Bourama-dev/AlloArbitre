@@ -1,31 +1,31 @@
 # Graph Report - AlloArbitre  (2026-10-08)
 
 ## Corpus Check
-- 118 files · ~90,749 words
+- 118 files · ~90,517 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 3 file(s) not represented in the graph (top: (none) 1, .ico 1, .css 1)
 
 ## Summary
-- 771 nodes · 2132 edges · 32 communities (24 shown, 8 thin omitted)
+- 769 nodes · 2113 edges · 38 communities (29 shown, 9 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 17 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `92c43429`
+- Built from commit: `4cd7cc3d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - getCurrentUser
-- createClient
+- write.ts
 - sync.ts
-- referee-auth.ts
+- createClient
 - suggestions.ts
 - utilisateurs/page.tsx
-- export/page.tsx
+- stats.ts
 - package.json
 - geocoding.ts
-- matches.ts
+- fbi-match-row.tsx
 - nav.tsx
 - compilerOptions
 - AlloArbitre
@@ -34,23 +34,29 @@
 - CLAUDE.md
 - postcss.config.mjs
 - schema.sql
-- referees.ts
-- matchs/nouveau/page.tsx
-- write.ts
-- server.ts
-- current-user.ts
+- arbitres/[id]/page.tsx
+- matches.ts
+- fetch.ts
+- fbi/page.tsx
+- AlertToast
 - espace/page.tsx
-- layout.tsx
+- current-user.ts
 - import-matches.ts
 - CheckboxPicker
 - next
+- auto-designate-actions.ts
+- fbi-sync/route.ts
+- dates.ts
+- searchDesignations.ts
 - designation-rules.ts
+- FbiClient
+- client.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `getCurrentUser` - 96 edges
+1. `getCurrentUser` - 91 edges
 2. `next` - 52 edges
-3. `supabaseAdmin` - 35 edges
-4. `AlertToast()` - 31 edges
+3. `supabaseAdmin` - 34 edges
+4. `AlertToast()` - 29 edges
 5. `designateReferee()` - 29 edges
 6. `SubmitButton()` - 28 edges
 7. `createClient()` - 27 edges
@@ -59,49 +65,49 @@
 10. `AvailabilityPeriodPage()` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `saveSettings()` --calls--> `getCurrentUser`  [EXTRACTED]
-  src/app/admin/parametres/page.tsx → src/lib/current-user.ts
 - `deleteReferee()` --calls--> `getCurrentUser`  [EXTRACTED]
   src/app/arbitres/[id]/modifier/page.tsx → src/lib/current-user.ts
-- `deletePeriod()` --calls--> `getCurrentUser`  [EXTRACTED]
-  src/app/disponibilites/[id]/page.tsx → src/lib/current-user.ts
-- `toggleCancelled()` --calls--> `getCurrentUser`  [EXTRACTED]
-  src/app/matchs/[id]/modifier/page.tsx → src/lib/current-user.ts
-- `deleteMatch()` --calls--> `getCurrentUser`  [EXTRACTED]
-  src/app/matchs/[id]/modifier/page.tsx → src/lib/current-user.ts
+- `logout()` --calls--> `createClient()`  [EXTRACTED]
+  src/components/nav.tsx → src/lib/supabase/server.ts
+- `renderRow()` --calls--> `SubmitButton()`  [EXTRACTED]
+  src/components/suggestions-list.tsx → src/components/submit-button.tsx
+- `GroupsAdminPage()` --calls--> `AlertToast()`  [EXTRACTED]
+  src/app/admin/groupes/page.tsx → src/components/alert-toast.tsx
+- `GroupsAdminPage()` --calls--> `CheckboxPicker()`  [EXTRACTED]
+  src/app/admin/groupes/page.tsx → src/components/checkbox-picker.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (32 total, 8 thin omitted)
+## Communities (38 total, 9 thin omitted)
 
 ### Community 0 - "getCurrentUser"
-Cohesion: 0.23
-Nodes (16): GroupsAdminPage(), createGroup(), deleteGroup(), renameGroup(), saveLinks(), LevelMappingAdminPage(), addCompetitionLevel(), addRefereeLevel() (+8 more)
+Cohesion: 0.16
+Nodes (23): GroupsAdminPage(), createGroup(), deleteGroup(), renameGroup(), saveLinks(), LevelMappingAdminPage(), addCompetitionLevel(), addRefereeLevel() (+15 more)
 
-### Community 1 - "createClient"
+### Community 1 - "write.ts"
 Cohesion: 0.20
-Nodes (11): dynamic, GET(), ComptePage(), changePassword(), dynamic, logout(), LoginPage(), login() (+3 more)
+Nodes (20): overlaps(), FbiExportRow, analyzeFbiDay(), assignRefereeToFbiRencontre(), dayCache, DayData, deleteOfficielRow(), FbiAlreadyDesignatedError (+12 more)
 
 ### Community 2 - "sync.ts"
-Cohesion: 0.36
-Nodes (8): FbiDesignationRow, compareWithAlloArbitre(), FbiMismatch, matchesFbiRow(), MatchRow, normalize(), parseFbiDateTime(), teamNamesMatch()
+Cohesion: 0.43
+Nodes (7): compareWithAlloArbitre(), FbiMismatch, matchesFbiRow(), MatchRow, normalize(), parseFbiDateTime(), teamNamesMatch()
 
-### Community 3 - "referee-auth.ts"
-Cohesion: 0.19
-Nodes (18): dynamic, RefereeActivationPage(), activate(), dynamic, RefereeLoginPage(), login(), activateRefereeAccount(), AuthResult (+10 more)
+### Community 3 - "createClient"
+Cohesion: 0.08
+Nodes (36): @supabase/ssr, dynamic, GET(), changePassword(), dynamic, RefereeActivationPage(), activate(), dynamic (+28 more)
 
 ### Community 4 - "suggestions.ts"
-Cohesion: 0.05
-Nodes (77): dynamic, SettingsAdminPage(), saveSettings(), ControlsPage(), dynamic, PERIODS, dynamic, MatchDetailPage() (+69 more)
+Cohesion: 0.06
+Nodes (63): MatchDetailPage(), designate(), designate(), matches(), normalize(), SuggestionsList(), renderRow(), ageAt() (+55 more)
 
 ### Community 5 - "utilisateurs/page.tsx"
 Cohesion: 0.24
 Nodes (10): back(), dynamic, formatWhen(), ProfileRow, RefereeRow, Role, STAFF_ROLES, UsersAdminPage() (+2 more)
 
-### Community 6 - "export/page.tsx"
-Cohesion: 0.12
-Nodes (26): exceljs, dynamic, GET(), maxDuration, dynamic, ExportPage(), fmtDay(), generateMetadata() (+18 more)
+### Community 6 - "stats.ts"
+Cohesion: 0.08
+Nodes (38): exceljs, dynamic, GET(), maxDuration, dynamic, ExportPage(), fmtDay(), generateMetadata() (+30 more)
 
 ### Community 7 - "package.json"
 Cohesion: 0.05
@@ -109,15 +115,15 @@ Nodes (36): eslintConfig, dependencies, cheerio, exceljs, next, react, react-dom
 
 ### Community 8 - "geocoding.ts"
 Cohesion: 0.25
-Nodes (15): FbiImportSummary, importFbiRencontresAsMatches(), resolveVenueCoords(), removeDuplicateRencontres(), backfillMissingCoordinates(), resolve(), GeocodingBackfillSummary, cleanPlaceName() (+7 more)
+Nodes (16): FbiImportSummary, importFbiRencontresAsMatches(), resolveVenueCoords(), removeDuplicateRencontres(), backfillMissingCoordinates(), resolve(), GeocodingBackfillSummary, cleanPlaceName() (+8 more)
 
-### Community 9 - "matches.ts"
-Cohesion: 0.05
-Nodes (67): react, react-dom, dynamic, MultiDesignatePage(), dynamic, FbiPage(), designate(), GROUPES (+59 more)
+### Community 9 - "fbi-match-row.tsx"
+Cohesion: 0.15
+Nodes (18): react, ConfirmModal(), ConflictBadge(), ConflictConfirm(), DesignateAction, FbiMatchRow(), presenceStyles, GroupChoices() (+10 more)
 
 ### Community 10 - "nav.tsx"
-Cohesion: 0.14
-Nodes (14): AppNav(), AppNavLink, buzz(), isActive(), Props, adminLinks, NavIcon(), NavIconName (+6 more)
+Cohesion: 0.10
+Nodes (21): geistMono, geistSans, metadata, RootLayout(), viewport, AppNav(), AppNavLink, buzz() (+13 more)
 
 ### Community 11 - "compilerOptions"
 Cohesion: 0.11
@@ -131,33 +137,33 @@ Nodes (8): AlloArbitre, Architecture des données, Authentification (Supabase Au
 Cohesion: 0.15
 Nodes (23): "AvailabilityPeriod", "AvailabilityResponse", "AvailabilitySlot", "CompetitionLevel", "Designation", "DesignationRemoval", "DesignationRule", "LevelMapping" (+15 more)
 
-### Community 19 - "referees.ts"
-Cohesion: 0.26
-Nodes (12): dynamic, RefereesPage(), todayIso(), computeUnavailableRefereeIds(), listRefereeLevels(), listRefereesWithLoad(), listZones(), RawReferee (+4 more)
-
-### Community 20 - "matchs/nouveau/page.tsx"
-Cohesion: 0.21
-Nodes (14): EditRefereePage(), deleteReferee(), updateReferee(), createReferee(), EditMatchPage(), deleteMatch(), toggleCancelled(), updateMatch() (+6 more)
-
-### Community 21 - "write.ts"
-Cohesion: 0.05
-Nodes (79): describe(), dynamic, GET(), maxDuration, Step, timed(), dynamic, GET() (+71 more)
-
-### Community 22 - "server.ts"
-Cohesion: 0.22
-Nodes (8): @supabase/ssr, SUPABASE_ANON_KEY, SUPABASE_URL, AUTH_ROUTES, config, REFEREE_PUBLIC_ROUTES, REFEREE_ROUTES, SELF_AUTH_API_ROUTES
-
-### Community 24 - "current-user.ts"
+### Community 19 - "arbitres/[id]/page.tsx"
 Cohesion: 0.15
-Nodes (18): dynamic, GroupRow, CompetitionLevelRow, dynamic, normalizeMapping(), dynamic, dynamic, NewRefereePage() (+10 more)
+Nodes (23): dynamic, RefereeSheetPage(), addPunctualAction(), addRecurringAction(), removeUnavailabilityAction(), dynamic, RefereesPage(), todayIso() (+15 more)
+
+### Community 20 - "matches.ts"
+Cohesion: 0.20
+Nodes (14): dynamic, MultiDesignatePage(), dynamic, GymnaseJourneePage(), todayIso(), MultiDesignatePanel(), handleSubmit(), applyRefereeToMatches() (+6 more)
+
+### Community 21 - "fetch.ts"
+Cohesion: 0.13
+Nodes (22): cheerio, dynamic, FbiRencontrePage(), maxDuration, presenceStyles, EtatBadge(), etatStyles, FbiRencontreRow() (+14 more)
+
+### Community 22 - "fbi/page.tsx"
+Cohesion: 0.16
+Nodes (17): dynamic, FbiPage(), designate(), GROUPES, maxDuration, parseIsoDay(), todayParis(), toIsoDay() (+9 more)
+
+### Community 24 - "AlertToast"
+Cohesion: 0.17
+Nodes (18): dynamic, EditRefereePage(), deleteReferee(), updateReferee(), createReferee(), dynamic, NewRefereePage(), ComptePage() (+10 more)
 
 ### Community 25 - "espace/page.tsx"
-Cohesion: 0.06
-Nodes (66): dynamic, RefereeSheetPage(), addPunctualAction(), addRecurringAction(), removeUnavailabilityAction(), AvailabilityPeriodPage(), clearRefereeAvailability(), deletePeriod() (+58 more)
+Cohesion: 0.09
+Nodes (42): AvailabilityPeriodPage(), clearRefereeAvailability(), saveRefereeAvailability(), updateDeadline(), back(), dynamic, AvailabilityPeriodsPage(), createPeriod() (+34 more)
 
-### Community 27 - "layout.tsx"
-Cohesion: 0.25
-Nodes (7): geistMono, geistSans, metadata, RootLayout(), viewport, Nav(), logout()
+### Community 27 - "current-user.ts"
+Cohesion: 0.17
+Nodes (12): dynamic, GroupRow, CompetitionLevelRow, dynamic, normalizeMapping(), dynamic, CurrentReferee, CurrentUser (+4 more)
 
 ### Community 28 - "import-matches.ts"
 Cohesion: 0.20
@@ -167,29 +173,49 @@ Nodes (13): dynamic, geocode(), ImportMatchsPage(), maxDuration, submit(), excel
 Cohesion: 0.40
 Nodes (3): CheckboxPicker(), normalize(), PickerItem
 
+### Community 31 - "auto-designate-actions.ts"
+Cohesion: 0.18
+Nodes (14): ControlsPage(), dynamic, PERIODS, FbiMatchesPanel(), handleConfirm(), handlePreview(), applyAutoDesignation(), AutoDesignateSummary (+6 more)
+
+### Community 32 - "fbi-sync/route.ts"
+Cohesion: 0.25
+Nodes (14): dynamic, GET(), maxDuration, readableError(), fetchFbiRencontres(), formatDateFr(), withFbiSession(), FbiPushPositionResult (+6 more)
+
+### Community 33 - "dates.ts"
+Cohesion: 0.23
+Nodes (11): dynamic, MatchesPage(), CollapsibleFilters(), SwipeNav(), addWeeks(), formatDayMonthFr(), MatchSlot, PRE_MATCH_PRESENCE_MINUTES (+3 more)
+
+### Community 34 - "searchDesignations.ts"
+Cohesion: 0.22
+Nodes (13): describe(), dynamic, GET(), maxDuration, Step, timed(), cellText(), DataTablesResponse (+5 more)
+
 ### Community 35 - "designation-rules.ts"
-Cohesion: 0.08
-Nodes (46): CommonFields(), DIVISION_SCOPES, dynamic, ForbidFields(), PERIODS, QuotaFields(), RuleCard(), RulesAdminPage() (+38 more)
+Cohesion: 0.07
+Nodes (48): CommonFields(), DIVISION_SCOPES, dynamic, ForbidFields(), PERIODS, QuotaFields(), RuleCard(), RulesAdminPage() (+40 more)
+
+### Community 37 - "client.ts"
+Cohesion: 0.38
+Nodes (6): BodyMode, cooldownError(), FbiDump, FetchedResponse, fetchWithRetry(), throttle()
 
 ## Knowledge Gaps
-- **209 isolated node(s):** `eslintConfig`, `nextConfig`, `name`, `version`, `private` (+204 more)
+- **207 isolated node(s):** `eslintConfig`, `nextConfig`, `name`, `version`, `private` (+202 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 240 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `next` connect `next` to `createClient`, `designation-rules.ts`, `suggestions.ts`, `utilisateurs/page.tsx`, `export/page.tsx`, `package.json`, `referee-auth.ts`, `matches.ts`, `nav.tsx`, `referees.ts`, `matchs/nouveau/page.tsx`, `write.ts`, `server.ts`, `current-user.ts`, `espace/page.tsx`, `layout.tsx`, `import-matches.ts`?**
-  _High betweenness centrality (0.207) - this node is a cross-community bridge._
+- **Why does `next` connect `next` to `createClient`, `suggestions.ts`, `utilisateurs/page.tsx`, `stats.ts`, `package.json`, `fbi-match-row.tsx`, `nav.tsx`, `arbitres/[id]/page.tsx`, `matches.ts`, `fetch.ts`, `fbi/page.tsx`, `AlertToast`, `espace/page.tsx`, `current-user.ts`, `import-matches.ts`, `auto-designate-actions.ts`, `fbi-sync/route.ts`, `dates.ts`, `searchDesignations.ts`, `designation-rules.ts`?**
+  _High betweenness centrality (0.213) - this node is a cross-community bridge._
 - **What connects `eslintConfig`, `nextConfig`, `name` to the rest of the system?**
-  _209 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _207 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `createClient` be split into smaller, more focused modules?**
+  _Cohesion score 0.0786308973172988 - nodes in this community are weakly interconnected._
+- **Why does `getCurrentUser` connect `getCurrentUser` to `fbi-sync/route.ts`, `dates.ts`, `searchDesignations.ts`, `createClient`, `suggestions.ts`, `utilisateurs/page.tsx`, `stats.ts`, `designation-rules.ts`, `fbi-match-row.tsx`, `nav.tsx`, `arbitres/[id]/page.tsx`, `matches.ts`, `fbi/page.tsx`, `AlertToast`, `espace/page.tsx`, `current-user.ts`, `import-matches.ts`, `auto-designate-actions.ts`?**
+  _High betweenness centrality (0.138) - this node is a cross-community bridge._
 - **Should `suggestions.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05445665445665446 - nodes in this community are weakly interconnected._
-- **Why does `getCurrentUser` connect `getCurrentUser` to `createClient`, `designation-rules.ts`, `suggestions.ts`, `utilisateurs/page.tsx`, `export/page.tsx`, `matches.ts`, `matchs/nouveau/page.tsx`, `write.ts`, `current-user.ts`, `espace/page.tsx`, `layout.tsx`, `import-matches.ts`?**
-  _High betweenness centrality (0.145) - this node is a cross-community bridge._
-- **Should `export/page.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.11724137931034483 - nodes in this community are weakly interconnected._
-- **Why does `supabaseAdmin` connect `current-user.ts` to `sync.ts`, `designation-rules.ts`, `suggestions.ts`, `utilisateurs/page.tsx`, `referee-auth.ts`, `geocoding.ts`, `matches.ts`, `referees.ts`, `matchs/nouveau/page.tsx`, `write.ts`, `espace/page.tsx`, `import-matches.ts`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
-- **Should `package.json` be split into smaller, more focused modules?**
-  _Cohesion score 0.05405405405405406 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06277665995975855 - nodes in this community are weakly interconnected._
+- **Why does `supabaseAdmin` connect `current-user.ts` to `fbi-sync/route.ts`, `sync.ts`, `designation-rules.ts`, `suggestions.ts`, `utilisateurs/page.tsx`, `createClient`, `stats.ts`, `geocoding.ts`, `arbitres/[id]/page.tsx`, `matches.ts`, `AlertToast`, `espace/page.tsx`, `import-matches.ts`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+- **Should `stats.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.08416389811738649 - nodes in this community are weakly interconnected._

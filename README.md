@@ -41,7 +41,7 @@ TypeScript + Supabase (Postgres + Auth), via `@supabase/supabase-js`.
   15 ans, mineur toujours accompagné d'un majeur) vérifiés avant toute
   désignation (manuelle ou auto), avec pop-up d'alerte en cas de blocage.
   Les règles sont stockées en base (`DesignationRule`) et modifiables par un
-  administrateur sur `/admin/regles` (quotas, repos TQR, interdictions par
+  administrateur sur `/reglement` (page Règles, avec les paramètres du comité) (quotas, repos TQR, interdictions par
   niveau/âge d'arbitre et catégorie de match, bloquant ou avertissement).
   Règle ajoutée : un arbitre stagiaire (niveaux -STG) ou de moins de 16 ans ne
   peut pas arbitrer de match senior

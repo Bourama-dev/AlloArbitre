@@ -3,7 +3,7 @@ import { divisionAgeCategory } from "@/lib/algo-rules-shared";
 
 /**
  * Règles de désignation pilotées par des données (table "DesignationRule",
- * modifiable depuis Admin > Règles). Ce fichier ne contient que le moteur
+ * modifiable depuis page Règles). Ce fichier ne contient que le moteur
  * (pur, sans accès base) et les valeurs par défaut : celles-ci s'appliquent
  * tant que la table est vide ou absente, et servent de modèle à la migration.
  *
@@ -185,8 +185,8 @@ export const SYSTEM_RULES: SystemRule[] = [
     label: "Distance maximale fixée par le comité",
     description:
       "Si une distance maximale est fixée, un arbitre plus loin du gymnase (par la route quand la distance routière est connue, sinon à vol d'oiseau) n'est ni proposé ni désignable. Un 2e match le même jour dans le même gymnase n'est pas concerné.",
-    href: "/admin/parametres",
-    hrefLabel: "Admin > Paramètres",
+    href: "/reglement#parametres",
+    hrefLabel: "Paramètres du comité",
   },
   {
     id: "age-min",

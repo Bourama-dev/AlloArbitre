@@ -1,5 +1,5 @@
 /**
- * Règles de désignation paramétrables par le comité (voir /admin/parametres,
+ * Règles de désignation paramétrables par le comité (voir /reglement,
  * /admin/niveaux et /admin/groupes) :
  * - distance kilométrique maximale domicile -> gymnase (Settings) ;
  * - âge minimum de l'arbitre par division (CompetitionLevel.minRefereeAge) ;
@@ -66,7 +66,7 @@ export { divisionAgeCategory } from "@/lib/algo-rules-shared";
 /**
  * Raisons bloquantes liées à la division (âge minimum fixé pour la division,
  * groupes). Les interdictions par niveau / âge d'arbitre sont des règles
- * modifiables (Admin > Règles, voir checkRefereeRules). Vide = autorisé.
+ * modifiables (page Règles, voir checkRefereeRules). Vide = autorisé.
  */
 export function divisionReasons(
   rules: DivisionRules,

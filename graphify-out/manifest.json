@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src/app/admin/parametres/page.tsx": {
-    "mtime": 1791233651.2474644,
-    "seen": 1791233763.9478126,
-    "ast_hash": "c2559f920ebb172be778062ca42db206",
+    "mtime": 1791454650.1859262,
+    "seen": 1791454689.7984517,
+    "ast_hash": "820c2d964996c8060a5f616445e239ff",
     "semantic_hash": ""
   },
   "src/app/admin/utilisateurs/page.tsx": {
@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "src/app/reglement/page.tsx": {
-    "mtime": 1791454151.1670158,
-    "seen": 1791454179.374177,
-    "ast_hash": "95703a8a8cb7425441e55dabe9487d69",
+    "mtime": 1791454650.1853113,
+    "seen": 1791454689.798493,
+    "ast_hash": "29b1d94782dde30d12d955870610d6c8",
     "semantic_hash": ""
   },
   "src/app/signup/page.tsx": {
@@ -300,9 +300,9 @@
     "semantic_hash": ""
   },
   "src/components/nav.tsx": {
-    "mtime": 1791453613.8329036,
-    "seen": 1791453707.4727871,
-    "ast_hash": "dcb3ebf724278765e204665d4d6ca5f9",
+    "mtime": 1791454650.1862996,
+    "seen": 1791454689.798524,
+    "ast_hash": "28fc8d71457710367a5e3516a347a7f6",
     "semantic_hash": ""
   },
   "src/components/personal-link-button.tsx": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "src/lib/algo-rules.ts": {
-    "mtime": 1791453384.8634887,
-    "seen": 1791453707.4728022,
-    "ast_hash": "10be706eb0627e5965fea513aa2125b9",
+    "mtime": 1791454668.6740093,
+    "seen": 1791454689.798539,
+    "ast_hash": "c96bf87060120709fbfc4ed32eb0cdd7",
     "semantic_hash": ""
   },
   "src/lib/app-url.ts": {
@@ -384,9 +384,9 @@
     "semantic_hash": ""
   },
   "src/lib/availability.ts": {
-    "mtime": 1791233651.2539084,
-    "seen": 1791233763.9478614,
-    "ast_hash": "148580c3edd332b15406d51a64ed1133",
+    "mtime": 1791454668.673284,
+    "seen": 1791454689.798542,
+    "ast_hash": "408939a69968f810904170c4cc4c8339",
     "semantic_hash": ""
   },
   "src/lib/club-rules.ts": {
@@ -414,9 +414,9 @@
     "semantic_hash": ""
   },
   "src/lib/designation-rules.ts": {
-    "mtime": 1791453372.3688893,
-    "seen": 1791453707.4728115,
-    "ast_hash": "32954b835f53125ebac2c53bf7565126",
+    "mtime": 1791454668.6744092,
+    "seen": 1791454689.7985487,
+    "ast_hash": "cc08dfd399fd5c801c78a8350ecd0550",
     "semantic_hash": ""
   },
   "src/lib/fbi/client.ts": {
@@ -528,9 +528,9 @@
     "semantic_hash": ""
   },
   "src/lib/suggestions.ts": {
-    "mtime": 1791454387.6770327,
-    "seen": 1791454393.776529,
-    "ast_hash": "35d0695664a8617dc0e8a25668700eeb",
+    "mtime": 1791454668.6723146,
+    "seen": 1791454689.7985704,
+    "ast_hash": "01f810d533e9b08a95bed2846e755cc1",
     "semantic_hash": ""
   },
   "src/lib/supabase/admin.ts": {
@@ -588,9 +588,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1791453703.8000984,
-    "seen": 1791453707.4728487,
-    "ast_hash": "08fd2d612fdf1bf4bfd93915a9d5174f",
+    "mtime": 1791454668.6770632,
+    "seen": 1791454689.7985823,
+    "ast_hash": "6745953519efe1c8364db19357b78826",
     "semantic_hash": ""
   },
   "public/cd45-logo.png": {
@@ -750,9 +750,9 @@
     "semantic_hash": ""
   },
   "src/app/admin/regles/page.tsx": {
-    "mtime": 1791454151.166138,
-    "seen": 1791454179.3741412,
-    "ast_hash": "925d99225d95598ee78555afdf5c0916",
+    "mtime": 1791454650.1855075,
+    "seen": 1791454689.7984545,
+    "ast_hash": "820c2d964996c8060a5f616445e239ff",
     "semantic_hash": ""
   },
   "src/lib/algo-rules-shared.ts": {

@@ -9,7 +9,7 @@
  * Effet sur la désignation, pour un match couvert par une campagne :
  * - l'arbitre a répondu : il n'est proposé que sur les créneaux cochés ;
  * - il n'a pas répondu : simple mention, sauf si le comité a activé
- *   « Sans réponse = exclu » (Admin > Paramètres) et que la saisie est close.
+ *   « Sans réponse = exclu » (page Règles) et que la saisie est close.
  * Les indisponibilités ponctuelles/récurrentes restent appliquées en plus.
  */
 import { supabaseAdmin } from "@/lib/supabase/admin";

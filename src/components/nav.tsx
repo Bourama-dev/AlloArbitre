@@ -21,14 +21,12 @@ const more: AppNavLink[] = [
   { href: "/controles", label: "Contrôles", icon: "controles" },
   { href: "/statistiques", label: "Statistiques", icon: "stats" },
   { href: "/export", label: "Export", icon: "export" },
-  { href: "/reglement", label: "Règlement", icon: "reglement" },
+  { href: "/reglement", label: "Règles", icon: "reglement" },
 ];
 
 const adminLinks: AppNavLink[] = [
-  { href: "/admin/regles", label: "Règles", icon: "admin" },
   { href: "/admin/niveaux", label: "Niveaux", icon: "admin" },
   { href: "/admin/groupes", label: "Groupes", icon: "admin" },
-  { href: "/admin/parametres", label: "Paramètres", icon: "admin" },
   { href: "/admin/import", label: "Import matchs", icon: "admin" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "admin" },
 ];
