@@ -30,7 +30,7 @@ export default async function SignupPage({
     if (!data.session) {
       redirect("/signup?sent=1");
     }
-    redirect("/matchs");
+    redirect("/en-attente");
   }
 
   return (
@@ -38,13 +38,13 @@ export default async function SignupPage({
       <div className="w-full max-w-sm card p-6">
         <h1 className="text-xl font-semibold tracking-tight mb-1">AlloArbitre</h1>
         <p className="text-sm text-[var(--muted)] mb-6">
-          Créer un compte répartiteur - CD45
+          Demande de compte répartiteur - CD45 (validée par un administrateur)
         </p>
 
         {params.sent ? (
           <p className="text-sm text-[var(--success)] bg-[var(--success-bg)] rounded-lg p-3">
-            Compte créé. Vérifie ta boîte mail pour confirmer ton adresse
-            avant de te connecter.
+            Compte créé. Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi :
+            un administrateur devra valider ton compte avant que tu puisses l&apos;utiliser.
           </p>
         ) : (
           <>
@@ -94,7 +94,7 @@ export default async function SignupPage({
                 type="submit"
                 className="btn btn-primary w-full py-2"
               >
-                Créer mon compte
+                Demander un compte
               </button>
             </form>
           </>

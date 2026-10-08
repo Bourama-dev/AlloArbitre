@@ -1,3 +1,4 @@
+import { MatchViewTabs } from "@/components/match-view-tabs";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -109,6 +110,8 @@ export default async function MatchesPage({
         />
       )}
 
+      <MatchViewTabs current="semaine" />
+
       <div className="week-bar">
         <Link href={weekHref(weekOffset - 1)} className="week-arrow" aria-label="Semaine précédente">
           ‹
@@ -141,10 +144,6 @@ export default async function MatchesPage({
         semaines), voir{" "}
         <Link href="/fbi" className="text-[var(--accent)] hover:underline">
           FBI
-        </Link>
-        . Pour le nombre d&apos;arbitres nécessaires par gymnase sur une journée, voir{" "}
-        <Link href="/matchs/gymnase" className="text-[var(--accent)] hover:underline">
-          Arbitres par gymnase
         </Link>
         .
       </p>

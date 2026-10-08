@@ -1,3 +1,4 @@
+import { MatchViewTabs } from "@/components/match-view-tabs";
 import { InfoText } from "@/components/info-text";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -41,9 +42,7 @@ export default async function GymnaseJourneePage({
   return (
     <div className="space-y-4">
       <div>
-        <Link href="/matchs" className="chip-btn">
-          ‹ Matchs
-        </Link>
+        <MatchViewTabs current="gymnase" />
         <h1 className="text-xl font-bold tracking-tight mt-3">
           Arbitres nécessaires par gymnase
         </h1>

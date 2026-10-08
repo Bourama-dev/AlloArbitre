@@ -11,14 +11,13 @@ type NavUser = {
 // Onglets principaux : barre du bas sur mobile (4 + « Plus »), haut du rail
 // latéral sur grand écran.
 const tabs: AppNavLink[] = [
-  { href: "/matchs", label: "Matchs", icon: "matchs" },
+  { href: "/matchs", label: "Matchs", icon: "matchs", also: ["/controles"] },
   { href: "/fbi", label: "FBI", icon: "fbi" },
   { href: "/arbitres", label: "Arbitres", icon: "arbitres" },
   { href: "/disponibilites", label: "Disponibilités", shortLabel: "Dispos", icon: "dispos" },
 ];
 
 const more: AppNavLink[] = [
-  { href: "/controles", label: "Contrôles", icon: "controles" },
   { href: "/statistiques", label: "Rapports", icon: "stats", also: ["/export"] },
   { href: "/reglement", label: "Règles", icon: "reglement" },
 ];

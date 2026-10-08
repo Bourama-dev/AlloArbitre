@@ -22,6 +22,8 @@ type SessionProfile = {
   name: string;
   role: "ADMIN" | "REPARTITEUR" | "ARBITRE";
   refereeId: string | null;
+  /** Compte staff validé par un administrateur (les arbitres n'ont pas ce circuit). */
+  approved: boolean;
 };
 
 const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
@@ -34,7 +36,7 @@ const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
 
     const { data: profile, error } = await supabaseAdmin
       .from("Profile")
-      .select("id, email, name, role, refereeId")
+      .select("id, email, name, role, refereeId, approved")
       .eq("id", user.id)
       .maybeSingle();
     if (error) throw error;
@@ -66,7 +68,7 @@ const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
 /** Membre du staff connecté (ADMIN ou REPARTITEUR). Un compte arbitre renvoie null. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const profile = await getSessionProfile();
-  if (!profile || profile.role === "ARBITRE") return null;
+  if (!profile || profile.role === "ARBITRE" || !profile.approved) return null;
   return { id: profile.id, email: profile.email, name: profile.name, role: profile.role };
 });
 
@@ -102,4 +104,11 @@ export const getCurrentReferee = cache(async (): Promise<CurrentReferee | null> 
     email: (data.email as string | null) ?? null,
     isStaff: profile.role !== "ARBITRE",
   };
+});
+
+/** Compte staff créé mais pas encore validé par un administrateur. */
+export const getPendingAccount = cache(async (): Promise<{ name: string; email: string } | null> => {
+  const profile = await getSessionProfile();
+  if (!profile || profile.role === "ARBITRE" || profile.approved) return null;
+  return { name: profile.name, email: profile.email };
 });

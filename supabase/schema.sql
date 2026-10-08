@@ -275,3 +275,8 @@ create table "DesignationRule" (
   "updatedAt" timestamptz not null default now()
 );
 alter table "DesignationRule" enable row level security;
+
+-- Validation des nouveaux comptes (migration profile_approval) : un compte créé
+-- via /signup a approved = false jusqu'à validation par un ADMIN (Admin >
+-- Utilisateurs). Les comptes existants et les comptes arbitres sont validés.
+-- alter table "Profile" add column approved boolean not null default false;

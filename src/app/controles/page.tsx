@@ -1,3 +1,4 @@
+import { MatchViewTabs } from "@/components/match-view-tabs";
 import { InfoText } from "@/components/info-text";
 import Link from "next/link";
 import { runDesignationControls } from "@/lib/controls";
@@ -21,6 +22,7 @@ export default async function ControlsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-5 lg:space-y-6">
+      <MatchViewTabs current="controles" />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Contrôles</h1>

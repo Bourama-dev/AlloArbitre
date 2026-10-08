@@ -9,7 +9,15 @@ import { AlertToast } from "@/components/alert-toast";
 export const dynamic = "force-dynamic";
 
 type Role = "ADMIN" | "REPARTITEUR" | "ARBITRE";
-type ProfileRow = { id: string; email: string; name: string; role: Role; refereeId: string | null; createdAt: string };
+type ProfileRow = {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  refereeId: string | null;
+  createdAt: string;
+  approved: boolean;
+};
 type RefereeRow = { id: string; firstName: string; lastName: string; licenseNumber: string | null; zone: string | null };
 
 const STAFF_ROLES = ["ADMIN", "REPARTITEUR"] as const;
@@ -40,7 +48,7 @@ export default async function UsersAdminPage({
   const { error, ok, vue } = await searchParams;
 
   const [{ data: profiles, error: profilesError }, { data: referees, error: refereesError }, authList] = await Promise.all([
-    supabaseAdmin.from("Profile").select("id, email, name, role, refereeId, createdAt").order("name"),
+    supabaseAdmin.from("Profile").select("id, email, name, role, refereeId, createdAt, approved").order("name"),
     supabaseAdmin
       .from("Referee")
       .select("id, firstName, lastName, licenseNumber, zone")
@@ -53,7 +61,8 @@ export default async function UsersAdminPage({
   const lastSignIn = new Map((authList.data?.users ?? []).map((u) => [u.id, u.last_sign_in_at ?? null]));
 
   const rows = (profiles ?? []) as ProfileRow[];
-  const staff = rows.filter((p) => p.role !== "ARBITRE");
+  const staff = rows.filter((p) => p.role !== "ARBITRE" && p.approved);
+  const pendingAccounts = rows.filter((p) => p.role !== "ARBITRE" && !p.approved);
   const refereeAccounts = rows.filter((p) => p.role === "ARBITRE");
   const refereeById = new Map(((referees ?? []) as RefereeRow[]).map((r) => [r.id, r]));
   const activatedIds = new Set(refereeAccounts.map((p) => p.refereeId).filter(Boolean));
@@ -81,6 +90,17 @@ export default async function UsersAdminPage({
     back("ok", "Rôle modifié.");
   }
 
+  async function approveUser(formData: FormData) {
+    "use server";
+    const admin = await getCurrentUser();
+    if (admin?.role !== "ADMIN") return;
+    const id = String(formData.get("id"));
+    const { error } = await supabaseAdmin.from("Profile").update({ approved: true }).eq("id", id).neq("role", "ARBITRE");
+    if (error) throw error;
+    revalidatePath("/admin/utilisateurs");
+    back("ok", "Compte validé : la personne peut se connecter.");
+  }
+
   async function deleteUser(formData: FormData) {
     "use server";
     const admin = await getCurrentUser();
@@ -99,12 +119,53 @@ export default async function UsersAdminPage({
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}
       {ok && <AlertToast message={decodeURIComponent(ok)} variant="success" />}
 
+      {pendingAccounts.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Demandes de compte à valider ({pendingAccounts.length})</h2>
+            <p className="text-sm text-[var(--muted)]">
+              Ces personnes se sont inscrites via <code>/signup</code> et n&apos;ont accès à rien tant que vous ne les
+              avez pas validées. Refuser supprime la demande.
+            </p>
+          </div>
+          <ul className="card divide-y divide-[var(--border)]">
+            {pendingAccounts.map((p) => (
+              <li key={p.id} className="p-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{p.name}</p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {p.email} · demandé le {formatWhen(p.createdAt)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <form action={approveUser}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button type="submit" className="btn btn-primary text-xs">
+                      Valider
+                    </button>
+                  </form>
+                  <form action={deleteUser}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <ConfirmSubmitButton
+                      confirmMessage={`Refuser et supprimer la demande de ${p.name} ?`}
+                      className="btn-danger text-xs"
+                    >
+                      Refuser
+                    </ConfirmSubmitButton>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="space-y-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Comptes du staff</h1>
           <p className="text-sm text-[var(--muted)]">
-            Répartiteurs et administrateurs. Un nouveau compte créé via <code>/signup</code> est REPARTITEUR par
-            défaut ; promouvez-le en ADMIN ici si besoin.
+            Répartiteurs et administrateurs. Un compte créé via <code>/signup</code> reste en attente jusqu&apos;à votre
+            validation, puis est REPARTITEUR ; promouvez-le en ADMIN ici si besoin.
           </p>
         </div>
         <div className="table-shell table-cards overflow-x-auto">
