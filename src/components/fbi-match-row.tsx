@@ -8,6 +8,7 @@ import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { ConflictBadge } from "@/components/conflict-badge";
 import { SubmitButton } from "@/components/submit-button";
+import { GroupChoices } from "@/components/group-choices";
 import { ConfirmModal } from "@/components/confirm-modal";
 import { PushToFbiButton } from "@/components/push-to-fbi-button";
 import { removeDesignation } from "@/lib/actions/designation-actions";
@@ -22,6 +23,8 @@ export type DesignateState = {
   confirm?: boolean;
   /** Arbitre visé (le formulaire est réinitialisé après l'action : on le conserve ici). */
   refereeId?: string;
+  /** Groupes de la division proposés à l'ajout. */
+  groups?: { id: string; label: string }[];
 } | null;
 export type DesignateAction = (prev: DesignateState, formData: FormData) => Promise<DesignateState>;
 
@@ -54,6 +57,7 @@ export function FbiMatchRow({
   // Conflit d'horaire : fenêtre de confirmation au lieu d'un refus sec.
   const [dismissed, setDismissed] = useState<DesignateState>(null);
   const [isConfirming, startConfirm] = useTransition();
+  const [addTo, setAddTo] = useState<string[]>([]);
   const confirming = !!designState?.confirm && dismissed !== designState;
   const confirmedReferee = designState?.refereeId
     ? referees.find((r) => r.id === designState.refereeId)
@@ -65,6 +69,7 @@ export function FbiMatchRow({
     fd.set("matchId", m.id);
     fd.set("refereeId", designState.refereeId);
     fd.set("confirmConflict", "1");
+    for (const id of addTo) fd.append("addToGroupIds", id);
     startConfirm(() => designFormAction(fd));
   }
   const [open, setOpen] = useState(false);
@@ -178,13 +183,20 @@ export function FbiMatchRow({
           )}
           {confirming && (
             <ConfirmModal
-              title={`Désigner ${confirmedReferee ? `${confirmedReferee.firstName} ${confirmedReferee.lastName}` : "cet arbitre"} malgré le conflit d'horaire ?`}
+              title={`Désigner ${confirmedReferee ? `${confirmedReferee.firstName} ${confirmedReferee.lastName}` : "cet arbitre"} malgré tout ?`}
               message={`${designState?.error ?? ""} Vous pouvez tout de même le désigner.`}
               confirmLabel="Désigner quand même"
               pending={isConfirming}
               onConfirm={confirmConflict}
               onCancel={() => setDismissed(designState)}
-            />
+            >
+              <GroupChoices
+                groups={designState?.groups ?? []}
+                refereeName={confirmedReferee ? `${confirmedReferee.firstName} ${confirmedReferee.lastName}` : "l'arbitre"}
+                value={addTo}
+                onChange={setAddTo}
+              />
+            </ConfirmModal>
           )}
           {designState?.error && !designState.confirm && (
             <p role="alert" className="text-xs text-[var(--danger)] mt-1 max-w-xs whitespace-normal">

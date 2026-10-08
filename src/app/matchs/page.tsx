@@ -8,6 +8,7 @@ import { addWeeks, weekRange, formatDayMonthFr } from "@/lib/dates";
 import { MatchesTable } from "@/components/matches-table";
 import { AlertToast } from "@/components/alert-toast";
 import { ConflictConfirm } from "@/components/conflict-confirm";
+import { decodeGroups, encodeGroups } from "@/lib/designation-messages";
 import { SwipeNav } from "@/components/swipe-nav";
 import { CollapsibleFilters } from "@/components/collapsible-filters";
 import type { MatchSort, MatchStatus } from "@/lib/matches";
@@ -27,6 +28,8 @@ export default async function MatchesPage({
     error?: string;
     alerte?: string;
     confirm?: string;
+    motifs?: string;
+    groupes?: string;
     matchId?: string;
     refereeId?: string;
   }>;
@@ -56,14 +59,14 @@ export default async function MatchesPage({
     const matchId = String(formData.get("matchId"));
     const refereeId = String(formData.get("refereeId"));
     const confirmConflict = formData.get("confirmConflict") === "1";
-    const result = await designateReferee(matchId, refereeId, user.id, { confirmConflict });
+    const result = await designateReferee(matchId, refereeId, user.id, { confirmConflict, addToGroupIds: formData.getAll("addToGroupIds").map(String) });
     revalidatePath("/matchs");
     revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
     if (!result.ok) {
       // Conflit d'horaire : la page demande confirmation au lieu d'afficher un refus.
       if (result.confirmable) {
-        redirect(`/matchs?confirm=conflit&matchId=${encodeURIComponent(matchId)}&refereeId=${encodeURIComponent(refereeId)}`);
+        redirect(`/matchs?confirm=conflit&matchId=${encodeURIComponent(matchId)}&refereeId=${encodeURIComponent(refereeId)}&motifs=${encodeURIComponent(result.error)}&groupes=${encodeURIComponent(encodeGroups(result.groupsToAdd))}`);
       }
       redirect(`/matchs?error=${encodeURIComponent(result.error)}`);
     }
@@ -99,6 +102,8 @@ export default async function MatchesPage({
             const r = referees.find((x) => x.id === params.refereeId);
             return r ? `${r.firstName} ${r.lastName}` : "cet arbitre";
           })()}
+          message={params.motifs ?? ""}
+          groups={decodeGroups(params.groupes)}
           fields={{ matchId: params.matchId, refereeId: params.refereeId }}
           action={designate}
         />

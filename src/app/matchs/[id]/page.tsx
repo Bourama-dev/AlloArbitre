@@ -1,4 +1,5 @@
 import { ConflictConfirm } from "@/components/conflict-confirm";
+import { decodeGroups, encodeGroups } from "@/lib/designation-messages";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
@@ -20,10 +21,10 @@ export default async function MatchDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; alerte?: string; confirm?: string; refereeId?: string }>;
+  searchParams: Promise<{ error?: string; alerte?: string; confirm?: string; refereeId?: string; motifs?: string; groupes?: string }>;
 }) {
   const { id } = await params;
-  const { error, alerte, confirm, refereeId: confirmRefereeId } = await searchParams;
+  const { error, alerte, confirm, refereeId: confirmRefereeId, motifs, groupes } = await searchParams;
 
   const match = await getMatchById(id);
   if (!match) notFound();
@@ -51,14 +52,16 @@ export default async function MatchDetailPage({
     if (!user) return;
     const refereeId = String(formData.get("refereeId"));
     const confirmConflict = formData.get("confirmConflict") === "1";
-    const result = await designateReferee(id, refereeId, user.id, { confirmConflict });
+    const result = await designateReferee(id, refereeId, user.id, { confirmConflict, addToGroupIds: formData.getAll("addToGroupIds").map(String) });
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
     revalidatePath("/fbi");
     if (!result.ok) {
       // Conflit d'horaire : la page demande confirmation au lieu d'afficher un refus.
       if (result.confirmable) {
-        redirect(`/matchs/${id}?confirm=conflit&refereeId=${encodeURIComponent(refereeId)}`);
+        redirect(
+          `/matchs/${id}?confirm=conflit&refereeId=${encodeURIComponent(refereeId)}&motifs=${encodeURIComponent(result.error)}&groupes=${encodeURIComponent(encodeGroups(result.groupsToAdd))}`
+        );
       }
       redirect(`/matchs/${id}?error=${encodeURIComponent(result.error)}`);
     }
@@ -120,6 +123,8 @@ export default async function MatchDetailPage({
             const r = [...eligible, ...ineligible].find((x) => x.id === confirmRefereeId);
             return r ? `${r.firstName} ${r.lastName}` : "cet arbitre";
           })()}
+          message={motifs ?? ""}
+          groups={decodeGroups(groupes)}
           fields={{ refereeId: confirmRefereeId }}
           action={designate}
         />

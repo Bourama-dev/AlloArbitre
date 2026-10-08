@@ -113,9 +113,7 @@ export default async function RulesAdminPage({
         <h1 className="text-xl font-bold tracking-tight">Règles de désignation</h1>
         <p className="text-sm text-[var(--muted)] mt-1">
           Modifiez, désactivez ou ajoutez des règles : elles s&apos;appliquent aussitôt aux suggestions, à
-          l&apos;auto-désignation, à la désignation manuelle et aux Contrôles. Un arbitre qui enfreint une règle n&apos;est
-          jamais proposé. En désignation manuelle, une règle <strong>bloquante</strong> refuse la désignation et une règle
-          <strong> avertissement</strong> l&apos;accepte avec une alerte. Les autres règles (distance, disponibilités,
+          l&apos;auto-désignation, à la désignation manuelle et aux Contrôles. Un arbitre qui enfreint une règle n&apos;est jamais proposé automatiquement. En désignation manuelle, aucune règle ne bloque : une fenêtre demande confirmation. Les autres règles (distance, disponibilités,
           groupes, âge par division) se configurent dans leurs pages dédiées, listées dans{" "}
           <Link href="/reglement" className="text-[var(--accent)] hover:underline">
             Règlement
@@ -199,9 +197,9 @@ function RuleCard({
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
             <span
-              className={`badge ${rule.severity === "bloquant" ? "text-[var(--danger)] bg-[var(--danger-bg)]" : "text-[var(--warning)] bg-[var(--warning-bg)]"}`}
+              className={`badge text-[var(--warning)] bg-[var(--warning-bg)]`}
             >
-              {rule.severity === "bloquant" ? "Bloquant" : "Avertissement"}
+              À confirmer
             </span>
             {!rule.active && <span className="badge text-[var(--muted)] bg-[var(--neutral-bg)]">Désactivée</span>}
           </div>
@@ -248,11 +246,7 @@ function CommonFields({ rule }: { rule?: Rule }) {
       </div>
       <div className="flex flex-wrap items-end gap-4">
         <div>
-          <label className="field-label">Gravité en désignation manuelle</label>
-          <select name="severity" defaultValue={rule?.severity ?? "avertissement"} className="input">
-            <option value="bloquant">Bloquant : refuse la désignation</option>
-            <option value="avertissement">Avertissement : désigne avec une alerte</option>
-          </select>
+          <input type="hidden" name="severity" value="avertissement" />
         </div>
         <label className="flex items-center gap-2 text-sm pb-2">
           <input type="checkbox" name="active" defaultChecked={rule?.active ?? true} />

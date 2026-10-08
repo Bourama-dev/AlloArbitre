@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ConfirmModal } from "@/components/confirm-modal";
-import { SCHEDULING_CONFLICT_MESSAGE } from "@/lib/designation-messages";
+import { GroupChoices } from "@/components/group-choices";
 
 /**
  * Confirmation d'une désignation en conflit d'horaire, pour les écrans qui
@@ -14,10 +14,16 @@ import { SCHEDULING_CONFLICT_MESSAGE } from "@/lib/designation-messages";
  */
 export function ConflictConfirm({
   refereeName,
+  message,
+  groups = [],
   fields,
   action,
 }: {
   refereeName: string;
+  /** Motifs (règles, indisponibilité, conflit...) à présenter avant de confirmer. */
+  message: string;
+  /** Groupes de la division que l'arbitre n'a pas : ajout proposé. */
+  groups?: { id: string; label: string }[];
   /** Champs cachés renvoyés à l'action (matchId, refereeId...). */
   fields: Record<string, string>;
   action: (formData: FormData) => void | Promise<void>;
@@ -26,6 +32,7 @@ export function ConflictConfirm({
   const pathname = usePathname();
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, setPending] = useState(false);
+  const [addTo, setAddTo] = useState<string[]>([]);
 
   return (
     <>
@@ -34,10 +41,13 @@ export function ConflictConfirm({
           <input key={name} type="hidden" name={name} value={value} />
         ))}
         <input type="hidden" name="confirmConflict" value="1" />
+        {addTo.map((id) => (
+          <input key={id} type="hidden" name="addToGroupIds" value={id} />
+        ))}
       </form>
       <ConfirmModal
-        title={`Désigner ${refereeName} malgré le conflit d'horaire ?`}
-        message={`${SCHEDULING_CONFLICT_MESSAGE} Vous pouvez tout de même le désigner.`}
+        title={`Désigner ${refereeName} malgré tout ?`}
+        message={`${message} Vous pouvez tout de même le désigner.`}
         confirmLabel="Désigner quand même"
         pending={pending}
         onConfirm={() => {
@@ -45,7 +55,9 @@ export function ConflictConfirm({
           formRef.current?.requestSubmit();
         }}
         onCancel={() => router.replace(pathname)}
-      />
+      >
+        <GroupChoices groups={groups} refereeName={refereeName} value={addTo} onChange={setAddTo} />
+      </ConfirmModal>
     </>
   );
 }

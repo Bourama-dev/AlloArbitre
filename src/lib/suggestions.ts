@@ -589,16 +589,18 @@ export function explainSuggestion(s: RefereeSuggestion, totalCandidates: number)
 
 
 export type DesignateResult =
-  /** warnings : quotas dépassés (jour / semaine / week-end / TQR), non bloquants. */
+  /** warnings : points d'attention confirmés par le répartiteur (règles, conflit, indisponibilité...). */
   | { ok: true; warnings: string[] }
   /**
-   * confirmable : refus que le répartiteur peut passer outre après confirmation
-   * (conflit d'horaire) ; on rappelle alors designateReferee avec
-   * `confirmConflict: true`. Les désignations automatiques ne confirment jamais.
+   * confirmable : aucune règle n'est bloquante. Le répartiteur voit les motifs
+   * dans une fenêtre et peut passer outre ; on rappelle alors designateReferee
+   * avec `confirmConflict: true`. groupsToAdd : groupes de la division dont
+   * l'arbitre ne fait pas partie (proposés à l'ajout). Les désignations
+   * automatiques ne confirment jamais.
    */
-  | { ok: false; error: string; confirmable?: boolean };
+  | { ok: false; error: string; confirmable?: boolean; groupsToAdd?: { id: string; label: string }[] };
 
-export type DesignateOptions = { confirmConflict?: boolean };
+export type DesignateOptions = { confirmConflict?: boolean; addToGroupIds?: string[] };
 
 /** Création de la désignation - toujours suite à une validation manuelle explicite. */
 export async function designateReferee(
@@ -626,8 +628,10 @@ export async function designateReferee(
   if (refereeError) throw refereeError;
   if (!referee) return { ok: false, error: "Arbitre introuvable." };
 
+  // Points d'attention : aucun n'est bloquant, le répartiteur confirme en connaissance de cause.
+  const problems: string[] = [];
   const ownTeam = refereeOwnClubTeam(referee?.zone as string | null, match.homeTeam, match.awayTeam);
-  if (ownTeam) return { ok: false, error: ownClubMessage(ownTeam) };
+  if (ownTeam) problems.push(ownClubMessage(ownTeam));
 
   const rawLevel = match.competitionLevel as unknown;
   const competitionLevel = (Array.isArray(rawLevel) ? rawLevel[0] : rawLevel) as
@@ -656,7 +660,7 @@ export async function designateReferee(
       );
     if (partnersError) throw partnersError;
     if ((partners ?? []).some((p) => isMinorAt(p.birthDate as string | null, matchDate))) {
-      return { ok: false, error: "Un arbitre mineur ne peut pas être associé à un autre mineur." };
+      problems.push("Un arbitre mineur ne peut pas être associé à un autre mineur.");
     }
   }
 
@@ -672,10 +676,9 @@ export async function designateReferee(
     unavailabilityBlocksMatch(u, matchDate, match.durationMinutes)
   );
   if (blocking) {
-    return {
-      ok: false,
-      error: `Cet arbitre est indisponible sur ce créneau${blocking.note ? ` (${blocking.note})` : ""}.`,
-    };
+    problems.push(
+      `Cet arbitre est indisponible sur ce créneau${blocking.recurring ? " (indisponibilité récurrente)" : ""}${blocking.note ? ` : ${blocking.note}` : ""}.`
+    );
   }
 
   const { data: existingDesignations, error: conflictError } = await supabaseAdmin
@@ -703,20 +706,14 @@ export async function designateReferee(
       d
     )
   );
-  // Conflit d'horaire : le répartiteur peut passer outre en confirmant (fenêtre
-  // de confirmation côté écran) ; sans confirmation, la désignation est refusée.
-  if (hasConflict && !opts.confirmConflict) {
-    return { ok: false, error: SCHEDULING_CONFLICT_MESSAGE, confirmable: true };
-  }
+  if (hasConflict) problems.push(SCHEDULING_CONFLICT_MESSAGE);
 
-  // Règles modifiables (Admin > Règles) : une règle « bloquante » refuse la
-  // désignation manuelle, une règle « avertissement » l'enregistre avec une
-  // alerte. Les suggestions et l'auto-désignation, elles, n'en proposent jamais.
+  // Règles modifiables (Admin > Règles) : aucune ne bloque, toutes demandent confirmation.
   const rules = await getRules();
   const refereeLevelRaw = referee?.level as unknown;
   const refereeLevelLabel =
     ((Array.isArray(refereeLevelRaw) ? refereeLevelRaw[0] : refereeLevelRaw) as { label: string } | null)?.label ?? null;
-  const ruleViolations = [
+  for (const v of [
     ...checkQuotaRules(matchDate, match.durationMinutes, existingMatches, isTqr, rules),
     ...checkRefereeRules(
       rules,
@@ -724,11 +721,9 @@ export async function designateReferee(
       { label: competitionLevel?.label ?? null },
       matchDate
     ),
-  ];
-  const blockingRules = ruleViolations.filter((v) => v.severity === "bloquant");
-  if (blockingRules.length > 0) return { ok: false, error: blockingRules.map((v) => v.message).join(" ") };
-  const warnings = ruleViolations.map((v) => v.message);
-  if (hasConflict) warnings.unshift("conflit d'horaire confirmé (créneau déjà occupé ou trajet entre gymnases trop court).");
+  ]) {
+    problems.push(v.message);
+  }
 
   // Âge minimum et groupes de désignation de la division.
   const [divisionRules, settings] = await Promise.all([
@@ -741,13 +736,17 @@ export async function designateReferee(
     { birthDate: (referee?.birthDate as string | null) ?? null, groupIds },
     matchDate
   );
-  if (divisionBlock.length > 0) return { ok: false, error: divisionBlock.join(" ") + "." };
+  problems.push(...divisionBlock.map((r) => r + "."));
+  const groupsToAdd =
+    divisionRules.allowedGroups.length > 0 && !divisionRules.allowedGroups.some((g) => groupIds.includes(g.id))
+      ? divisionRules.allowedGroups
+      : [];
 
   // Disponibilités saisies par l'arbitre dans son espace.
   const day = matchDate.toISOString().slice(0, 10);
   const availability = await loadAvailabilityIndex(day, day, settings.requireAvailability);
   const availabilityBlock = availability.verdict(refereeId, matchDate).block;
-  if (availabilityBlock) return { ok: false, error: availabilityBlock + "." };
+  if (availabilityBlock) problems.push(availabilityBlock + ".");
 
   // Distance maximale du comité (sauf doublé dans la même salle : aucun
   // nouveau déplacement).
@@ -765,8 +764,13 @@ export async function designateReferee(
     const crowKm = distanceKm(home, gym);
     const road = crowKm <= settings.maxDistanceKm ? await roadDistance(home, gym) : null;
     const tooFar = maxDistanceReason(road?.km ?? crowKm, settings.maxDistanceKm, !!road);
-    if (tooFar) return { ok: false, error: tooFar + "." };
+    if (tooFar) problems.push(tooFar + ".");
   }
+
+  if (problems.length > 0 && !opts.confirmConflict) {
+    return { ok: false, error: problems.join(" "), confirmable: true, groupsToAdd };
+  }
+  const warnings = problems;
 
   // Première position libre (A1, A2...) : "nombre de désignés + 1" créait
   // des doublons (deux A2) quand A1 avait été retiré et A2 conservé.
@@ -812,6 +816,15 @@ export async function designateReferee(
     .insert({ matchId, refereeId, createdById, position });
   if (insertError) {
     return { ok: false, error: "Erreur lors de la création de la désignation." };
+  }
+  // Ajout au(x) groupe(s) demandé(s) dans la fenêtre de confirmation.
+  const addIds = (opts.addToGroupIds ?? []).filter((id) => groupsToAdd.some((g) => g.id === id));
+  if (addIds.length > 0) {
+    const { error: groupError } = await supabaseAdmin
+      .from("RefereeGroupMember")
+      .upsert(addIds.map((groupId) => ({ groupId, refereeId })), { onConflict: "groupId,refereeId", ignoreDuplicates: true });
+    if (groupError) warnings.push("L'ajout au groupe a échoué.");
+    else warnings.push(`ajouté au groupe ${groupsToAdd.filter((g) => addIds.includes(g.id)).map((g) => g.label).join(", ")}.`);
   }
   return { ok: true, warnings };
 }

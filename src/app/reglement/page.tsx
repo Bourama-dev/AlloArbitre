@@ -6,11 +6,6 @@ import { getAllRules } from "@/lib/rules-store";
 
 export const dynamic = "force-dynamic";
 
-const SEVERITY_LABEL = {
-  bloquant: "Bloquant",
-  avertissement: "Avertissement",
-} as const;
-
 export default async function ReglementPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -24,9 +19,7 @@ export default async function ReglementPage() {
         <h1 className="text-xl font-semibold tracking-tight">Règlement des désignations</h1>
         <p className="text-sm text-[var(--muted)] mt-1">
           Règles appliquées automatiquement lors de la désignation d&apos;un arbitre sur un
-          match (manuelle ou en auto-désignation). Une règle « bloquante » empêche la
-          désignation manuelle ; une règle « avertissement » la signale sans l&apos;empêcher.
-          Dans les deux cas, l&apos;arbitre n&apos;est jamais proposé automatiquement.
+          match (manuelle ou en auto-désignation). Elles vous aident à décider : aucune ne bloque. En désignation manuelle, une fenêtre vous demande de confirmer, et l&apos;arbitre n&apos;est jamais proposé automatiquement.
         </p>
         {user.role === "ADMIN" && (
           <Link href="/admin/regles" className="btn btn-primary mt-3 inline-flex">
@@ -43,13 +36,9 @@ export default async function ReglementPage() {
             <li key={rule.id} className="px-4 py-3">
               <div className="flex items-center gap-2 mb-1">
                 <span
-                  className={`badge ${
-                    rule.severity === "bloquant"
-                      ? "text-[var(--danger)] bg-[var(--danger-bg)]"
-                      : "text-[var(--warning)] bg-[var(--warning-bg)]"
-                  }`}
+                  className="badge text-[var(--warning)] bg-[var(--warning-bg)]"
                 >
-                  {SEVERITY_LABEL[rule.severity]}
+                  À confirmer
                 </span>
                 <span className="font-medium text-sm">{rule.label}</span>
               </div>

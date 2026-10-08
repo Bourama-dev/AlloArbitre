@@ -16,6 +16,7 @@ export function ConfirmModal({
   pending = false,
   onConfirm,
   onCancel,
+  children,
 }: {
   title: string;
   message: string;
@@ -24,6 +25,7 @@ export function ConfirmModal({
   pending?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  children?: React.ReactNode;
 }) {
   // Rendu à la racine de la page (portail) : une carte animée parente crée un
   // repère de positionnement qui enfermerait et couperait la fenêtre. Faux côté
@@ -80,6 +82,7 @@ export function ConfirmModal({
             </p>
           </div>
         </div>
+        {children}
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button ref={cancelRef} type="button" className="btn btn-secondary" onClick={onCancel} disabled={pending}>
             {cancelLabel}
