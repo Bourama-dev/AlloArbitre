@@ -33,11 +33,6 @@ export type RefereeSuggestion = {
 
 export type IneligibleReferee = RefereeSuggestion & { reasons: string[] };
 
-// Niveaux d'arbitre stagiaire (en formation) : jamais choisis par les
-// suggestions ni par l'auto-désignation, mais désignables à la main par un
-// répartiteur (ex. en binôme avec un arbitre confirmé).
-export const MANUAL_ONLY_LEVELS = ["DEP-STG"];
-
 type RawMatchForSuggestion = {
   id: string;
   date: string;
@@ -423,9 +418,6 @@ export async function evaluateMatchCandidates(
       );
 
       const reasons: string[] = [];
-      if (MANUAL_ONLY_LEVELS.includes(c.level.label)) {
-        reasons.push(`Stagiaire (${c.level.label}) : désignation manuelle uniquement`);
-      }
       if (minRank !== undefined && c.level.rank > minRank) {
         reasons.push("Niveau insuffisant");
       }
