@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { NavIcon, type NavIconName } from "@/components/nav-icons";
 
-type Tab = { id: string; label: string; icon: NavIconName };
+type Tab = { id: string; label: string; icon: NavIconName; href?: string };
 
 /**
  * Barre du bas de l'espace arbitre : sections de la page (disponibilités,
@@ -14,7 +15,7 @@ export function RefereeTabs({ tabs }: { tabs: Tab[] }) {
   const [active, setActive] = useState(tabs[0]?.id);
 
   useEffect(() => {
-    const els = tabs.map((t) => document.getElementById(t.id)).filter((e): e is HTMLElement => !!e);
+    const els = tabs.filter((t) => !t.href).map((t) => document.getElementById(t.id)).filter((e): e is HTMLElement => !!e);
     if (els.length === 0) return;
     const obs = new IntersectionObserver(
       (entries) => {
@@ -29,7 +30,15 @@ export function RefereeTabs({ tabs }: { tabs: Tab[] }) {
 
   return (
     <nav className="bottom-nav" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }} aria-label="Sections">
-      {tabs.map((t) => (
+      {tabs.map((t) =>
+        t.href ? (
+          <Link key={t.id} href={t.href} className="tab" data-active={false}>
+            <span className="tab-icon">
+              <NavIcon name={t.icon} className="w-6 h-6" />
+            </span>
+            <span className="tab-label">{t.label}</span>
+          </Link>
+        ) : (
         <button
           key={t.id}
           type="button"
@@ -50,7 +59,8 @@ export function RefereeTabs({ tabs }: { tabs: Tab[] }) {
           </span>
           <span className="tab-label">{t.label}</span>
         </button>
-      ))}
+        )
+      )}
     </nav>
   );
 }

@@ -464,6 +464,7 @@ export default async function RefereeSpacePage({
             { id: "sec-dispos", label: "Dispos", icon: "dispos" },
             { id: "sec-matchs", label: "Matchs", icon: "matchs" },
             { id: "sec-suivi", label: "Suivi", icon: "stats" },
+            { id: "outils", label: "Outils", icon: "export", href: "/espace/boite-a-outils" },
             { id: "sec-compte", label: "Compte", icon: "compte" },
           ]}
         />

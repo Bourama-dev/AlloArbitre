@@ -21,6 +21,7 @@ const more: AppNavLink[] = [
   { href: "/statistiques", label: "Rapports", icon: "stats", also: ["/export"] },
   { href: "/reglement", label: "Règles", icon: "reglement" },
   { href: "/communication", label: "Communication", icon: "communication" },
+  { href: "/espace/boite-a-outils", label: "Boîte à outils", icon: "export" },
 ];
 
 const adminLinks: AppNavLink[] = [

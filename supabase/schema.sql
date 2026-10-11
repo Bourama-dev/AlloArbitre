@@ -284,3 +284,16 @@ alter table "DesignationRule" enable row level security;
 -- Une rencontre FBI = un seul match (migration match_fbi_id_unique) : empêche
 -- toute création de doublon par les imports.
 -- create unique index "Match_fbiIdRencontre_key" on "Match" ("fbiIdRencontre") where "fbiIdRencontre" is not null;
+
+-- Boîte à outils arbitre (migration toolbox_documents_and_faq) : documents
+-- officiels (fichiers dans le bucket privé « toolbox ») et FAQ, gérés par les
+-- administrateurs depuis /espace/boite-a-outils.
+-- create table "ToolboxDocument" (id text primary key default gen_random_uuid()::text, title text not null,
+--   description text not null default '', category text not null default 'À avoir sur soi', "storagePath" text not null,
+--   "fileName" text not null, "mimeType" text not null default 'application/octet-stream', "sizeBytes" integer not null default 0,
+--   position integer not null default 0, active boolean not null default true,
+--   "createdAt" timestamptz not null default now(), "updatedAt" timestamptz not null default now());
+-- create table "FaqItem" (id text primary key default gen_random_uuid()::text, question text not null, answer text not null,
+--   category text not null default 'Règlement', position integer not null default 0, active boolean not null default true,
+--   "createdAt" timestamptz not null default now(), "updatedAt" timestamptz not null default now());
+-- insert into storage.buckets (id, name, public, file_size_limit) values ('toolbox', 'toolbox', false, 10485760);

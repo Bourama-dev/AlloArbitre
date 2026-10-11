@@ -112,3 +112,17 @@ export const getPendingAccount = cache(async (): Promise<{ name: string; email: 
   if (!profile || profile.role === "ARBITRE" || profile.approved) return null;
   return { name: profile.name, email: profile.email };
 });
+
+export type AnyProfile = { id: string; name: string; role: "ADMIN" | "REPARTITEUR" | "ARBITRE" };
+
+/**
+ * Tout compte connecté et autorisé : staff validé (ADMIN, REPARTITEUR) ou
+ * arbitre. Pour les pages partagées entre le staff et l'espace arbitre
+ * (ex. boîte à outils). Un compte staff en attente de validation renvoie null.
+ */
+export const getAnyProfile = cache(async (): Promise<AnyProfile | null> => {
+  const profile = await getSessionProfile();
+  if (!profile) return null;
+  if (profile.role !== "ARBITRE" && !profile.approved) return null;
+  return { id: profile.id, name: profile.name, role: profile.role };
+});

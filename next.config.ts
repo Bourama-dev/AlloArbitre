@@ -7,7 +7,8 @@ import type { NextConfig } from "next";
 process.env.TZ = "UTC";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Boîte à outils : envoi de documents officiels (PDF...) jusqu'à 10 Mo par un administrateur.
+  experimental: { serverActions: { bodySizeLimit: "12mb" } },
 };
 
 export default nextConfig;
