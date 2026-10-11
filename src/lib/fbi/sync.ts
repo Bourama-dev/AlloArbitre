@@ -66,6 +66,19 @@ export function teamNamesMatch(fbiTeamName: string, alloTeamName: string): boole
 }
 
 /**
+ * Comparaison tolérante pour l'import : ignore en plus le suffixe « (n) » que
+ * FBI renumérote d'un jour à l'autre ("USM OLIVET - 2 (3)" = "USM OLIVET - 2 (1)").
+ * Le numéro d'équipe avant ("- 2") reste discriminant : "USM OLIVET - 1" et
+ * "USM OLIVET - 2" sont deux équipes différentes.
+ */
+export function teamNamesMatchLoose(a: string, b: string): boolean {
+  const key = (s: string) => normalize(s.replace(/\.{3}$/, "").replace(/\(\s*\d+\s*\)\s*$/, ""));
+  const ka = key(a);
+  const kb = key(b);
+  return !!ka && !!kb && (ka.startsWith(kb) || kb.startsWith(ka));
+}
+
+/**
  * Rapproche les lignes FBI des matchs AlloArbitre (par date/heure + noms
  * d'équipes, en tolérant les troncatures FBI type "SAINT DENIS DE L'HOTEL...")
  * et signale les écarts d'état (Complète/Incomplète) entre les deux systèmes.

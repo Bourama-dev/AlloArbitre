@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
+import { teamNamesMatchLoose } from "@/lib/fbi/sync";
 
 type ParsedRow = {
   homeTeam: string;
@@ -191,19 +192,28 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
       const dayEnd = new Date(dayStart);
       dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
 
-      // Un même match est identifié par jour (pas l'horaire exact) + équipes +
-      // niveau : l'horaire peut être corrigé d'un import à l'autre (ex :
-      // horaire absent/mal lu la première fois) sans créer de doublon.
-      const { data: existing, error: findError } = await supabaseAdmin
+      // Un même match est identifié par jour (pas l'horaire exact) + niveau +
+      // équipes : l'horaire peut être corrigé d'un import à l'autre, et les noms
+      // d'équipes varier légèrement (suffixe « (n) » FBI, troncature, casse,
+      // accents) sans créer de doublon. À défaut, la même affiche avec domicile
+      // et extérieur inversés est aussi reconnue. Un match trouvé est mis à jour
+      // avec les informations importées.
+      const { data: candidates, error: findError } = await supabaseAdmin
         .from("Match")
-        .select("id, lat")
+        .select("id, lat, homeTeam, awayTeam")
         .gte("date", dayStart.toISOString())
         .lt("date", dayEnd.toISOString())
-        .eq("homeTeam", row.homeTeam)
-        .eq("awayTeam", row.awayTeam)
         .eq("competitionLevelId", competitionLevelId)
-        .maybeSingle();
+        .order("createdAt", { ascending: true });
       if (findError) throw findError;
+      const sameOrder = (candidates ?? []).find(
+        (m) => teamNamesMatchLoose(row.homeTeam, m.homeTeam as string) && teamNamesMatchLoose(row.awayTeam, m.awayTeam as string)
+      );
+      const existing =
+        sameOrder ??
+        (candidates ?? []).find(
+          (m) => teamNamesMatchLoose(row.homeTeam, m.awayTeam as string) && teamNamesMatchLoose(row.awayTeam, m.homeTeam as string)
+        );
 
       const durationMinutes = matchDurationMinutes(row.competitionLevel);
       // Jamais d'écrasement de coordonnées déjà connues.
@@ -214,6 +224,8 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
           .from("Match")
           .update({
             date: date.toISOString(),
+            homeTeam: row.homeTeam,
+            awayTeam: row.awayTeam,
             venue: row.venue,
             city: row.city,
             poule: row.poule,

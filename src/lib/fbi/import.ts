@@ -3,7 +3,7 @@ import { matchDurationMinutes } from "@/lib/import-matches";
 import { cleanPlaceName, geocodeAddress } from "@/lib/geocoding";
 import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
 import type { FbiDesignationRow } from "./searchDesignations";
-import { parseFbiDateTime, teamNamesMatch } from "./sync";
+import { parseFbiDateTime, teamNamesMatchLoose } from "./sync";
 
 export type FbiImportSummary = {
   created: number;
@@ -111,8 +111,8 @@ export async function importFbiRencontresAsMatches(rows: FbiDesignationRow[]): P
         existing = (candidates ?? []).find(
           (m) =>
             (!m.fbiIdRencontre || !row.idRencontre || m.fbiIdRencontre === row.idRencontre) &&
-            teamNamesMatch(row.equipe1, m.homeTeam) &&
-            teamNamesMatch(row.equipe2, m.awayTeam)
+            teamNamesMatchLoose(row.equipe1, m.homeTeam) &&
+            teamNamesMatchLoose(row.equipe2, m.awayTeam)
         );
       }
 
