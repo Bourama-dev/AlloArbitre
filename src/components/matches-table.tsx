@@ -30,17 +30,17 @@ export function MatchesTable({
 
   return (
     <div className="table-shell table-cards overflow-x-auto">
-      <table>
+      <table className="lg:[&_td]:px-2 lg:[&_th]:px-2 2xl:[&_td]:px-3.5 2xl:[&_th]:px-3.5">
         <thead>
           <tr>
             {selectable && <th className="w-8" />}
             <th>Date</th>
-            <th>Niveau</th>
+            <th className="hidden 2xl:table-cell">Niveau</th>
             <th>Domicile</th>
             <th>Extérieur</th>
-            <th>Lieu</th>
+            <th className="hidden 2xl:table-cell">Lieu</th>
             <th>Arbitres</th>
-            <th>N°national</th>
+            <th className="hidden 2xl:table-cell">N°national</th>
             <th>Statut</th>
             <th />
           </tr>
@@ -57,14 +57,20 @@ export function MatchesTable({
                     )}
                   </td>
                 )}
-                <td className="whitespace-nowrap tc-date tc-head">{formatDateTimeFr(m.date)}</td>
-                <td className="whitespace-nowrap text-[var(--muted)] tc-head text-xs">
+                <td className="whitespace-nowrap tc-date tc-head">
+                  {formatDateTimeFr(m.date)}
+                  <span className="hidden lg:block 2xl:hidden text-[11px] font-normal text-[var(--muted)] whitespace-normal">
+                    {m.competitionLevel.label}
+                    {m.venue ? ` · ${m.venue}` : ""}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap text-[var(--muted)] tc-head text-xs lg:hidden 2xl:table-cell">
                   {m.competitionLevel.label}
                 </td>
-                <td className="font-medium whitespace-nowrap tc-team">{m.homeTeam}</td>
-                <td className="font-medium whitespace-nowrap tc-team tc-away">{m.awayTeam}</td>
-                <td className="whitespace-nowrap text-[var(--muted)] tc-venue">{m.venue ?? "-"}</td>
-                <td className="min-w-[10rem]" data-label="Arbitres">
+                <td className="font-medium tc-team">{m.homeTeam}</td>
+                <td className="font-medium tc-team tc-away">{m.awayTeam}</td>
+                <td className="text-[var(--muted)] tc-venue lg:hidden 2xl:table-cell">{m.venue ?? "-"}</td>
+                <td className="min-w-[10rem] lg:min-w-[12rem]" data-label="Arbitres">
                   {m.designations.length === 0 ? (
                     <span className="text-[var(--muted)]">
                       Aucun arbitre ({0}/{m.refereesRequired})
@@ -131,7 +137,7 @@ export function MatchesTable({
                     </form>
                   )}
                 </td>
-                <td className="whitespace-nowrap text-[var(--muted)] tc-hide-sm">
+                <td className="hidden 2xl:table-cell whitespace-nowrap text-[var(--muted)] tc-hide-sm">
                   {m.designations.length === 0 ? (
                     "-"
                   ) : (
