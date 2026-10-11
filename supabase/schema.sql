@@ -280,3 +280,7 @@ alter table "DesignationRule" enable row level security;
 -- via /signup a approved = false jusqu'à validation par un ADMIN (Admin >
 -- Utilisateurs). Les comptes existants et les comptes arbitres sont validés.
 -- alter table "Profile" add column approved boolean not null default false;
+
+-- Une rencontre FBI = un seul match (migration match_fbi_id_unique) : empêche
+-- toute création de doublon par les imports.
+-- create unique index "Match_fbiIdRencontre_key" on "Match" ("fbiIdRencontre") where "fbiIdRencontre" is not null;
