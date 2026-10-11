@@ -168,8 +168,8 @@
     "semantic_hash": ""
   },
   "src/app/layout.tsx": {
-    "mtime": 1791717554.1099544,
-    "seen": 1791717651.5667374,
+    "mtime": 1791719714.237395,
+    "seen": 1791719745.6330464,
     "ast_hash": "e7a0834a64245b686493a2bc3c1a655e",
     "semantic_hash": ""
   },
@@ -300,9 +300,9 @@
     "semantic_hash": ""
   },
   "src/components/nav.tsx": {
-    "mtime": 1791455101.6680012,
-    "seen": 1791455152.437658,
-    "ast_hash": "ef4735adeb130f741ec201fc2cafef46",
+    "mtime": 1791719642.184308,
+    "seen": 1791719745.6330967,
+    "ast_hash": "15692b080976cf2e0a120a12332094e5",
     "semantic_hash": ""
   },
   "src/components/personal-link-button.tsx": {
@@ -558,8 +558,8 @@
     "semantic_hash": ""
   },
   "src/proxy.ts": {
-    "mtime": 1791717554.1133115,
-    "seen": 1791717651.5668578,
+    "mtime": 1791719714.2399738,
+    "seen": 1791719745.6331594,
     "ast_hash": "9c388f3321ef2f32947afab0a3b8ec32",
     "semantic_hash": ""
   },
@@ -630,9 +630,9 @@
     "semantic_hash": ""
   },
   "supabase/schema.sql": {
-    "mtime": 1791455061.8929896,
-    "seen": 1791455152.4377663,
-    "ast_hash": "adb514b74231cd614ad9ff8d681f8750",
+    "mtime": 1791718223.4807825,
+    "seen": 1791719745.6331606,
+    "ast_hash": "e431fcaf11753e30fe386643c90aa229",
     "semantic_hash": ""
   },
   "supabase/seed.sql": {
@@ -696,9 +696,9 @@
     "semantic_hash": ""
   },
   "src/components/nav-icons.tsx": {
-    "mtime": 1791235740.0091145,
-    "seen": 1791236040.4817355,
-    "ast_hash": "de4aeac9827865d4a618014954c2a320",
+    "mtime": 1791719642.1838927,
+    "seen": 1791719745.6330957,
+    "ast_hash": "599a7a3e6921e650794b106c521c5d44",
     "semantic_hash": ""
   },
   "src/components/swipe-nav.tsx": {
@@ -813,6 +813,30 @@
     "mtime": 1791455101.6643202,
     "seen": 1791455152.437653,
     "ast_hash": "7e94a5937878702f983dd6f40264d2d6",
+    "semantic_hash": ""
+  },
+  "src/app/communication/page.tsx": {
+    "mtime": 1791719642.1701846,
+    "seen": 1791719745.633027,
+    "ast_hash": "06b6d046ab73f3041081f03bb3fe0fdd",
+    "semantic_hash": ""
+  },
+  "src/components/communication-studio.tsx": {
+    "mtime": 1791719642.1674464,
+    "seen": 1791719745.6330748,
+    "ast_hash": "dfd703bee39c876933c62d704b808422",
+    "semantic_hash": ""
+  },
+  "src/components/copy-button.tsx": {
+    "mtime": 1791719642.165442,
+    "seen": 1791719745.633082,
+    "ast_hash": "7c63cbc683fd1a3be5a84e7fd362de68",
+    "semantic_hash": ""
+  },
+  "src/lib/communication-templates.ts": {
+    "mtime": 1791719642.1607103,
+    "seen": 1791719745.633121,
+    "ast_hash": "b956261746a2f0487b474d32b7d7241f",
     "semantic_hash": ""
   }
 }
