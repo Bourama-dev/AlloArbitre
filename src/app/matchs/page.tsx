@@ -7,6 +7,7 @@ import { designateReferee } from "@/lib/suggestions";
 import { getCurrentUser } from "@/lib/current-user";
 import { addWeeks, weekRange, formatDayMonthFr } from "@/lib/dates";
 import { MatchesTable } from "@/components/matches-table";
+import { AutoDesignatePanel } from "@/components/auto-designate-panel";
 import { AlertToast } from "@/components/alert-toast";
 import { ConflictConfirm } from "@/components/conflict-confirm";
 import { decodeGroups, encodeGroups } from "@/lib/designation-messages";
@@ -217,7 +218,9 @@ export default async function MatchesPage({
         </Link>
       )}
 
-      <MatchesTable matches={matches} referees={referees} designateAction={designate} />
+      <AutoDesignatePanel>
+        <MatchesTable matches={matches} referees={referees} designateAction={designate} selectable />
+      </AutoDesignatePanel>
 
       <Link href="/matchs/nouveau" className="fab" aria-label="Nouveau match">
         <span className="text-xl leading-none">＋</span> Match
