@@ -1,3 +1,4 @@
+import { AutoDesignateButton } from "@/components/auto-designate-button";
 import { ConflictConfirm } from "@/components/conflict-confirm";
 import { decodeGroups, encodeGroups } from "@/lib/designation-messages";
 import { notFound, redirect } from "next/navigation";
@@ -108,9 +109,12 @@ export default async function MatchDetailPage({
           )}
         </div>
         {match.notes && <p className="text-sm text-[var(--muted)] italic">{match.notes}</p>}
-        <Link href={`/matchs/${id}/modifier`} className="btn btn-secondary w-full sm:w-auto">
-          Modifier le match
-        </Link>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+          {status === "incomplet" && <AutoDesignateButton matchId={id} slotsLeft={slotsLeft} />}
+          <Link href={`/matchs/${id}/modifier`} className="btn btn-secondary w-full sm:w-auto">
+            Modifier le match
+          </Link>
+        </div>
       </header>
 
       {error && <AlertToast message={decodeURIComponent(error)} variant="error" />}

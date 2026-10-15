@@ -4,6 +4,58 @@
   "graph": {},
   "nodes": [
     {
+      "id": "src_app_admin_divisions_groupes_panel_grouprow",
+      "label": "GroupRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "grouprow",
+      "source_file": "src/app/admin/divisions/groupes-panel.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "src_app_admin_utilisateurs_page_profilerow",
+      "label": "ProfileRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "profilerow",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_app_admin_utilisateurs_page_refereerow",
+      "label": "RefereeRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "refereerow",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L21"
+    },
+    {
+      "id": "src_app_admin_utilisateurs_page_role",
+      "label": "Role",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "role",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L11"
+    },
+    {
       "id": "src_app_espace_page_one",
       "label": "One",
       "_callable": true,
@@ -15,6 +67,19 @@
       "norm_label": "one",
       "source_file": "src/app/espace/page.tsx",
       "source_location": "L25"
+    },
+    {
+      "id": "src_components_alert_toast_variant",
+      "label": "Variant",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "variant",
+      "source_file": "src/components/alert-toast.tsx",
+      "source_location": "L5"
     },
     {
       "id": "src_lib_availability_availabilityindex",
@@ -41,19 +106,6 @@
       "norm_label": "availabilityperiod",
       "source_file": "src/lib/availability.ts",
       "source_location": "L107"
-    },
-    {
-      "id": "src_lib_availability_availabilitystatus",
-      "label": "AvailabilityStatus",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "availabilitystatus",
-      "source_file": "src/lib/availability.ts",
-      "source_location": "L127"
     },
     {
       "id": "src_lib_availability_availabilityverdict",
@@ -121,6 +173,19 @@
       "source_location": "L5"
     },
     {
+      "id": "src_app_communication_page_refereerow",
+      "label": "RefereeRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "refereerow",
+      "source_file": "src/app/communication/page.tsx",
+      "source_location": "L10"
+    },
+    {
       "id": "src_components_app_nav_appnavlink",
       "label": "AppNavLink",
       "_callable": true,
@@ -160,6 +225,19 @@
       "source_location": "L5"
     },
     {
+      "id": "src_components_communication_studio_pendingreferee",
+      "label": "PendingReferee",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "pendingreferee",
+      "source_file": "src/components/communication-studio.tsx",
+      "source_location": "L7"
+    },
+    {
       "id": "src_components_nav_icons_naviconname",
       "label": "NavIconName",
       "_callable": true,
@@ -196,6 +274,19 @@
       "file_type": "code",
       "norm_label": "tab",
       "source_file": "src/components/referee-tabs.tsx",
+      "source_location": "L7"
+    },
+    {
+      "id": "src_lib_communication_templates_messagetemplate",
+      "label": "MessageTemplate",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "messagetemplate",
+      "source_file": "src/lib/communication-templates.ts",
       "source_location": "L7"
     },
     {
@@ -283,7 +374,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocodingbackfillsummary",
       "source_file": "src/lib/geocoding-backfill.ts",
@@ -296,7 +387,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocoderesult",
       "source_file": "src/lib/geocoding.ts",
@@ -309,7 +400,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "latlng",
       "source_file": "src/lib/geocoding.ts",
@@ -322,7 +413,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "importsummary",
       "source_file": "src/lib/import-matches.ts",
@@ -335,24 +426,37 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "parsedrow",
       "source_file": "src/lib/import-matches.ts",
       "source_location": "L6"
     },
     {
-      "id": "src_app_admin_divisions_groupes_panel_grouprow",
-      "label": "GroupRow",
+      "id": "src_lib_suggestions_ineligiblereferee",
+      "label": "IneligibleReferee",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
+      "community": 24,
+      "community_name": "SubmitButton",
       "file_type": "code",
-      "norm_label": "grouprow",
-      "source_file": "src/app/admin/divisions/groupes-panel.tsx",
-      "source_location": "L11"
+      "norm_label": "ineligiblereferee",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L34"
+    },
+    {
+      "id": "src_lib_suggestions_refereesuggestion",
+      "label": "RefereeSuggestion",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "refereesuggestion",
+      "source_file": "src/lib/suggestions.ts",
+      "source_location": "L12"
     },
     {
       "id": "src_app_admin_divisions_niveaux_panel_competitionlevelrow",
@@ -366,58 +470,6 @@
       "norm_label": "competitionlevelrow",
       "source_file": "src/app/admin/divisions/niveaux-panel.tsx",
       "source_location": "L9"
-    },
-    {
-      "id": "src_app_admin_utilisateurs_page_profilerow",
-      "label": "ProfileRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "profilerow",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_app_admin_utilisateurs_page_refereerow",
-      "label": "RefereeRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "refereerow",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L21"
-    },
-    {
-      "id": "src_app_admin_utilisateurs_page_role",
-      "label": "Role",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "role",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "src_components_alert_toast_variant",
-      "label": "Variant",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "variant",
-      "source_file": "src/components/alert-toast.tsx",
-      "source_location": "L5"
     },
     {
       "id": "src_lib_actions_auto_designate_actions_autodesignatesummary",
@@ -496,45 +548,6 @@
       "norm_label": "matchwithrelations",
       "source_file": "src/lib/matches.ts",
       "source_location": "L11"
-    },
-    {
-      "id": "src_app_communication_page_refereerow",
-      "label": "RefereeRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "refereerow",
-      "source_file": "src/app/communication/page.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_communication_studio_pendingreferee",
-      "label": "PendingReferee",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "pendingreferee",
-      "source_file": "src/components/communication-studio.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_lib_communication_templates_messagetemplate",
-      "label": "MessageTemplate",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "messagetemplate",
-      "source_file": "src/lib/communication-templates.ts",
-      "source_location": "L7"
     },
     {
       "id": "src_lib_designation_rules_forbidparams",
@@ -719,6 +732,19 @@
       "source_location": "L27"
     },
     {
+      "id": "src_lib_availability_availabilitystatus",
+      "label": "AvailabilityStatus",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "availabilitystatus",
+      "source_file": "src/lib/availability.ts",
+      "source_location": "L127"
+    },
+    {
       "id": "src_lib_controls_controlissue",
       "label": "ControlIssue",
       "_callable": true,
@@ -797,97 +823,6 @@
       "source_location": "L126"
     },
     {
-      "id": "src_lib_stats_clubstats",
-      "label": "ClubStats",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "clubstats",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L106"
-    },
-    {
-      "id": "src_lib_stats_one",
-      "label": "One",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "one",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L32"
-    },
-    {
-      "id": "src_lib_stats_rawmatch",
-      "label": "RawMatch",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "rawmatch",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L48"
-    },
-    {
-      "id": "src_lib_stats_rawreferee",
-      "label": "RawReferee",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "rawreferee",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L62"
-    },
-    {
-      "id": "src_lib_stats_refereedesignationline",
-      "label": "RefereeDesignationLine",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "refereedesignationline",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L73"
-    },
-    {
-      "id": "src_lib_stats_refereestats",
-      "label": "RefereeStats",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "refereestats",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L86"
-    },
-    {
-      "id": "src_lib_stats_seasonstats",
-      "label": "SeasonStats",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "seasonstats",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L117"
-    },
-    {
       "id": "src_lib_suggestions_candidatecontext",
       "label": "CandidateContext",
       "_callable": true,
@@ -953,19 +888,6 @@
       "source_location": "L583"
     },
     {
-      "id": "src_lib_suggestions_ineligiblereferee",
-      "label": "IneligibleReferee",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "ineligiblereferee",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L34"
-    },
-    {
       "id": "src_lib_suggestions_matchforsuggestion",
       "label": "MatchForSuggestion",
       "_callable": true,
@@ -1005,19 +927,6 @@
       "source_location": "L36"
     },
     {
-      "id": "src_lib_suggestions_refereesuggestion",
-      "label": "RefereeSuggestion",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "refereesuggestion",
-      "source_file": "src/lib/suggestions.ts",
-      "source_location": "L12"
-    },
-    {
       "id": "src_lib_suggestions_unavailabilityslot",
       "label": "UnavailabilitySlot",
       "_callable": true,
@@ -1037,7 +946,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "params",
       "source_file": "src/app/export/page.tsx",
@@ -1050,11 +959,102 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "params",
       "source_file": "src/app/statistiques/page.tsx",
       "source_location": "L10"
+    },
+    {
+      "id": "src_lib_stats_clubstats",
+      "label": "ClubStats",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "clubstats",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L106"
+    },
+    {
+      "id": "src_lib_stats_one",
+      "label": "One",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "one",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L32"
+    },
+    {
+      "id": "src_lib_stats_rawmatch",
+      "label": "RawMatch",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "rawmatch",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L48"
+    },
+    {
+      "id": "src_lib_stats_rawreferee",
+      "label": "RawReferee",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "rawreferee",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L62"
+    },
+    {
+      "id": "src_lib_stats_refereedesignationline",
+      "label": "RefereeDesignationLine",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "refereedesignationline",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L73"
+    },
+    {
+      "id": "src_lib_stats_refereestats",
+      "label": "RefereeStats",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "refereestats",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L86"
+    },
+    {
+      "id": "src_lib_stats_seasonstats",
+      "label": "SeasonStats",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "seasonstats",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L117"
     },
     {
       "id": "src_lib_current_user_anyprofile",
@@ -1135,6 +1135,18 @@
       "source_location": "L22"
     },
     {
+      "id": "src_app_admin_utilisateurs_page_formatwhen",
+      "label": "formatWhen()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "formatwhen()",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L25"
+    },
+    {
       "id": "src_app_disponibilites_id_page_availabilityperiodpage",
       "label": "AvailabilityPeriodPage()",
       "_callable": true,
@@ -1157,18 +1169,6 @@
       "norm_label": "clearrefereeavailability()",
       "source_file": "src/app/disponibilites/[id]/page.tsx",
       "source_location": "L112"
-    },
-    {
-      "id": "src_app_disponibilites_id_page_availabilityperiodpage_deleteperiod",
-      "label": "deletePeriod()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "deleteperiod()",
-      "source_file": "src/app/disponibilites/[id]/page.tsx",
-      "source_location": "L141"
     },
     {
       "id": "src_app_disponibilites_id_page_availabilityperiodpage_saverefereeavailability",
@@ -1267,18 +1267,6 @@
       "source_location": "L180"
     },
     {
-      "id": "src_app_espace_page_refereespacepage_logout",
-      "label": "logout()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "logout()",
-      "source_file": "src/app/espace/page.tsx",
-      "source_location": "L197"
-    },
-    {
       "id": "src_app_espace_page_refereespacepage_saveavailability",
       "label": "saveAvailability()",
       "_callable": true,
@@ -1291,88 +1279,28 @@
       "source_location": "L135"
     },
     {
-      "id": "src_components_collapsible_filters_collapsiblefilters",
-      "label": "CollapsibleFilters()",
+      "id": "src_components_alert_toast_alerttoast",
+      "label": "AlertToast()",
       "_callable": true,
       "_origin": "ast",
       "community": 0,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "collapsiblefilters()",
-      "source_file": "src/components/collapsible-filters.tsx",
-      "source_location": "L9"
+      "norm_label": "alerttoast()",
+      "source_file": "src/components/alert-toast.tsx",
+      "source_location": "L14"
     },
     {
-      "id": "src_components_copy_text_copytext",
-      "label": "CopyText()",
+      "id": "src_components_confirm_submit_button_confirmsubmitbutton",
+      "label": "ConfirmSubmitButton()",
       "_callable": true,
       "_origin": "ast",
       "community": 0,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "copytext()",
-      "source_file": "src/components/copy-text.tsx",
-      "source_location": "L6"
-    },
-    {
-      "id": "src_components_copy_text_copytext_copy",
-      "label": "copy()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "copy()",
-      "source_file": "src/components/copy-text.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_components_personal_link_button_personallinkbutton",
-      "label": "PersonalLinkButton()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "personallinkbutton()",
-      "source_file": "src/components/personal-link-button.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_personal_link_button_personallinkbutton_generate",
-      "label": "generate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "generate()",
-      "source_file": "src/components/personal-link-button.tsx",
-      "source_location": "L13"
-    },
-    {
-      "id": "src_lib_actions_referee_access_actions_generatepersonallink",
-      "label": "generatePersonalLink()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "generatepersonallink()",
-      "source_file": "src/lib/actions/referee-access-actions.ts",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_lib_app_url_appurl",
-      "label": "appUrl()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "appurl()",
-      "source_file": "src/lib/app-url.ts",
-      "source_location": "L2"
+      "norm_label": "confirmsubmitbutton()",
+      "source_file": "src/components/confirm-submit-button.tsx",
+      "source_location": "L5"
     },
     {
       "id": "src_lib_availability_campaign_activereferees",
@@ -1699,6 +1627,18 @@
       "source_location": "L46"
     },
     {
+      "id": "src_app_communication_page_communicationpage",
+      "label": "CommunicationPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "communicationpage()",
+      "source_file": "src/app/communication/page.tsx",
+      "source_location": "L19"
+    },
+    {
       "id": "src_app_layout_rootlayout",
       "label": "RootLayout()",
       "_callable": true,
@@ -1831,40 +1771,40 @@
       "source_location": "L7"
     },
     {
-      "id": "src_components_confirm_modal_confirmmodal",
-      "label": "ConfirmModal()",
+      "id": "src_components_communication_studio_communicationstudio",
+      "label": "CommunicationStudio()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "react",
       "file_type": "code",
-      "norm_label": "confirmmodal()",
-      "source_file": "src/components/confirm-modal.tsx",
-      "source_location": "L11"
+      "norm_label": "communicationstudio()",
+      "source_file": "src/components/communication-studio.tsx",
+      "source_location": "L10"
     },
     {
-      "id": "src_components_conflict_confirm_conflictconfirm",
-      "label": "ConflictConfirm()",
+      "id": "src_components_copy_button_copybutton",
+      "label": "CopyButton()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "react",
       "file_type": "code",
-      "norm_label": "conflictconfirm()",
-      "source_file": "src/components/conflict-confirm.tsx",
-      "source_location": "L15"
+      "norm_label": "copybutton()",
+      "source_file": "src/components/copy-button.tsx",
+      "source_location": "L6"
     },
     {
-      "id": "src_components_group_choices_groupchoices",
-      "label": "GroupChoices()",
+      "id": "src_components_copy_button_copybutton_copy",
+      "label": "copy()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "react",
       "file_type": "code",
-      "norm_label": "groupchoices()",
-      "source_file": "src/components/group-choices.tsx",
-      "source_location": "L4"
+      "norm_label": "copy()",
+      "source_file": "src/components/copy-button.tsx",
+      "source_location": "L9"
     },
     {
       "id": "src_components_nav_icons_navicon",
@@ -1915,6 +1855,18 @@
       "source_location": "L14"
     },
     {
+      "id": "src_lib_communication_templates_filltemplate",
+      "label": "fillTemplate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "filltemplate()",
+      "source_file": "src/lib/communication-templates.ts",
+      "source_location": "L93"
+    },
+    {
       "id": "src_app_loading_loading",
       "label": "Loading()",
       "_callable": true,
@@ -1925,6 +1877,30 @@
       "norm_label": "loading()",
       "source_file": "src/app/loading.tsx",
       "source_location": "L3"
+    },
+    {
+      "id": "src_app_arbitres_id_modifier_page_editrefereepage",
+      "label": "EditRefereePage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "editrefereepage()",
+      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
+      "source_location": "L14"
+    },
+    {
+      "id": "src_app_arbitres_id_modifier_page_editrefereepage_deletereferee",
+      "label": "deleteReferee()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "deletereferee()",
+      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
+      "source_location": "L93"
     },
     {
       "id": "src_app_arbitres_id_page_refereesheetpage",
@@ -1999,6 +1975,78 @@
       "source_location": "L8"
     },
     {
+      "id": "src_components_copy_text_copytext",
+      "label": "CopyText()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "copytext()",
+      "source_file": "src/components/copy-text.tsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "src_components_copy_text_copytext_copy",
+      "label": "copy()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "copy()",
+      "source_file": "src/components/copy-text.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_components_personal_link_button_personallinkbutton",
+      "label": "PersonalLinkButton()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "personallinkbutton()",
+      "source_file": "src/components/personal-link-button.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_personal_link_button_personallinkbutton_generate",
+      "label": "generate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "generate()",
+      "source_file": "src/components/personal-link-button.tsx",
+      "source_location": "L13"
+    },
+    {
+      "id": "src_lib_actions_referee_access_actions_generatepersonallink",
+      "label": "generatePersonalLink()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "generatepersonallink()",
+      "source_file": "src/lib/actions/referee-access-actions.ts",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_lib_app_url_appurl",
+      "label": "appUrl()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "appurl()",
+      "source_file": "src/lib/app-url.ts",
+      "source_location": "L2"
+    },
+    {
       "id": "src_lib_dates_formatdateonlyfr",
       "label": "formatDateOnlyFr()",
       "_callable": true,
@@ -2059,6 +2107,18 @@
       "source_location": "L175"
     },
     {
+      "id": "src_lib_referees_listrefereelevels",
+      "label": "listRefereeLevels()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "listrefereelevels()",
+      "source_file": "src/lib/referees.ts",
+      "source_location": "L47"
+    },
+    {
       "id": "src_lib_referees_listrefereeswithload",
       "label": "listRefereesWithLoad()",
       "_callable": true,
@@ -2095,24 +2155,12 @@
       "source_location": "L256"
     },
     {
-      "id": "src_lib_stats_currentseasonstartyear",
-      "label": "currentSeasonStartYear()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "arbitres/[id]/page.tsx",
-      "file_type": "code",
-      "norm_label": "currentseasonstartyear()",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L23"
-    },
-    {
       "id": "src_app_admin_import_page_geocode",
       "label": "geocode()",
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocode()",
       "source_file": "src/app/admin/import/page.tsx",
@@ -2124,7 +2172,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "importmatchspage()",
       "source_file": "src/app/admin/import/page.tsx",
@@ -2136,11 +2184,179 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "submit()",
       "source_file": "src/app/admin/import/page.tsx",
       "source_location": "L11"
+    },
+    {
+      "id": "src_app_arbitres_id_modifier_page_editrefereepage_updatereferee",
+      "label": "updateReferee()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "updatereferee()",
+      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
+      "source_location": "L32"
+    },
+    {
+      "id": "src_app_arbitres_nouveau_page_createreferee",
+      "label": "createReferee()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "createreferee()",
+      "source_file": "src/app/arbitres/nouveau/page.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_app_arbitres_nouveau_page_newrefereepage",
+      "label": "NewRefereePage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "newrefereepage()",
+      "source_file": "src/app/arbitres/nouveau/page.tsx",
+      "source_location": "L69"
+    },
+    {
+      "id": "src_app_matchs_id_modifier_page_editmatchpage",
+      "label": "EditMatchPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "editmatchpage()",
+      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_app_matchs_id_modifier_page_editmatchpage_deletematch",
+      "label": "deleteMatch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "deletematch()",
+      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
+      "source_location": "L106"
+    },
+    {
+      "id": "src_app_matchs_id_modifier_page_editmatchpage_togglecancelled",
+      "label": "toggleCancelled()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "togglecancelled()",
+      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
+      "source_location": "L92"
+    },
+    {
+      "id": "src_app_matchs_id_modifier_page_editmatchpage_updatematch",
+      "label": "updateMatch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "updatematch()",
+      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
+      "source_location": "L33"
+    },
+    {
+      "id": "src_app_matchs_nouveau_page_creatematch",
+      "label": "createMatch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "creatematch()",
+      "source_file": "src/app/matchs/nouveau/page.tsx",
+      "source_location": "L13"
+    },
+    {
+      "id": "src_app_matchs_nouveau_page_newmatchpage",
+      "label": "NewMatchPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "newmatchpage()",
+      "source_file": "src/app/matchs/nouveau/page.tsx",
+      "source_location": "L71"
+    },
+    {
+      "id": "src_components_submit_button_submitbutton",
+      "label": "SubmitButton()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "submitbutton()",
+      "source_file": "src/components/submit-button.tsx",
+      "source_location": "L7"
+    },
+    {
+      "id": "src_components_suggestions_list_matches",
+      "label": "matches()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "matches()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_suggestions_list_normalize",
+      "label": "normalize()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "normalize()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_suggestions_list_suggestionslist",
+      "label": "SuggestionsList()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "suggestionslist()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_components_suggestions_list_suggestionslist_renderrow",
+      "label": "renderRow()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "renderrow()",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L40"
     },
     {
       "id": "src_lib_geocoding_backfill_backfillmissingcoordinates",
@@ -2148,7 +2364,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "backfillmissingcoordinates()",
       "source_file": "src/lib/geocoding-backfill.ts",
@@ -2160,7 +2376,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "resolve()",
       "source_file": "src/lib/geocoding-backfill.ts",
@@ -2172,11 +2388,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "cleanplacename()",
       "source_file": "src/lib/geocoding.ts",
       "source_location": "L28"
+    },
+    {
+      "id": "src_lib_geocoding_geocodeaddress",
+      "label": "geocodeAddress()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "geocodeaddress()",
+      "source_file": "src/lib/geocoding.ts",
+      "source_location": "L86"
     },
     {
       "id": "src_lib_geocoding_geocodeaddressdetailed",
@@ -2184,7 +2412,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocodeaddressdetailed()",
       "source_file": "src/lib/geocoding.ts",
@@ -2196,7 +2424,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "exceldatetoiso()",
       "source_file": "src/lib/import-matches.ts",
@@ -2208,7 +2436,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "exceltimetohm()",
       "source_file": "src/lib/import-matches.ts",
@@ -2220,11 +2448,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "importmatches()",
       "source_file": "src/lib/import-matches.ts",
       "source_location": "L156"
+    },
+    {
+      "id": "src_lib_import_matches_matchdurationminutes",
+      "label": "matchDurationMinutes()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "matchdurationminutes()",
+      "source_file": "src/lib/import-matches.ts",
+      "source_location": "L53"
     },
     {
       "id": "src_lib_import_matches_normalizeheader",
@@ -2232,7 +2472,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "normalizeheader()",
       "source_file": "src/lib/import-matches.ts",
@@ -2244,11 +2484,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "parsematchesworkbook()",
       "source_file": "src/lib/import-matches.ts",
       "source_location": "L97"
+    },
+    {
+      "id": "src_lib_matches_listcompetitionlevels",
+      "label": "listCompetitionLevels()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "listcompetitionlevels()",
+      "source_file": "src/lib/matches.ts",
+      "source_location": "L133"
     },
     {
       "id": "src_lib_team_names_normalize",
@@ -2256,7 +2508,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "normalize()",
       "source_file": "src/lib/team-names.ts",
@@ -2268,7 +2520,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "teamnamesmatchloose()",
       "source_file": "src/lib/team-names.ts",
@@ -2280,7 +2532,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "loadknownvenuecoords()",
       "source_file": "src/lib/venue-coords.ts",
@@ -2292,7 +2544,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "venuekey()",
       "source_file": "src/lib/venue-coords.ts",
@@ -2515,18 +2767,6 @@
       "source_location": "L37"
     },
     {
-      "id": "src_app_admin_utilisateurs_page_formatwhen",
-      "label": "formatWhen()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "formatwhen()",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L25"
-    },
-    {
       "id": "src_app_admin_utilisateurs_page_usersadminpage",
       "label": "UsersAdminPage()",
       "_callable": true,
@@ -2575,232 +2815,16 @@
       "source_location": "L104"
     },
     {
-      "id": "src_app_arbitres_id_modifier_page_editrefereepage",
-      "label": "EditRefereePage()",
+      "id": "src_app_disponibilites_id_page_availabilityperiodpage_deleteperiod",
+      "label": "deletePeriod()",
       "_callable": true,
       "_origin": "ast",
       "community": 25,
       "community_name": "getCurrentUser",
       "file_type": "code",
-      "norm_label": "editrefereepage()",
-      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
-      "source_location": "L14"
-    },
-    {
-      "id": "src_app_arbitres_id_modifier_page_editrefereepage_deletereferee",
-      "label": "deleteReferee()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "deletereferee()",
-      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
-      "source_location": "L93"
-    },
-    {
-      "id": "src_app_arbitres_id_modifier_page_editrefereepage_updatereferee",
-      "label": "updateReferee()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "updatereferee()",
-      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
-      "source_location": "L32"
-    },
-    {
-      "id": "src_app_arbitres_nouveau_page_createreferee",
-      "label": "createReferee()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "createreferee()",
-      "source_file": "src/app/arbitres/nouveau/page.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_app_arbitres_nouveau_page_newrefereepage",
-      "label": "NewRefereePage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "newrefereepage()",
-      "source_file": "src/app/arbitres/nouveau/page.tsx",
-      "source_location": "L69"
-    },
-    {
-      "id": "src_app_compte_page_comptepage",
-      "label": "ComptePage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "comptepage()",
-      "source_file": "src/app/compte/page.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_app_matchs_id_modifier_page_editmatchpage",
-      "label": "EditMatchPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "editmatchpage()",
-      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_app_matchs_id_modifier_page_editmatchpage_deletematch",
-      "label": "deleteMatch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "deletematch()",
-      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
-      "source_location": "L106"
-    },
-    {
-      "id": "src_app_matchs_id_modifier_page_editmatchpage_togglecancelled",
-      "label": "toggleCancelled()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "togglecancelled()",
-      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
-      "source_location": "L92"
-    },
-    {
-      "id": "src_app_matchs_id_modifier_page_editmatchpage_updatematch",
-      "label": "updateMatch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "updatematch()",
-      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
-      "source_location": "L33"
-    },
-    {
-      "id": "src_app_matchs_nouveau_page_creatematch",
-      "label": "createMatch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "creatematch()",
-      "source_file": "src/app/matchs/nouveau/page.tsx",
-      "source_location": "L13"
-    },
-    {
-      "id": "src_app_matchs_nouveau_page_newmatchpage",
-      "label": "NewMatchPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "newmatchpage()",
-      "source_file": "src/app/matchs/nouveau/page.tsx",
-      "source_location": "L71"
-    },
-    {
-      "id": "src_components_alert_toast_alerttoast",
-      "label": "AlertToast()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "alerttoast()",
-      "source_file": "src/components/alert-toast.tsx",
-      "source_location": "L14"
-    },
-    {
-      "id": "src_components_confirm_submit_button_confirmsubmitbutton",
-      "label": "ConfirmSubmitButton()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "confirmsubmitbutton()",
-      "source_file": "src/components/confirm-submit-button.tsx",
-      "source_location": "L5"
-    },
-    {
-      "id": "src_components_submit_button_submitbutton",
-      "label": "SubmitButton()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "submitbutton()",
-      "source_file": "src/components/submit-button.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_lib_geocoding_geocodeaddress",
-      "label": "geocodeAddress()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "geocodeaddress()",
-      "source_file": "src/lib/geocoding.ts",
-      "source_location": "L86"
-    },
-    {
-      "id": "src_lib_import_matches_matchdurationminutes",
-      "label": "matchDurationMinutes()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "matchdurationminutes()",
-      "source_file": "src/lib/import-matches.ts",
-      "source_location": "L53"
-    },
-    {
-      "id": "src_lib_matches_listcompetitionlevels",
-      "label": "listCompetitionLevels()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "listcompetitionlevels()",
-      "source_file": "src/lib/matches.ts",
-      "source_location": "L133"
-    },
-    {
-      "id": "src_lib_referees_listrefereelevels",
-      "label": "listRefereeLevels()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "listrefereelevels()",
-      "source_file": "src/lib/referees.ts",
-      "source_location": "L47"
+      "norm_label": "deleteperiod()",
+      "source_file": "src/app/disponibilites/[id]/page.tsx",
+      "source_location": "L141"
     },
     {
       "id": "src_app_template_template",
@@ -2945,6 +2969,18 @@
       "norm_label": "designate()",
       "source_file": "src/app/matchs/page.tsx",
       "source_location": "L57"
+    },
+    {
+      "id": "src_components_collapsible_filters_collapsiblefilters",
+      "label": "CollapsibleFilters()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "collapsiblefilters()",
+      "source_file": "src/components/collapsible-filters.tsx",
+      "source_location": "L9"
     },
     {
       "id": "src_components_conflict_badge_conflictbadge",
@@ -3127,6 +3163,18 @@
       "source_location": "L64"
     },
     {
+      "id": "src_lib_dates_islatermatchsamevenuesameday",
+      "label": "isLaterMatchSameVenueSameDay()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "islatermatchsamevenuesameday()",
+      "source_file": "src/lib/dates.ts",
+      "source_location": "L132"
+    },
+    {
       "id": "src_lib_dates_overlaps",
       "label": "overlaps()",
       "_callable": true,
@@ -3269,66 +3317,6 @@
       "norm_label": "mapmatch()",
       "source_file": "src/lib/matches.ts",
       "source_location": "L58"
-    },
-    {
-      "id": "src_app_communication_page_communicationpage",
-      "label": "CommunicationPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "communicationpage()",
-      "source_file": "src/app/communication/page.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_components_communication_studio_communicationstudio",
-      "label": "CommunicationStudio()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "communicationstudio()",
-      "source_file": "src/components/communication-studio.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_copy_button_copybutton",
-      "label": "CopyButton()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "copybutton()",
-      "source_file": "src/components/copy-button.tsx",
-      "source_location": "L6"
-    },
-    {
-      "id": "src_components_copy_button_copybutton_copy",
-      "label": "copy()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "copy()",
-      "source_file": "src/components/copy-button.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_lib_communication_templates_filltemplate",
-      "label": "fillTemplate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "filltemplate()",
-      "source_file": "src/lib/communication-templates.ts",
-      "source_location": "L93"
     },
     {
       "id": "src_app_reglement_page_commonfields",
@@ -3616,7 +3604,7 @@
       "file_type": "code",
       "norm_label": "matchdetailpage()",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L19"
+      "source_location": "L20"
     },
     {
       "id": "src_app_matchs_id_page_matchdetailpage_designate",
@@ -3628,7 +3616,7 @@
       "file_type": "code",
       "norm_label": "designate()",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L49"
+      "source_location": "L50"
     },
     {
       "id": "src_app_matchs_id_page_matchdetailpage_removedesignation",
@@ -3640,55 +3628,79 @@
       "file_type": "code",
       "norm_label": "removedesignation()",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L72"
+      "source_location": "L73"
     },
     {
-      "id": "src_components_suggestions_list_matches",
-      "label": "matches()",
+      "id": "src_components_auto_designate_button_autodesignatebutton",
+      "label": "AutoDesignateButton()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "matches()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_suggestions_list_normalize",
-      "label": "normalize()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "normalize()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_suggestions_list_suggestionslist",
-      "label": "SuggestionsList()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "suggestionslist()",
-      "source_file": "src/components/suggestions-list.tsx",
+      "norm_label": "autodesignatebutton()",
+      "source_file": "src/components/auto-designate-button.tsx",
       "source_location": "L19"
     },
     {
-      "id": "src_components_suggestions_list_suggestionslist_renderrow",
-      "label": "renderRow()",
+      "id": "src_components_auto_designate_button_autodesignatebutton_apply",
+      "label": "apply()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "renderrow()",
-      "source_file": "src/components/suggestions-list.tsx",
-      "source_location": "L40"
+      "norm_label": "apply()",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L41"
+    },
+    {
+      "id": "src_components_auto_designate_button_autodesignatebutton_compute",
+      "label": "compute()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "compute()",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L29"
+    },
+    {
+      "id": "src_components_confirm_modal_confirmmodal",
+      "label": "ConfirmModal()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "confirmmodal()",
+      "source_file": "src/components/confirm-modal.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "src_components_conflict_confirm_conflictconfirm",
+      "label": "ConflictConfirm()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "conflictconfirm()",
+      "source_file": "src/components/conflict-confirm.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_group_choices_groupchoices",
+      "label": "GroupChoices()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "groupchoices()",
+      "source_file": "src/components/group-choices.tsx",
+      "source_location": "L4"
     },
     {
       "id": "src_lib_actions_auto_designate_actions_applyautodesignation",
@@ -3883,18 +3895,6 @@
       "source_location": "L145"
     },
     {
-      "id": "src_lib_dates_islatermatchsamevenuesameday",
-      "label": "isLaterMatchSameVenueSameDay()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "islatermatchsamevenuesameday()",
-      "source_file": "src/lib/dates.ts",
-      "source_location": "L132"
-    },
-    {
       "id": "src_lib_designation_rules_checkquotarules",
       "label": "checkQuotaRules()",
       "_callable": true,
@@ -3943,30 +3943,6 @@
       "source_location": "L91"
     },
     {
-      "id": "src_lib_geocoding_estimatepayment",
-      "label": "estimatePayment()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "estimatepayment()",
-      "source_file": "src/lib/geocoding.ts",
-      "source_location": "L107"
-    },
-    {
-      "id": "src_lib_routing_cachedroaddistances",
-      "label": "cachedRoadDistances()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "cachedroaddistances()",
-      "source_file": "src/lib/routing.ts",
-      "source_location": "L131"
-    },
-    {
       "id": "src_lib_routing_coordkey",
       "label": "coordKey()",
       "_callable": true,
@@ -4013,42 +3989,6 @@
       "norm_label": "getrules()",
       "source_file": "src/lib/rules-store.ts",
       "source_location": "L78"
-    },
-    {
-      "id": "src_lib_stats_clubofteam",
-      "label": "clubOfTeam()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "clubofteam()",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L126"
-    },
-    {
-      "id": "src_lib_stats_computeseasonstats",
-      "label": "computeSeasonStats()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "computeseasonstats()",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L134"
-    },
-    {
-      "id": "src_lib_stats_fetchall",
-      "label": "fetchAll()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "fetchall()",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L36"
     },
     {
       "id": "src_lib_suggestions_buildwhy",
@@ -4248,7 +4188,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "get()",
       "source_file": "src/app/api/statistiques/route.ts",
@@ -4260,7 +4200,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "exportpage()",
       "source_file": "src/app/export/page.tsx",
@@ -4272,7 +4212,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "fmtday()",
       "source_file": "src/app/export/page.tsx",
@@ -4284,7 +4224,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "generatemetadata()",
       "source_file": "src/app/export/page.tsx",
@@ -4296,7 +4236,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "iscd45level()",
       "source_file": "src/app/export/page.tsx",
@@ -4308,7 +4248,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "levelclass()",
       "source_file": "src/app/export/page.tsx",
@@ -4320,7 +4260,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "matchtime()",
       "source_file": "src/app/export/page.tsx",
@@ -4332,7 +4272,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "parseisoday()",
       "source_file": "src/app/export/page.tsx",
@@ -4344,7 +4284,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "periodlabel()",
       "source_file": "src/app/export/page.tsx",
@@ -4356,7 +4296,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "resolveperiod()",
       "source_file": "src/app/export/page.tsx",
@@ -4368,7 +4308,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "todayparis()",
       "source_file": "src/app/export/page.tsx",
@@ -4380,7 +4320,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "toisoday()",
       "source_file": "src/app/export/page.tsx",
@@ -4392,7 +4332,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "euros()",
       "source_file": "src/app/statistiques/page.tsx",
@@ -4404,7 +4344,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "generatemetadata()",
       "source_file": "src/app/statistiques/page.tsx",
@@ -4416,7 +4356,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "kms()",
       "source_file": "src/app/statistiques/page.tsx",
@@ -4428,7 +4368,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "statspage()",
       "source_file": "src/app/statistiques/page.tsx",
@@ -4440,7 +4380,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "printbutton()",
       "source_file": "src/components/print-button.tsx",
@@ -4452,11 +4392,83 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "reporttabs()",
       "source_file": "src/components/report-tabs.tsx",
       "source_location": "L4"
+    },
+    {
+      "id": "src_lib_geocoding_estimatepayment",
+      "label": "estimatePayment()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "estimatepayment()",
+      "source_file": "src/lib/geocoding.ts",
+      "source_location": "L107"
+    },
+    {
+      "id": "src_lib_routing_cachedroaddistances",
+      "label": "cachedRoadDistances()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "cachedroaddistances()",
+      "source_file": "src/lib/routing.ts",
+      "source_location": "L131"
+    },
+    {
+      "id": "src_lib_stats_clubofteam",
+      "label": "clubOfTeam()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "clubofteam()",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L126"
+    },
+    {
+      "id": "src_lib_stats_computeseasonstats",
+      "label": "computeSeasonStats()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "computeseasonstats()",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L134"
+    },
+    {
+      "id": "src_lib_stats_currentseasonstartyear",
+      "label": "currentSeasonStartYear()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "currentseasonstartyear()",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L23"
+    },
+    {
+      "id": "src_lib_stats_fetchall",
+      "label": "fetchAll()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "fetchall()",
+      "source_file": "src/lib/stats.ts",
+      "source_location": "L36"
     },
     {
       "id": "src_lib_stats_parseseason",
@@ -4464,7 +4476,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "parseseason()",
       "source_file": "src/lib/stats.ts",
@@ -4481,6 +4493,18 @@
       "norm_label": "get()",
       "source_file": "src/app/auth/confirm/route.ts",
       "source_location": "L10"
+    },
+    {
+      "id": "src_app_compte_page_comptepage",
+      "label": "ComptePage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "current-user.ts",
+      "file_type": "code",
+      "norm_label": "comptepage()",
+      "source_file": "src/app/compte/page.tsx",
+      "source_location": "L9"
     },
     {
       "id": "src_app_compte_page_comptepage_changepassword",
@@ -4565,6 +4589,18 @@
       "norm_label": "login()",
       "source_file": "src/app/espace/connexion/page.tsx",
       "source_location": "L15"
+    },
+    {
+      "id": "src_app_espace_page_refereespacepage_logout",
+      "label": "logout()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "current-user.ts",
+      "file_type": "code",
+      "norm_label": "logout()",
+      "source_file": "src/app/espace/page.tsx",
+      "source_location": "L197"
     },
     {
       "id": "src_app_login_page_loginpage",
@@ -4771,6 +4807,61 @@
       "source_location": "L11"
     },
     {
+      "id": "src_app_admin_divisions_groupes_panel",
+      "label": "groupes-panel.tsx",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "groupes-panel.tsx",
+      "source_file": "src/app/admin/divisions/groupes-panel.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_admin_divisions_groupes_panel_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/admin/divisions/groupes-panel.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_app_admin_utilisateurs_page",
+      "label": "utilisateurs/page.tsx",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "utilisateurs/page.tsx",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_admin_utilisateurs_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_app_admin_utilisateurs_page_staff_roles",
+      "label": "STAFF_ROLES",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "staff_roles",
+      "source_file": "src/app/admin/utilisateurs/page.tsx",
+      "source_location": "L23"
+    },
+    {
       "id": "src_app_disponibilites_id_page",
       "label": "disponibilites/[id]/page.tsx",
       "_origin": "ast",
@@ -4837,58 +4928,36 @@
       "source_location": "L23"
     },
     {
-      "id": "src_components_collapsible_filters",
-      "label": "collapsible-filters.tsx",
+      "id": "src_components_alert_toast",
+      "label": "alert-toast.tsx",
       "_origin": "ast",
       "community": 0,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "collapsible-filters.tsx",
-      "source_file": "src/components/collapsible-filters.tsx",
+      "norm_label": "alert-toast.tsx",
+      "source_file": "src/components/alert-toast.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_components_copy_text",
-      "label": "copy-text.tsx",
+      "id": "src_components_alert_toast_variant_class",
+      "label": "VARIANT_CLASS",
       "_origin": "ast",
       "community": 0,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "copy-text.tsx",
-      "source_file": "src/components/copy-text.tsx",
-      "source_location": "L1"
+      "norm_label": "variant_class",
+      "source_file": "src/components/alert-toast.tsx",
+      "source_location": "L7"
     },
     {
-      "id": "src_components_personal_link_button",
-      "label": "personal-link-button.tsx",
+      "id": "src_components_confirm_submit_button",
+      "label": "confirm-submit-button.tsx",
       "_origin": "ast",
       "community": 0,
       "community_name": "espace/page.tsx",
       "file_type": "code",
-      "norm_label": "personal-link-button.tsx",
-      "source_file": "src/components/personal-link-button.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_actions_referee_access_actions",
-      "label": "referee-access-actions.ts",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "referee-access-actions.ts",
-      "source_file": "src/lib/actions/referee-access-actions.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_app_url",
-      "label": "app-url.ts",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "espace/page.tsx",
-      "file_type": "code",
-      "norm_label": "app-url.ts",
-      "source_file": "src/lib/app-url.ts",
+      "norm_label": "confirm-submit-button.tsx",
+      "source_file": "src/components/confirm-submit-button.tsx",
       "source_location": "L1"
     },
     {
@@ -4956,6 +5025,28 @@
       "norm_label": "getcurrentreferee",
       "source_file": "src/lib/current-user.ts",
       "source_location": "L89"
+    },
+    {
+      "id": "src_lib_supabase_admin",
+      "label": "admin.ts",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "admin.ts",
+      "source_file": "src/lib/supabase/admin.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_supabase_admin_supabaseadmin",
+      "label": "supabaseAdmin",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "espace/page.tsx",
+      "file_type": "code",
+      "norm_label": "supabaseadmin",
+      "source_file": "src/lib/supabase/admin.ts",
+      "source_location": "L13"
     },
     {
       "id": "src_app_espace_boite_a_outils_fichier_id_route",
@@ -5079,6 +5170,28 @@
       "source_location": "L27"
     },
     {
+      "id": "src_app_communication_page",
+      "label": "communication/page.tsx",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "communication/page.tsx",
+      "source_file": "src/app/communication/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_communication_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/communication/page.tsx",
+      "source_location": "L8"
+    },
+    {
       "id": "src_app_layout",
       "label": "layout.tsx",
       "_origin": "ast",
@@ -5156,36 +5269,25 @@
       "source_location": "L1"
     },
     {
-      "id": "src_components_confirm_modal",
-      "label": "confirm-modal.tsx",
+      "id": "src_components_communication_studio",
+      "label": "communication-studio.tsx",
       "_origin": "ast",
       "community": 10,
       "community_name": "react",
       "file_type": "code",
-      "norm_label": "confirm-modal.tsx",
-      "source_file": "src/components/confirm-modal.tsx",
+      "norm_label": "communication-studio.tsx",
+      "source_file": "src/components/communication-studio.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_components_conflict_confirm",
-      "label": "conflict-confirm.tsx",
+      "id": "src_components_copy_button",
+      "label": "copy-button.tsx",
       "_origin": "ast",
       "community": 10,
       "community_name": "react",
       "file_type": "code",
-      "norm_label": "conflict-confirm.tsx",
-      "source_file": "src/components/conflict-confirm.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_group_choices",
-      "label": "group-choices.tsx",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "react",
-      "file_type": "code",
-      "norm_label": "group-choices.tsx",
-      "source_file": "src/components/group-choices.tsx",
+      "norm_label": "copy-button.tsx",
+      "source_file": "src/components/copy-button.tsx",
       "source_location": "L1"
     },
     {
@@ -5264,6 +5366,39 @@
       "norm_label": "referee-tabs.tsx",
       "source_file": "src/components/referee-tabs.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_lib_communication_templates",
+      "label": "communication-templates.ts",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "communication-templates.ts",
+      "source_file": "src/lib/communication-templates.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_communication_templates_individual_reminder",
+      "label": "INDIVIDUAL_REMINDER",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "individual_reminder",
+      "source_file": "src/lib/communication-templates.ts",
+      "source_location": "L91"
+    },
+    {
+      "id": "src_lib_communication_templates_message_templates",
+      "label": "MESSAGE_TEMPLATES",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "react",
+      "file_type": "code",
+      "norm_label": "message_templates",
+      "source_file": "src/lib/communication-templates.ts",
+      "source_location": "L15"
     },
     {
       "id": "ref_react",
@@ -5983,6 +6118,28 @@
       "source_location": "L136"
     },
     {
+      "id": "src_app_arbitres_id_modifier_page",
+      "label": "arbitres/[id]/modifier/page.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "arbitres/[id]/modifier/page.tsx",
+      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_arbitres_id_modifier_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
+      "source_location": "L12"
+    },
+    {
       "id": "src_app_arbitres_id_page",
       "label": "arbitres/[id]/page.tsx",
       "_origin": "ast",
@@ -6027,6 +6184,50 @@
       "source_location": "L6"
     },
     {
+      "id": "src_components_copy_text",
+      "label": "copy-text.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "copy-text.tsx",
+      "source_file": "src/components/copy-text.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_personal_link_button",
+      "label": "personal-link-button.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "personal-link-button.tsx",
+      "source_file": "src/components/personal-link-button.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_actions_referee_access_actions",
+      "label": "referee-access-actions.ts",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "referee-access-actions.ts",
+      "source_file": "src/lib/actions/referee-access-actions.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_app_url",
+      "label": "app-url.ts",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "arbitres/[id]/page.tsx",
+      "file_type": "code",
+      "norm_label": "app-url.ts",
+      "source_file": "src/lib/app-url.ts",
+      "source_location": "L1"
+    },
+    {
       "id": "src_lib_referees",
       "label": "referees.ts",
       "_origin": "ast",
@@ -6064,7 +6265,7 @@
       "label": "import/page.tsx",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "import/page.tsx",
       "source_file": "src/app/admin/import/page.tsx",
@@ -6075,7 +6276,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/admin/import/page.tsx",
@@ -6086,18 +6287,128 @@
       "label": "maxDuration",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "maxduration",
       "source_file": "src/app/admin/import/page.tsx",
       "source_location": "L9"
     },
     {
+      "id": "src_app_arbitres_nouveau_page",
+      "label": "arbitres/nouveau/page.tsx",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "arbitres/nouveau/page.tsx",
+      "source_file": "src/app/arbitres/nouveau/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_arbitres_nouveau_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/arbitres/nouveau/page.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_app_compte_page",
+      "label": "compte/page.tsx",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "compte/page.tsx",
+      "source_file": "src/app/compte/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_compte_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/compte/page.tsx",
+      "source_location": "L7"
+    },
+    {
+      "id": "src_app_matchs_id_modifier_page",
+      "label": "matchs/[id]/modifier/page.tsx",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "matchs/[id]/modifier/page.tsx",
+      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_matchs_id_modifier_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
+      "source_location": "L13"
+    },
+    {
+      "id": "src_app_matchs_nouveau_page",
+      "label": "matchs/nouveau/page.tsx",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "matchs/nouveau/page.tsx",
+      "source_file": "src/app/matchs/nouveau/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_matchs_nouveau_page_dynamic",
+      "label": "dynamic",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "dynamic",
+      "source_file": "src/app/matchs/nouveau/page.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "src_components_submit_button",
+      "label": "submit-button.tsx",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "submit-button.tsx",
+      "source_file": "src/components/submit-button.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_suggestions_list",
+      "label": "suggestions-list.tsx",
+      "_origin": "ast",
+      "community": 24,
+      "community_name": "SubmitButton",
+      "file_type": "code",
+      "norm_label": "suggestions-list.tsx",
+      "source_file": "src/components/suggestions-list.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_lib_geocoding",
       "label": "geocoding.ts",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocoding.ts",
       "source_file": "src/lib/geocoding.ts",
@@ -6108,7 +6419,7 @@
       "label": "geocoding-backfill.ts",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocoding-backfill.ts",
       "source_file": "src/lib/geocoding-backfill.ts",
@@ -6119,7 +6430,7 @@
       "label": "GEOCODING_CONFIG_ERRORS",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "geocoding_config_errors",
       "source_file": "src/lib/geocoding.ts",
@@ -6130,7 +6441,7 @@
       "label": "TOO_VAGUE_TYPES",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "too_vague_types",
       "source_file": "src/lib/geocoding.ts",
@@ -6141,7 +6452,7 @@
       "label": "import-matches.ts",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "import-matches.ts",
       "source_file": "src/lib/import-matches.ts",
@@ -6152,40 +6463,18 @@
       "label": "HEADER_ALIASES",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "header_aliases",
       "source_file": "src/lib/import-matches.ts",
       "source_location": "L18"
     },
     {
-      "id": "src_lib_supabase_admin",
-      "label": "admin.ts",
-      "_origin": "ast",
-      "community": 24,
-      "community_name": "admin.ts",
-      "file_type": "code",
-      "norm_label": "admin.ts",
-      "source_file": "src/lib/supabase/admin.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_supabase_admin_supabaseadmin",
-      "label": "supabaseAdmin",
-      "_origin": "ast",
-      "community": 24,
-      "community_name": "admin.ts",
-      "file_type": "code",
-      "norm_label": "supabaseadmin",
-      "source_file": "src/lib/supabase/admin.ts",
-      "source_location": "L13"
-    },
-    {
       "id": "src_lib_team_names",
       "label": "team-names.ts",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "team-names.ts",
       "source_file": "src/lib/team-names.ts",
@@ -6196,33 +6485,11 @@
       "label": "venue-coords.ts",
       "_origin": "ast",
       "community": 24,
-      "community_name": "admin.ts",
+      "community_name": "SubmitButton",
       "file_type": "code",
       "norm_label": "venue-coords.ts",
       "source_file": "src/lib/venue-coords.ts",
       "source_location": "L1"
-    },
-    {
-      "id": "src_app_admin_divisions_groupes_panel",
-      "label": "groupes-panel.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "groupes-panel.tsx",
-      "source_file": "src/app/admin/divisions/groupes-panel.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_admin_divisions_groupes_panel_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/admin/divisions/groupes-panel.tsx",
-      "source_location": "L9"
     },
     {
       "id": "src_app_admin_divisions_niveaux_panel",
@@ -6280,193 +6547,6 @@
       "source_location": "L9"
     },
     {
-      "id": "src_app_admin_utilisateurs_page",
-      "label": "utilisateurs/page.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "utilisateurs/page.tsx",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_admin_utilisateurs_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_app_admin_utilisateurs_page_staff_roles",
-      "label": "STAFF_ROLES",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "staff_roles",
-      "source_file": "src/app/admin/utilisateurs/page.tsx",
-      "source_location": "L23"
-    },
-    {
-      "id": "src_app_arbitres_id_modifier_page",
-      "label": "arbitres/[id]/modifier/page.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "arbitres/[id]/modifier/page.tsx",
-      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_arbitres_id_modifier_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/arbitres/[id]/modifier/page.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_app_arbitres_nouveau_page",
-      "label": "arbitres/nouveau/page.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "arbitres/nouveau/page.tsx",
-      "source_file": "src/app/arbitres/nouveau/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_arbitres_nouveau_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/arbitres/nouveau/page.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_app_compte_page",
-      "label": "compte/page.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "compte/page.tsx",
-      "source_file": "src/app/compte/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_compte_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/compte/page.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_app_matchs_id_modifier_page",
-      "label": "matchs/[id]/modifier/page.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "matchs/[id]/modifier/page.tsx",
-      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_matchs_id_modifier_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/matchs/[id]/modifier/page.tsx",
-      "source_location": "L13"
-    },
-    {
-      "id": "src_app_matchs_nouveau_page",
-      "label": "matchs/nouveau/page.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "matchs/nouveau/page.tsx",
-      "source_file": "src/app/matchs/nouveau/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_matchs_nouveau_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/matchs/nouveau/page.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "src_components_alert_toast",
-      "label": "alert-toast.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "alert-toast.tsx",
-      "source_file": "src/components/alert-toast.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_alert_toast_variant_class",
-      "label": "VARIANT_CLASS",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "variant_class",
-      "source_file": "src/components/alert-toast.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_components_confirm_submit_button",
-      "label": "confirm-submit-button.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "confirm-submit-button.tsx",
-      "source_file": "src/components/confirm-submit-button.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_submit_button",
-      "label": "submit-button.tsx",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "code",
-      "norm_label": "submit-button.tsx",
-      "source_file": "src/components/submit-button.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_lib_current_user_getcurrentuser",
       "label": "getCurrentUser",
       "_origin": "ast",
@@ -6476,17 +6556,6 @@
       "norm_label": "getcurrentuser",
       "source_file": "src/lib/current-user.ts",
       "source_location": "L69"
-    },
-    {
-      "id": "ref_react_dom",
-      "label": "react-dom",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "getCurrentUser",
-      "file_type": "concept",
-      "norm_label": "react-dom",
-      "source_file": "package.json",
-      "source_location": "L17"
     },
     {
       "id": "src_app_template",
@@ -6676,6 +6745,17 @@
       "source_location": "L17"
     },
     {
+      "id": "src_components_collapsible_filters",
+      "label": "collapsible-filters.tsx",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "next",
+      "file_type": "code",
+      "norm_label": "collapsible-filters.tsx",
+      "source_file": "src/components/collapsible-filters.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_conflict_badge",
       "label": "conflict-badge.tsx",
       "_origin": "ast",
@@ -6863,83 +6943,6 @@
       "source_location": "L15"
     },
     {
-      "id": "src_app_communication_page",
-      "label": "communication/page.tsx",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "communication/page.tsx",
-      "source_file": "src/app/communication/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_communication_page_dynamic",
-      "label": "dynamic",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "dynamic",
-      "source_file": "src/app/communication/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_communication_studio",
-      "label": "communication-studio.tsx",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "communication-studio.tsx",
-      "source_file": "src/components/communication-studio.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_copy_button",
-      "label": "copy-button.tsx",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "copy-button.tsx",
-      "source_file": "src/components/copy-button.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_communication_templates",
-      "label": "communication-templates.ts",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "communication-templates.ts",
-      "source_file": "src/lib/communication-templates.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_communication_templates_individual_reminder",
-      "label": "INDIVIDUAL_REMINDER",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "individual_reminder",
-      "source_file": "src/lib/communication-templates.ts",
-      "source_location": "L91"
-    },
-    {
-      "id": "src_lib_communication_templates_message_templates",
-      "label": "MESSAGE_TEMPLATES",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "communication/page.tsx",
-      "file_type": "code",
-      "norm_label": "message_templates",
-      "source_file": "src/lib/communication-templates.ts",
-      "source_location": "L15"
-    },
-    {
       "id": "src_app_reglement_page",
       "label": "reglement/page.tsx",
       "_origin": "ast",
@@ -7113,17 +7116,50 @@
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L17"
+      "source_location": "L18"
     },
     {
-      "id": "src_components_suggestions_list",
-      "label": "suggestions-list.tsx",
+      "id": "src_components_auto_designate_button",
+      "label": "auto-designate-button.tsx",
       "_origin": "ast",
       "community": 4,
       "community_name": "suggestions.ts",
       "file_type": "code",
-      "norm_label": "suggestions-list.tsx",
-      "source_file": "src/components/suggestions-list.tsx",
+      "norm_label": "auto-designate-button.tsx",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_confirm_modal",
+      "label": "confirm-modal.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "confirm-modal.tsx",
+      "source_file": "src/components/confirm-modal.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_conflict_confirm",
+      "label": "conflict-confirm.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "conflict-confirm.tsx",
+      "source_file": "src/components/conflict-confirm.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_group_choices",
+      "label": "group-choices.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "suggestions.ts",
+      "file_type": "code",
+      "norm_label": "group-choices.tsx",
+      "source_file": "src/components/group-choices.tsx",
       "source_location": "L1"
     },
     {
@@ -7193,17 +7229,6 @@
       "source_location": "L1"
     },
     {
-      "id": "src_lib_stats",
-      "label": "stats.ts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "suggestions.ts",
-      "file_type": "code",
-      "norm_label": "stats.ts",
-      "source_file": "src/lib/stats.ts",
-      "source_location": "L1"
-    },
-    {
       "id": "src_lib_suggestions",
       "label": "suggestions.ts",
       "_origin": "ast",
@@ -7219,7 +7244,7 @@
       "label": "statistiques/route.ts",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "statistiques/route.ts",
       "source_file": "src/app/api/statistiques/route.ts",
@@ -7230,7 +7255,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/api/statistiques/route.ts",
@@ -7241,7 +7266,7 @@
       "label": "maxDuration",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "maxduration",
       "source_file": "src/app/api/statistiques/route.ts",
@@ -7252,7 +7277,7 @@
       "label": "export/page.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "export/page.tsx",
       "source_file": "src/app/export/page.tsx",
@@ -7263,7 +7288,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/export/page.tsx",
@@ -7274,7 +7299,7 @@
       "label": "statistiques/page.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "statistiques/page.tsx",
       "source_file": "src/app/statistiques/page.tsx",
@@ -7285,7 +7310,7 @@
       "label": "dynamic",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "dynamic",
       "source_file": "src/app/statistiques/page.tsx",
@@ -7296,7 +7321,7 @@
       "label": "maxDuration",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "maxduration",
       "source_file": "src/app/statistiques/page.tsx",
@@ -7307,7 +7332,7 @@
       "label": "print-button.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "print-button.tsx",
       "source_file": "src/components/print-button.tsx",
@@ -7318,10 +7343,21 @@
       "label": "report-tabs.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "code",
       "norm_label": "report-tabs.tsx",
       "source_file": "src/components/report-tabs.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_stats",
+      "label": "stats.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "stats.ts",
+      "file_type": "code",
+      "norm_label": "stats.ts",
+      "source_file": "src/lib/stats.ts",
       "source_location": "L1"
     },
     {
@@ -7329,7 +7365,7 @@
       "label": "exceljs",
       "_origin": "ast",
       "community": 6,
-      "community_name": "export/page.tsx",
+      "community_name": "stats.ts",
       "file_type": "concept",
       "norm_label": "exceljs",
       "source_file": "package.json",
@@ -7653,6 +7689,17 @@
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
       "source_location": "L25"
+    },
+    {
+      "id": "ref_react_dom",
+      "label": "react-dom",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "package.json",
+      "file_type": "concept",
+      "norm_label": "react-dom",
+      "source_file": "package.json",
+      "source_location": "L17"
     },
     {
       "id": "ref_supabase_supabase_js",
@@ -10799,7 +10846,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L101",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_matchs_id_page_matchdetailpage",
+      "target": "src_components_auto_designate_button_autodesignatebutton",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -10811,7 +10870,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L116",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -10823,7 +10882,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L119",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -10835,7 +10894,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L125",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -10847,7 +10906,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L143",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -10859,7 +10918,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L149",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -10871,7 +10930,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L167",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -10883,7 +10942,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L208",
+      "source_location": "L212",
       "weight": 1.0
     },
     {
@@ -10895,7 +10954,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -10907,7 +10966,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -10919,7 +10978,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -10931,7 +10990,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L46",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -10943,7 +11002,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L51",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -10955,7 +11014,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -10967,7 +11026,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L62",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -10979,7 +11038,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L93",
+      "source_location": "L94",
       "weight": 1.0
     },
     {
@@ -10991,7 +11050,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L51",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -11003,7 +11062,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -11015,7 +11074,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L62",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -11784,6 +11843,66 @@
       "context": "call",
       "source_file": "src/components/app-nav.tsx",
       "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton",
+      "target": "src_lib_actions_auto_designate_actions_previewautodesignation",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton",
+      "target": "src_lib_actions_auto_designate_actions_applyautodesignation",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton",
+      "target": "src_components_confirm_modal_confirmmodal",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton_apply",
+      "target": "src_lib_actions_auto_designate_actions_applyautodesignation",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton_compute",
+      "target": "src_lib_actions_auto_designate_actions_previewautodesignation",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -16325,7 +16444,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_components_conflict_confirm_conflictconfirm",
+      "target": "src_components_auto_designate_button_autodesignatebutton",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -16337,7 +16456,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_geocoding_distancekm",
+      "target": "src_lib_suggestions_designatereferee",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -16345,6 +16464,30 @@
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
       "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_matchs_id_page",
+      "target": "src_lib_suggestions_getmatchcandidates",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_matchs_id_page",
+      "target": "src_lib_geocoding_distancekm",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -16356,7 +16499,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -16368,7 +16511,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -16380,7 +16523,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -16392,7 +16535,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -16404,7 +16547,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -16416,7 +16559,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -16428,7 +16571,19 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L15",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_matchs_id_page",
+      "target": "src_components_conflict_confirm_conflictconfirm",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L2",
       "weight": 1.0
     },
     {
@@ -16440,7 +16595,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L2",
+      "source_location": "L3",
       "weight": 1.0
     },
     {
@@ -16452,7 +16607,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L2",
+      "source_location": "L3",
       "weight": 1.0
     },
     {
@@ -16464,7 +16619,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L6",
+      "source_location": "L7",
       "weight": 1.0
     },
     {
@@ -16476,7 +16631,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0
     },
     {
@@ -16488,36 +16643,12 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L8",
-      "weight": 1.0
-    },
-    {
-      "source": "src_app_matchs_id_page",
-      "target": "src_lib_matches_getmatchbyid",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L8",
-      "weight": 1.0
-    },
-    {
-      "source": "src_app_matchs_id_page",
-      "target": "src_lib_suggestions_designatereferee",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/app/matchs/[id]/page.tsx",
       "source_location": "L9",
       "weight": 1.0
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_suggestions_getmatchcandidates",
+      "target": "src_lib_matches_getmatchbyid",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -17064,6 +17195,66 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/app-nav.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_components_confirm_modal_confirmmodal",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_lib_actions_auto_designate_actions_applyautodesignation",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_lib_actions_auto_designate_actions_autodesignatesummary",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_lib_actions_auto_designate_actions_planitem",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_lib_actions_auto_designate_actions_previewautodesignation",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
       "source_location": "L6",
       "weight": 1.0
     },
@@ -20687,7 +20878,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_components_conflict_confirm",
+      "target": "src_components_auto_designate_button",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20699,7 +20890,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_geocoding",
+      "target": "src_lib_suggestions",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20711,7 +20902,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_routing",
+      "target": "src_lib_geocoding",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20723,7 +20914,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_dates",
+      "target": "src_lib_routing",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20735,7 +20926,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_components_status_badge",
+      "target": "src_lib_dates",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20747,7 +20938,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_components_alert_toast",
+      "target": "src_components_status_badge",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20759,7 +20950,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_components_suggestions_list",
+      "target": "src_components_alert_toast",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20771,7 +20962,19 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_designation_messages",
+      "target": "src_components_suggestions_list",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/app/matchs/[id]/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_matchs_id_page",
+      "target": "src_components_conflict_confirm",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20783,19 +20986,19 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "ref_next",
+      "target": "src_lib_designation_messages",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L5",
+      "source_location": "L3",
       "weight": 1.0
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_supabase_admin",
+      "target": "ref_next",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20807,7 +21010,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_current_user",
+      "target": "src_lib_supabase_admin",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20819,7 +21022,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_matches",
+      "target": "src_lib_current_user",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -20831,7 +21034,7 @@
     },
     {
       "source": "src_app_matchs_id_page",
-      "target": "src_lib_suggestions",
+      "target": "src_lib_matches",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -21332,6 +21535,54 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/app-nav.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "ref_react",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "ref_next",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_components_confirm_modal",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_lib_actions_auto_designate_actions",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/auto-designate-button.tsx",
       "source_location": "L6",
       "weight": 1.0
     },
@@ -24825,7 +25076,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -24836,7 +25087,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -24847,7 +25098,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -24858,7 +25109,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/matchs/[id]/page.tsx",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -25343,6 +25594,39 @@
       "confidence_score": 1.0,
       "source_file": "src/components/app-nav.tsx",
       "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button",
+      "target": "src_components_auto_designate_button_autodesignatebutton",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton",
+      "target": "src_components_auto_designate_button_autodesignatebutton_compute",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_auto_designate_button_autodesignatebutton",
+      "target": "src_components_auto_designate_button_autodesignatebutton_apply",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/auto-designate-button.tsx",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -29234,5 +29518,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "40230777f0ca73cb8ef298cac55826af867fd8cb"
+  "built_at_commit": "fa769fd9df484f2a8cd69495fc0f7cbdd7741ffe"
 }
