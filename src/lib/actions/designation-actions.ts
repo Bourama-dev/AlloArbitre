@@ -38,6 +38,5 @@ export async function removeDesignation(formData: FormData) {
   }
 
   revalidatePath("/matchs");
-  revalidatePath("/fbi");
   if (matchId) revalidatePath(`/matchs/${matchId}`);
 }

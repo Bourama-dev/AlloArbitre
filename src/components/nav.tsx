@@ -12,7 +12,6 @@ type NavUser = {
 // latéral sur grand écran.
 const tabs: AppNavLink[] = [
   { href: "/matchs", label: "Matchs", icon: "matchs", also: ["/controles"] },
-  { href: "/fbi", label: "FBI", icon: "fbi" },
   { href: "/arbitres", label: "Arbitres", icon: "arbitres" },
   { href: "/disponibilites", label: "Disponibilités", shortLabel: "Dispos", icon: "dispos" },
 ];
@@ -26,6 +25,7 @@ const more: AppNavLink[] = [
 
 const adminLinks: AppNavLink[] = [
   { href: "/admin/divisions", label: "Divisions et groupes", shortLabel: "Divisions", icon: "admin" },
+  { href: "/admin/import", label: "Import matchs", icon: "admin" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "admin" },
 ];
 

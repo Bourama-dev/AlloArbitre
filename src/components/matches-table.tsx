@@ -4,7 +4,6 @@ import { formatDateTimeFr } from "@/lib/dates";
 import { StatusBadge } from "@/components/status-badge";
 import { ConflictBadge } from "@/components/conflict-badge";
 import { SubmitButton } from "@/components/submit-button";
-import { PushToFbiButton } from "@/components/push-to-fbi-button";
 import { removeDesignation } from "@/lib/actions/designation-actions";
 import type { ActiveReferee, MatchWithRelations } from "@/lib/matches";
 
@@ -156,7 +155,6 @@ export function MatchesTable({
                     <Link href={`/matchs/${m.id}`} className="btn-ghost text-sm">
                       Détails
                     </Link>
-                    {m.designations.length > 0 && <PushToFbiButton matchId={m.id} />}
                   </div>
                 </td>
               </tr>

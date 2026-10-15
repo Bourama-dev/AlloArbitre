@@ -101,7 +101,6 @@ export default async function AvailabilityPeriodPage({
     );
     if (respError) throw respError;
     revalidatePath(`/disponibilites/${id}`);
-    revalidatePath("/fbi");
     back(
       id,
       "ok",
@@ -123,7 +122,6 @@ export default async function AvailabilityPeriodPage({
       .eq("refereeId", refereeId);
     if (e2) throw e2;
     revalidatePath(`/disponibilites/${id}`);
-    revalidatePath("/fbi");
     back(id, "ok", "Réponse effacée : l'arbitre est de nouveau « sans réponse ».");
   }
 

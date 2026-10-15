@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { loadKnownVenueCoords, venueKey } from "@/lib/venue-coords";
-import { teamNamesMatchLoose } from "@/lib/fbi/sync";
+import { teamNamesMatchLoose } from "@/lib/team-names";
 
 type ParsedRow = {
   homeTeam: string;
@@ -194,7 +194,7 @@ export async function importMatches(rows: ParsedRow[]): Promise<ImportSummary> {
 
       // Un même match est identifié par jour (pas l'horaire exact) + niveau +
       // équipes : l'horaire peut être corrigé d'un import à l'autre, et les noms
-      // d'équipes varier légèrement (suffixe « (n) » FBI, troncature, casse,
+      // d'équipes varier légèrement (suffixe « (n) », troncature, casse,
       // accents) sans créer de doublon. À défaut, la même affiche avec domicile
       // et extérieur inversés est aussi reconnue. Un match trouvé est mis à jour
       // avec les informations importées.

@@ -86,7 +86,6 @@ export default async function EditMatchPage({
 
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
-    revalidatePath("/fbi");
     redirect(`/matchs/${id}`);
   }
 
@@ -101,7 +100,6 @@ export default async function EditMatchPage({
 
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
-    revalidatePath("/fbi");
     redirect(`/matchs/${id}`);
   }
 
@@ -114,7 +112,6 @@ export default async function EditMatchPage({
     if (error) throw error;
 
     revalidatePath("/matchs");
-    revalidatePath("/fbi");
     redirect("/matchs");
   }
 

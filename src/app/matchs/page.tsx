@@ -36,6 +36,7 @@ export default async function MatchesPage({
   }>;
 }) {
   const params = await searchParams;
+  const isAdmin = (await getCurrentUser())?.role === "ADMIN";
   const weekOffset = Number.parseInt(params.week ?? "0", 10) || 0;
   const referenceDate = addWeeks(new Date(), weekOffset);
   const { start, end } = weekRange(referenceDate);
@@ -62,7 +63,6 @@ export default async function MatchesPage({
     const confirmConflict = formData.get("confirmConflict") === "1";
     const result = await designateReferee(matchId, refereeId, user.id, { confirmConflict, addToGroupIds: formData.getAll("addToGroupIds").map(String) });
     revalidatePath("/matchs");
-    revalidatePath("/fbi");
     revalidatePath(`/matchs/${matchId}`);
     if (!result.ok) {
       // Conflit d'horaire : la page demande confirmation au lieu d'afficher un refus.
@@ -133,6 +133,11 @@ export default async function MatchesPage({
               Revenir à cette semaine
             </Link>
           )}
+          {isAdmin && (
+            <Link href="/admin/import" className="btn btn-secondary">
+              Importer un fichier
+            </Link>
+          )}
           <Link href="/matchs/nouveau" className="btn btn-primary">
             + Nouveau match
           </Link>
@@ -140,12 +145,7 @@ export default async function MatchesPage({
       </div>
 
       <p className="hidden lg:block text-xs text-[var(--muted)]">
-        Vue par semaine, tous statuts confondus. Pour désigner en lot tous les matchs incomplets à venir (toutes
-        semaines), voir{" "}
-        <Link href="/fbi" className="text-[var(--accent)] hover:underline">
-          FBI
-        </Link>
-        .
+        Vue par semaine, tous statuts confondus.
       </p>
 
       <CollapsibleFilters activeCount={activeFilters}>

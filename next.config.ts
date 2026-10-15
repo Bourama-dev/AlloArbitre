@@ -9,6 +9,10 @@ process.env.TZ = "UTC";
 const nextConfig: NextConfig = {
   // Boîte à outils : envoi de documents officiels (PDF...) jusqu'à 10 Mo par un administrateur.
   experimental: { serverActions: { bodySizeLimit: "12mb" } },
+  // L'ancienne page FBI n'existe plus : les favoris renvoient vers la liste des matchs.
+  async redirects() {
+    return [{ source: "/fbi/:path*", destination: "/matchs", permanent: false }];
+  },
 };
 
 export default nextConfig;

@@ -55,7 +55,6 @@ export default async function MatchDetailPage({
     const result = await designateReferee(id, refereeId, user.id, { confirmConflict, addToGroupIds: formData.getAll("addToGroupIds").map(String) });
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
-    revalidatePath("/fbi");
     if (!result.ok) {
       // Conflit d'horaire : la page demande confirmation au lieu d'afficher un refus.
       if (result.confirmable) {
@@ -77,7 +76,6 @@ export default async function MatchDetailPage({
     if (error) throw error;
     revalidatePath(`/matchs/${id}`);
     revalidatePath("/matchs");
-    revalidatePath("/fbi");
   }
 
   return (

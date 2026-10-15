@@ -63,7 +63,7 @@ function levelClass(label: string) {
 }
 
 function matchTime(m: MatchWithRelations) {
-  // Heure du gymnase stockée sans fuseau (lue en UTC) ; 00:00 = heure non renseignée sur FBI.
+  // Heure du gymnase stockée sans fuseau (lue en UTC) ; 00:00 = heure non renseignée.
   const hh = m.date.getUTCHours();
   const mm = m.date.getUTCMinutes();
   return hh === 0 && mm === 0 ? null : `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
@@ -294,8 +294,8 @@ export default async function ExportPage({ searchParams }: { searchParams: Promi
           </span>
         </div>
         <footer className="rx-foot">
-          Source : AlloArbitre, état au {generatedAt}. Horaire « à confirmer » : heure non renseignée sur FBI. Les
-          désignations peuvent encore évoluer ; FBI fait foi.
+          Source : AlloArbitre, état au {generatedAt}. Horaire « à confirmer » : heure non renseignée. Les
+          désignations peuvent encore évoluer.
         </footer>
       </section>
     </div>

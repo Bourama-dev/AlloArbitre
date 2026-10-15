@@ -2,7 +2,6 @@ import type { ReactNode, SVGProps } from "react";
 
 export type NavIconName =
   | "matchs"
-  | "fbi"
   | "arbitres"
   | "dispos"
   | "plus"
@@ -28,15 +27,6 @@ const PATHS: Record<NavIconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
-    </>
-  ),
-  // synchronisation
-  fbi: (
-    <>
-      <path d="M20 7H8a4 4 0 0 0-4 4v1" />
-      <path d="m16 3 4 4-4 4" />
-      <path d="M4 17h12a4 4 0 0 0 4-4v-1" />
-      <path d="m8 21-4-4 4-4" />
     </>
   ),
   arbitres: (

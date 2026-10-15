@@ -144,7 +144,7 @@ export default async function ImportMatchsPage({
             Calcule les coordonnées (lat/lng) des arbitres et matchs dont l&apos;adresse est connue mais pas encore
             géocodée - nécessaire pour le tri par proximité, le calcul de rémunération estimée, et la prise en compte
             du temps de trajet entre deux gymnases lors d&apos;une désignation. À relancer après un import en masse
-            (Excel, FBI) ou l&apos;ajout de <code>GOOGLE_MAPS_API_KEY</code>.
+            (Excel) ou l&apos;ajout de <code>GOOGLE_MAPS_API_KEY</code>.
           </p>
         </div>
         {(params.geoReferees !== undefined || params.geoMatches !== undefined) && !params.error && (
