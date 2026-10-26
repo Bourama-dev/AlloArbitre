@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function RefereeLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; active?: string }>;
+  searchParams: Promise<{ error?: string; active?: string; reset?: string }>;
 }) {
-  const { error, active } = await searchParams;
+  const { error, active, reset } = await searchParams;
 
   async function login(formData: FormData) {
     "use server";
@@ -41,6 +41,12 @@ export default async function RefereeLoginPage({
         {active && (
           <p className="mb-4 text-sm text-[var(--success)] bg-[var(--success-bg)] rounded-lg p-3">
             Compte activé ! Connectez-vous avec votre adresse e-mail et votre mot de passe.
+          </p>
+        )}
+
+        {reset && (
+          <p className="mb-4 text-sm text-[var(--success)] bg-[var(--success-bg)] rounded-lg p-3">
+            Mot de passe modifié. Connectez-vous avec le nouveau.
           </p>
         )}
 
@@ -86,8 +92,10 @@ export default async function RefereeLoginPage({
               Activer mon compte
             </Link>
           </p>
-          <p className="text-xs text-[var(--muted)]">
-            Mot de passe oublié : demandez un lien personnel à votre répartiteur.
+          <p>
+            <Link href="/espace/mot-de-passe-oublie" className="text-[var(--accent)] underline">
+              Mot de passe oublié ?
+            </Link>
           </p>
         </div>
       </div>

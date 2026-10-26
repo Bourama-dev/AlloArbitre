@@ -61,12 +61,12 @@ async function findAuthUserId(email: string): Promise<string | null> {
 
 export type AuthResult = { ok: true; email: string } | { ok: false; error: string };
 
-export async function activateRefereeAccount(license: string, birthDate: string, password: string): Promise<AuthResult> {
+/** Licence + date de naissance de la fiche, avec blocage après 5 échecs en 1 h sur une même licence. */
+async function verifyIdentity(
+  license: string,
+  birthDate: string
+): Promise<{ ok: true; referee: RefereeRow } | { ok: false; error: string }> {
   const key = normalizeLicense(license);
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { ok: false, error: `Mot de passe trop court (${MIN_PASSWORD_LENGTH} caractères minimum).` };
-  }
-
   const since = new Date(Date.now() - 3_600_000).toISOString();
   const { count, error: countError } = await supabaseAdmin
     .from("RefereeActivationAttempt")
@@ -88,6 +88,16 @@ export async function activateRefereeAccount(license: string, birthDate: string,
       error: "N° de licence ou date de naissance incorrects (ou fiche incomplète : demandez un lien personnel à votre répartiteur).",
     };
   }
+  return { ok: true, referee };
+}
+
+export async function activateRefereeAccount(license: string, birthDate: string, password: string): Promise<AuthResult> {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, error: `Mot de passe trop court (${MIN_PASSWORD_LENGTH} caractères minimum).` };
+  }
+  const check = await verifyIdentity(license, birthDate);
+  if (!check.ok) return check;
+  const referee = check.referee;
 
   const email = loginEmailOf(referee);
   if (await findAuthUserId(email)) {
@@ -171,4 +181,36 @@ export async function createPersonalLink(refereeId: string, baseUrl: string): Pr
   }
   const url = `${baseUrl}/auth/confirm?token_hash=${encodeURIComponent(link.properties.hashed_token)}&type=magiclink`;
   return { ok: true, email, url };
+}
+
+/**
+ * Mot de passe oublié : mêmes vérifications que l'activation (licence + date
+ * de naissance de la fiche, 5 essais/h), puis remplacement du mot de passe du
+ * compte déjà rattaché à la fiche. Aucun e-mail n'est envoyé.
+ */
+export async function resetRefereePassword(license: string, birthDate: string, password: string): Promise<AuthResult> {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, error: `Mot de passe trop court (${MIN_PASSWORD_LENGTH} caractères minimum).` };
+  }
+  const check = await verifyIdentity(license, birthDate);
+  if (!check.ok) return check;
+  const referee = check.referee;
+
+  const { data: profile, error } = await supabaseAdmin
+    .from("Profile")
+    .select("id, email")
+    .eq("refereeId", referee.id)
+    .eq("role", "ARBITRE")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!profile) {
+    return { ok: false, error: "Aucun compte à réinitialiser : activez d'abord votre compte." };
+  }
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(profile.id as string, { password });
+  if (updateError) {
+    console.error("[referee-auth] reset mot de passe :", updateError.message);
+    return { ok: false, error: "Réinitialisation impossible pour le moment. Contactez votre répartiteur." };
+  }
+  return { ok: true, email: profile.email as string };
 }

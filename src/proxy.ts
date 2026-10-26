@@ -4,7 +4,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/env";
 
 const AUTH_ROUTES = ["/login", "/signup"];
 // Pages publiques de l'espace arbitre : connexion, activation, lien personnel.
-const REFEREE_PUBLIC_ROUTES = ["/espace/connexion", "/espace/activer", "/auth/confirm"];
+const REFEREE_PUBLIC_ROUTES = ["/espace/connexion", "/espace/activer", "/espace/mot-de-passe-oublie", "/auth/confirm"];
 // Seules routes accessibles à un compte ARBITRE.
 const REFEREE_ROUTES = ["/espace", "/auth/"];
 
