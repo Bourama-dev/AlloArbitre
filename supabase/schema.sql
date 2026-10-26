@@ -297,3 +297,10 @@ alter table "DesignationRule" enable row level security;
 --   category text not null default 'Règlement', position integer not null default 0, active boolean not null default true,
 --   "createdAt" timestamptz not null default now(), "updatedAt" timestamptz not null default now());
 -- insert into storage.buckets (id, name, public, file_size_limit) values ('toolbox', 'toolbox', false, 10485760);
+
+-- Correctif (activation des comptes arbitres) : GoTrue pose app_metadata après
+-- l'insertion de l'utilisateur, donc `raw_app_meta_data->>'role' = 'ARBITRE'`
+-- valait NULL et violait Profile.approved NOT NULL (createUser échouait en 500).
+-- Le trigger handle_new_user utilise désormais
+--   coalesce(new.raw_app_meta_data->>'role' = 'ARBITRE', false)
+-- pour la colonne approved (migration fix_handle_new_user_approved_null).
