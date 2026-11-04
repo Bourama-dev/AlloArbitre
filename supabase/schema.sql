@@ -304,3 +304,33 @@ alter table "DesignationRule" enable row level security;
 -- Le trigger handle_new_user utilise désormais
 --   coalesce(new.raw_app_meta_data->>'role' = 'ARBITRE', false)
 -- pour la colonne approved (migration fix_handle_new_user_approved_null).
+
+-- Règle CD45 : tout arbitre mineur est dans les groupes « Formation » et
+-- « Jeunes CVL ». Le trigger ci-dessous (migration minors_auto_groups) les y
+-- ajoute à la création de la fiche (saisie, import) et quand la date de
+-- naissance change. Il n'en retire jamais personne (un arbitre qui devient
+-- majeur reste dans ses groupes).
+create or replace function public.ensure_minor_groups()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  if new."birthDate" is not null and new."birthDate" > (current_date - interval '18 years') then
+    insert into public."RefereeGroupMember" ("refereeId", "groupId")
+    select new.id, g.id
+    from public."RefereeGroup" g
+    where g.label in ('Formation', 'Jeunes CVL')
+      and not exists (
+        select 1 from public."RefereeGroupMember" m
+        where m."refereeId" = new.id and m."groupId" = g.id
+      );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists referee_minor_groups on public."Referee";
+create trigger referee_minor_groups
+after insert or update of "birthDate" on public."Referee"
+for each row execute function public.ensure_minor_groups();
