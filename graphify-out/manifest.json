@@ -426,9 +426,9 @@
     "semantic_hash": ""
   },
   "src/lib/suggestions.ts": {
-    "mtime": 1791454797.7578514,
-    "seen": 1791454866.318467,
-    "ast_hash": "0b87756b6d48b2bdac2bb034c0907070",
+    "mtime": 1793785236.0684116,
+    "seen": 1793785324.6909986,
+    "ast_hash": "c1839470d2864dde353af3e394d7aa73",
     "semantic_hash": ""
   },
   "src/lib/supabase/admin.ts": {

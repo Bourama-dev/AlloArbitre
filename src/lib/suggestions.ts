@@ -137,10 +137,20 @@ const UNKNOWN_DISTANCE_KM = 25;
 // payer un calcul d'itinéraire pour tout l'effectif à chaque match.
 const ROAD_DISTANCE_TOP_N = 40;
 
+// Équité : chaque désignation déjà à venir (ou retenue dans le lot) pèse comme
+// ce nombre de km supplémentaires dans le classement, pour ne pas toujours
+// désigner les mêmes arbitres même quand ils habitent le plus près.
+const LOAD_PENALTY_KM = 8;
+
 function rankScore(s: RefereeSuggestion): number {
   // Doublé dans la même salle : aucun trajet supplémentaire, toujours en tête.
   if (s.sameVenueDouble) return -1;
-  return s.distanceKm ?? UNKNOWN_DISTANCE_KM;
+  return (s.distanceKm ?? UNKNOWN_DISTANCE_KM) + s.currentLoad * LOAD_PENALTY_KM;
+}
+
+/** Un arbitre sans aucun match à venir passe avant tous les autres : chacun doit arbitrer au moins une fois. */
+function fairnessTier(s: RefereeSuggestion): number {
+  return s.currentLoad === 0 ? 0 : 1;
 }
 
 /** Même jour, même gymnase, sans chevauchement : l'arbitre est déjà sur place. */
@@ -171,7 +181,11 @@ function buildWhy(s: RefereeSuggestion, minLevelLabel: string | null, maxDistanc
   } else {
     why.push("Distance inconnue (adresse non géocodée) : classé comme s'il était à 25 km");
   }
-  why.push(`${s.currentLoad} désignation(s) à venir (départage à distance égale)`);
+  why.push(
+    s.currentLoad === 0
+      ? "Aucun match à venir : prioritaire pour que chaque arbitre disponible arbitre au moins une fois"
+      : `${s.currentLoad} désignation(s) à venir (chaque match déjà désigné pèse ${LOAD_PENALTY_KM} km dans le classement)`
+  );
   if (s.groupLabels.length > 0) why.push(`Groupe(s) : ${s.groupLabels.join(", ")}`);
   why.push("Club, horaires, trajet entre gymnases, indisponibilités, quotas et âge vérifiés");
   return why;
@@ -539,6 +553,7 @@ export async function evaluateMatchCandidates(
     })
     .sort(
       (a, b) =>
+        fairnessTier(a) - fairnessTier(b) ||
         rankScore(a) - rankScore(b) ||
         a.currentLoad - b.currentLoad ||
         a.lastName.localeCompare(b.lastName) ||
