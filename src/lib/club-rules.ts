@@ -7,9 +7,9 @@
  * caractères et suffixées ("CHECY JEUNESSE SPORTIV", "USM OLIVET - 2 (3)").
  * Comparaison par préfixe après nettoyage. Pour les inter-équipes de CTC
  * ("IE - CTC BLT45 - BOIGN"), chaque club nommé dans l'équipe est testé ;
- * le club porteur d'une CTC désignée par son seul sigle ("IE - CTC BLT45")
- * n'est pas identifiable ici - le contrôle de neutralité FBI prend le relais
- * à l'envoi.
+ * les CTC désignées par leur seul sigle ("IE - CTC BLT45") sont résolues par
+ * la table CTC_CLUBS ci-dessous ; une CTC absente de cette table n'est pas
+ * identifiable ici.
  */
 
 // Segment d'équipe trop court (ex. "SAI" dans "IE - CTC NECOTIN - SAI") :
@@ -25,6 +25,14 @@ function normalize(s: string): string {
     .trim();
 }
 
+/**
+ * CTC désignées dans FBI par leur seul sigle : clubs qui les composent.
+ * Un arbitre licencié dans l'un d'eux ne peut pas arbitrer la CTC.
+ */
+const CTC_CLUBS: Record<string, string[]> = {
+  BLT45: ["BOIGNY BC", "AS LOURY", "TRAINOU AS"], // Boigny - Loury - Trainou
+};
+
 /** Noms de club candidats portés par un libellé d'équipe FBI. */
 function teamClubSegments(team: string): string[] {
   const cleaned = team
@@ -38,7 +46,10 @@ function teamClubSegments(team: string): string[] {
         .split(/\s-\s/)
         .map((s) => s.replace(/^CTC\s+/i, ""))
     : [cleaned];
-  return segments.map(normalize).filter((s) => s.length >= MIN_SEGMENT_LENGTH);
+  return segments
+    .map(normalize)
+    .flatMap((seg) => (CTC_CLUBS[seg] ? [seg, ...CTC_CLUBS[seg].map(normalize)] : [seg]))
+    .filter((s) => s.length >= MIN_SEGMENT_LENGTH);
 }
 
 /**

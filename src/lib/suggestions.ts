@@ -641,10 +641,13 @@ export async function designateReferee(
   if (refereeError) throw refereeError;
   if (!referee) return { ok: false, error: "Arbitre introuvable." };
 
+  // Seule règle bloquante : un arbitre ne peut jamais arbitrer son propre club
+  // (domicile ou extérieur, CTC comprises), même après confirmation.
+  const ownTeam = refereeOwnClubTeam(referee?.zone as string | null, match.homeTeam, match.awayTeam);
+  if (ownTeam) return { ok: false, error: ownClubMessage(ownTeam) };
+
   // Points d'attention : aucun n'est bloquant, le répartiteur confirme en connaissance de cause.
   const problems: string[] = [];
-  const ownTeam = refereeOwnClubTeam(referee?.zone as string | null, match.homeTeam, match.awayTeam);
-  if (ownTeam) problems.push(ownClubMessage(ownTeam));
 
   const rawLevel = match.competitionLevel as unknown;
   const competitionLevel = (Array.isArray(rawLevel) ? rawLevel[0] : rawLevel) as
