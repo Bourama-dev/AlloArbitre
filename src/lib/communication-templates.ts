@@ -125,15 +125,13 @@ function titleCase(s: string): string {
  * Message au groupe listant les matchs qui n'ont pas encore tous leurs
  * arbitres, regroupés par jour. Texte prêt à copier (WhatsApp).
  */
-export function buildOpenMatchesMessage(matches: OpenMatch[], link: string): string {
+export function buildOpenMatchesMessage(matches: OpenMatch[]): string {
   if (matches.length === 0) return "";
   const byDay = new Map<string, OpenMatch[]>();
   for (const m of [...matches].sort((a, b) => a.date.getTime() - b.date.getTime())) {
     const day = m.date.toISOString().slice(0, 10);
     byDay.set(day, [...(byDay.get(day) ?? []), m]);
   }
-  const places = matches.reduce((n, m) => n + m.missing, 0);
-
   const blocks = [...byDay.entries()].map(([day, list]) => {
     const label = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(
       new Date(`${day}T00:00:00Z`)
@@ -151,11 +149,11 @@ export function buildOpenMatchesMessage(matches: OpenMatch[], link: string): str
 
 Bonjour à tous,
 
-Il nous manque encore ${places} arbitre${places > 1 ? "s" : ""} sur ${matches.length} match${matches.length > 1 ? "s" : ""} :
+Il nous manque encore plusieurs arbitres sur ces matchs :
 
 ${blocks.join("\n\n")}
 
-Vous êtes disponible, même sur un seul de ces matchs ? Répondez-moi ici avec le match concerné, ou mettez à jour vos disponibilités sur AlloArbitre : ${link.trim() || "[LIEN]"}
+Vous êtes disponible, même sur un seul de ces matchs ? Répondez-moi en privé svp
 
 Merci d'avance pour votre aide ! 🏀`;
 }

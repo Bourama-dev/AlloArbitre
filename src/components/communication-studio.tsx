@@ -25,7 +25,7 @@ export function CommunicationStudio({
   const [link, setLink] = useState(defaultLink);
   const [search, setSearch] = useState("");
 
-  const coverText = buildOpenMatchesMessage(openMatches, link);
+  const coverText = buildOpenMatchesMessage(openMatches);
   const shown = pending.filter((p) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(search.trim().toLowerCase()));
   const allReminders = pending
     .map((p) => `${p.lastName} ${p.firstName} : ${fillTemplate(INDIVIDUAL_REMINDER, { LIEN: link, PRENOM: p.firstName, LICENCE: p.licence ?? undefined })}`)
