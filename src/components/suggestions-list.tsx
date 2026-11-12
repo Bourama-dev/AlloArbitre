@@ -65,6 +65,21 @@ export function SuggestionsList({
               )}
               {s.groupLabels.length > 0 && <> · {s.groupLabels.join(", ")}</>}
             </div>
+            {s.availabilityStatus === "disponible" && (
+              <span className="inline-block mt-0.5 mr-1 text-[11px] font-medium px-1.5 py-0.5 rounded bg-[var(--success-bg)] text-[var(--success)]">
+                Disponible
+              </span>
+            )}
+            {s.availabilityStatus === "sans-reponse" && (
+              <span className="inline-block mt-0.5 mr-1 text-[11px] font-medium px-1.5 py-0.5 rounded bg-[var(--warning-bg)] text-[var(--warning)]">
+                Sans réponse
+              </span>
+            )}
+            {s.availabilityStatus === "indisponible" && (
+              <span className="inline-block mt-0.5 mr-1 text-[11px] font-medium px-1.5 py-0.5 rounded bg-[var(--danger-bg)] text-[var(--danger)]">
+                Indisponible
+              </span>
+            )}
             {s.sameVenueDouble && !reasons && (
               <span className="inline-block mt-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded bg-[var(--brand-tint)] text-[var(--brand)]">
                 Doublé possible : déjà dans ce gymnase ce jour-là

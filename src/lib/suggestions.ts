@@ -148,6 +148,11 @@ function rankScore(s: RefereeSuggestion): number {
   return (s.distanceKm ?? UNKNOWN_DISTANCE_KM) + s.currentLoad * LOAD_PENALTY_KM;
 }
 
+/** Ceux qui ont coché le créneau du match passent avant ceux qui n'ont pas répondu (ou hors campagne). */
+function availabilityTier(s: RefereeSuggestion): number {
+  return s.availabilityStatus === "disponible" ? 0 : 1;
+}
+
 /** Un arbitre sans aucun match à venir passe avant tous les autres : chacun doit arbitrer au moins une fois. */
 function fairnessTier(s: RefereeSuggestion): number {
   return s.currentLoad === 0 ? 0 : 1;
@@ -553,6 +558,7 @@ export async function evaluateMatchCandidates(
     })
     .sort(
       (a, b) =>
+        availabilityTier(a) - availabilityTier(b) ||
         fairnessTier(a) - fairnessTier(b) ||
         rankScore(a) - rankScore(b) ||
         a.currentLoad - b.currentLoad ||
