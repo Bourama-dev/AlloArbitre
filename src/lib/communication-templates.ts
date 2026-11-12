@@ -100,3 +100,62 @@ export function fillTemplate(text: string, vars: { LIEN?: string; PRENOM?: strin
     .replaceAll("{{PRENOM}}", vars.PRENOM ?? "")
     .replaceAll("{{LICENCE}}", vars.LICENCE ?? "[N° de licence]");
 }
+
+/** Match à pourvoir, tel qu'affiché dans le message « Matchs à couvrir ». */
+export type OpenMatch = {
+  /** Date et heure du gymnase, stockées en UTC (voir availability.slotOfMatch). */
+  date: Date;
+  division: string;
+  homeTeam: string;
+  awayTeam: string;
+  venue: string | null;
+  missing: number;
+};
+
+const TEAM_NUMBER = /\s*\(\d+\)\s*$/;
+
+function titleCase(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/(^|[\s(-])([a-zà-ÿ])/g, (_m, sep: string, c: string) => sep + c.toUpperCase())
+    .replace(/\s(Des|De|Du|La|Le|Les|Et|Au|Aux)(?=\s)/g, (m) => m.toLowerCase());
+}
+
+/**
+ * Message au groupe listant les matchs qui n'ont pas encore tous leurs
+ * arbitres, regroupés par jour. Texte prêt à copier (WhatsApp).
+ */
+export function buildOpenMatchesMessage(matches: OpenMatch[], link: string): string {
+  if (matches.length === 0) return "";
+  const byDay = new Map<string, OpenMatch[]>();
+  for (const m of [...matches].sort((a, b) => a.date.getTime() - b.date.getTime())) {
+    const day = m.date.toISOString().slice(0, 10);
+    byDay.set(day, [...(byDay.get(day) ?? []), m]);
+  }
+  const places = matches.reduce((n, m) => n + m.missing, 0);
+
+  const blocks = [...byDay.entries()].map(([day, list]) => {
+    const label = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(
+      new Date(`${day}T00:00:00Z`)
+    );
+    const lines = list.map((m) => {
+      const hour = m.date.toISOString().slice(11, 16).replace(":", "h");
+      const teams = `${m.homeTeam.replace(TEAM_NUMBER, "")} – ${m.awayTeam.replace(TEAM_NUMBER, "")}`;
+      const venue = m.venue ? ` · ${titleCase(m.venue)}` : "";
+      return `• ${hour} · ${m.division} · ${teams}${venue} → ${m.missing} arbitre${m.missing > 1 ? "s" : ""} recherché${m.missing > 1 ? "s" : ""}`;
+    });
+    return `📅 ${label.charAt(0).toUpperCase()}${label.slice(1)}\n${lines.join("\n")}`;
+  });
+
+  return `🏀 Matchs à couvrir
+
+Bonjour à tous,
+
+Il nous manque encore ${places} arbitre${places > 1 ? "s" : ""} sur ${matches.length} match${matches.length > 1 ? "s" : ""} :
+
+${blocks.join("\n\n")}
+
+Vous êtes disponible, même sur un seul de ces matchs ? Répondez-moi ici avec le match concerné, ou mettez à jour vos disponibilités sur AlloArbitre : ${link.trim() || "[LIEN]"}
+
+Merci d'avance pour votre aide ! 🏀`;
+}

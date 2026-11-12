@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { CommunicationStudio, type PendingReferee } from "@/components/communication-studio";
+import type { OpenMatch } from "@/lib/communication-templates";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,31 @@ export default async function CommunicationPage() {
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
   const defaultLink = host ? `${proto}://${host}/espace/connexion` : "";
+
+  // Matchs à venir sans tous leurs arbitres : base du message « Matchs à couvrir ».
+  const { data: upcoming, error: matchError } = await supabaseAdmin
+    .from("Match")
+    .select("date, homeTeam, awayTeam, venue, refereesRequired, competitionLevel:CompetitionLevel(label), designations:Designation(id)")
+    .eq("cancelled", false)
+    .gte("date", new Date().toISOString())
+    .order("date");
+  if (matchError) throw matchError;
+  const openMatches: OpenMatch[] = (upcoming ?? []).flatMap((m) => {
+    const level = Array.isArray(m.competitionLevel) ? m.competitionLevel[0] : m.competitionLevel;
+    const missing = (m.refereesRequired as number) - ((m.designations as unknown[] | null)?.length ?? 0);
+    return missing > 0
+      ? [
+          {
+            date: new Date(m.date as string),
+            division: (level as { label: string } | null)?.label ?? "",
+            homeTeam: m.homeTeam as string,
+            awayTeam: m.awayTeam as string,
+            venue: (m.venue as string | null) ?? null,
+            missing,
+          },
+        ]
+      : [];
+  });
 
   const pending: PendingReferee[] = notActivated.map((r) => ({
     id: r.id,
@@ -96,7 +122,7 @@ export default async function CommunicationPage() {
         </section>
       )}
 
-      <CommunicationStudio defaultLink={defaultLink} pending={pending} />
+      <CommunicationStudio defaultLink={defaultLink} pending={pending} openMatches={openMatches} />
 
       <section className="card p-4 text-sm space-y-1">
         <p className="font-semibold">Rappels</p>

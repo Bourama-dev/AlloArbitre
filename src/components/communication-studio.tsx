@@ -2,15 +2,30 @@
 
 import { useState } from "react";
 import { CopyButton } from "@/components/copy-button";
-import { INDIVIDUAL_REMINDER, MESSAGE_TEMPLATES, fillTemplate } from "@/lib/communication-templates";
+import {
+  INDIVIDUAL_REMINDER,
+  MESSAGE_TEMPLATES,
+  buildOpenMatchesMessage,
+  fillTemplate,
+  type OpenMatch,
+} from "@/lib/communication-templates";
 
 export type PendingReferee = { id: string; firstName: string; lastName: string; licence: string | null; phone: string | null };
 
 /** Messages prêts à copier + relances individuelles des arbitres sans compte. */
-export function CommunicationStudio({ defaultLink, pending }: { defaultLink: string; pending: PendingReferee[] }) {
+export function CommunicationStudio({
+  defaultLink,
+  pending,
+  openMatches,
+}: {
+  defaultLink: string;
+  pending: PendingReferee[];
+  openMatches: OpenMatch[];
+}) {
   const [link, setLink] = useState(defaultLink);
   const [search, setSearch] = useState("");
 
+  const coverText = buildOpenMatchesMessage(openMatches, link);
   const shown = pending.filter((p) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(search.trim().toLowerCase()));
   const allReminders = pending
     .map((p) => `${p.lastName} ${p.firstName} : ${fillTemplate(INDIVIDUAL_REMINDER, { LIEN: link, PRENOM: p.firstName, LICENCE: p.licence ?? undefined })}`)
@@ -30,6 +45,24 @@ export function CommunicationStudio({ defaultLink, pending }: { defaultLink: str
 
       <section className="space-y-3">
         <h2 className="text-sm font-bold">Messages au groupe</h2>
+        {coverText ? (
+          <details className="card p-4" open>
+            <summary className="cursor-pointer list-none">
+              <span className="font-semibold text-sm block">Matchs à couvrir ({openMatches.length})</span>
+              <span className="text-xs text-[var(--muted)]">
+                Généré à partir des matchs à venir qui n&apos;ont pas tous leurs arbitres : à envoyer au groupe pour trouver des volontaires.
+              </span>
+            </summary>
+            <div className="mt-3 space-y-3">
+              <pre className="whitespace-pre-wrap break-words text-sm font-sans bg-[var(--neutral-bg)] rounded-xl p-3">{coverText}</pre>
+              <CopyButton text={coverText} label="Copier le message" className="btn btn-primary text-sm" />
+            </div>
+          </details>
+        ) : (
+          <p className="text-sm text-[var(--success)] bg-[var(--success-bg)] rounded-xl p-3">
+            Tous les matchs à venir ont leurs arbitres : aucun message « Matchs à couvrir » à envoyer.
+          </p>
+        )}
         {MESSAGE_TEMPLATES.map((t) => {
           const text = fillTemplate(t.text, { LIEN: link });
           return (
