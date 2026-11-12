@@ -110,7 +110,8 @@ export default async function CommunicationPage() {
             </Link>{" "}
             après l&apos;envoi.
           </li>
-          <li>Un arbitre bloqué reçoit un lien personnel depuis sa fiche ou Admin &gt; Utilisateurs.</li>
+          <li>Mot de passe oublié : l&apos;arbitre le réinitialise lui-même sur la page de connexion (licence + date de naissance).</li>
+          <li>Un arbitre bloqué (5 essais incorrects) reçoit un lien personnel depuis sa fiche ou Admin &gt; Utilisateurs.</li>
         </ul>
       </section>
     </div>

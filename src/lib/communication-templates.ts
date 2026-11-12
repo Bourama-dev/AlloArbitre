@@ -54,6 +54,8 @@ Pour activer votre compte, en 3 étapes :
 
 Ensuite, connectez-vous avec votre adresse e-mail (ou votre numéro de licence) et votre mot de passe.
 
+🔑 Mot de passe oublié ? Sur la page de connexion, appuyez sur « Mot de passe oublié ? », saisissez votre numéro de licence et votre date de naissance, puis choisissez-en un nouveau.
+
 📱 Astuce : sur téléphone, ajoutez le site à votre écran d'accueil pour l'ouvrir comme une application.
 
 Vous y retrouverez vos prochaines désignations, vos disponibilités à saisir (pensez à répondre avant la date limite) et votre suivi de saison.
@@ -76,6 +78,8 @@ Pour les autres, c'est rapide (2 minutes) : 👉 {{LIEN}}
 2️⃣ Saisissez votre n° de licence (tableau envoyé précédemment) et votre date de naissance
 3️⃣ Choisissez un mot de passe (8 caractères minimum)
 
+🔑 Déjà activé mais mot de passe oublié ? Sur la page de connexion, « Mot de passe oublié ? » avec votre n° de licence et votre date de naissance.
+
 ✅ Pourquoi c'est important :
 • vous voyez vos désignations et l'adresse des gymnases sur votre téléphone,
 • vous indiquez vos disponibilités sans passer par moi : sans réponse avant la date limite, vous risquez de ne pas être désigné,
@@ -88,7 +92,7 @@ Merci à tous ! 🏀`,
 ];
 
 /** Relance individuelle (message privé), générée pour chaque arbitre sans compte. */
-export const INDIVIDUAL_REMINDER = `Bonjour {{PRENOM}}, je vois que tu n'as pas encore activé ton compte AlloArbitre. Il te faut ton n° de licence {{LICENCE}} et ta date de naissance, ici : {{LIEN}} → « Activer mon compte ». Si ça bloque, dis-moi et je t'envoie un lien personnel. Merci ! 🏀`;
+export const INDIVIDUAL_REMINDER = `Bonjour {{PRENOM}}, je vois que tu n'as pas encore activé ton compte AlloArbitre. Il te faut ton n° de licence {{LICENCE}} et ta date de naissance, ici : {{LIEN}} → « Activer mon compte ». Si tu as déjà activé ton compte mais oublié ton mot de passe : « Mot de passe oublié ? » sur la page de connexion. Si ça bloque, dis-moi et je t'envoie un lien personnel. Merci ! 🏀`;
 
 export function fillTemplate(text: string, vars: { LIEN?: string; PRENOM?: string; LICENCE?: string }): string {
   return text
