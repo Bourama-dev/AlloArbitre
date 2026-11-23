@@ -46,10 +46,6 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
 
   const plan: PlanItem[] = [];
   const pendingByReferee = new Map<string, MatchSlot[]>();
-
-  for (const matchId of matchIds) {
-    const match = await getMatchForSuggestion(matchId);
-    if (!match) continue;
   const matches = (
     await Promise.all(matchIds.map((id) => getMatchForSuggestion(id)))
   ).filter((m): m is NonNullable<typeof m> => !!m && !m.cancelled && m.refereesRequired > m.designations.length);
@@ -66,7 +62,6 @@ export async function previewAutoDesignation(matchIds: string[]): Promise<PlanIt
   for (const match of matches) {
     const matchId = match.id;
     const slotsToFill = match.refereesRequired - match.designations.length;
-
     const matchLabel = `${match.homeTeam} vs ${match.awayTeam} · ${formatDateTimeFr(match.date)}`;
 
     // Divisions que le CD45 ne désigne pas (seniors hors PRF/PRM) : jamais
