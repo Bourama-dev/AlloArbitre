@@ -16,6 +16,7 @@ const links = [
   { href: "/arbitres", label: "Arbitres" },
   { href: "/disponibilites", label: "Disponibilités" },
   { href: "/controles", label: "Contrôles" },
+  { href: "/analytique", label: "Analytique" },
   { href: "/statistiques", label: "Statistiques" },
   { href: "/export", label: "Export" },
   { href: "/reglement", label: "Règlement" },
